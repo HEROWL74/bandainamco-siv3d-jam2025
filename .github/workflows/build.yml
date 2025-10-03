@@ -28,10 +28,15 @@ jobs:
           powershell -Command "Expand-Archive -Path siv3d-sdk.zip -DestinationPath sdk"
 
       - name: Set SIV3D env
-        run: echo "SIV3D_0_6_16=${{ github.workspace }}\sdk\OpenSiv3D-0.6.16" >> $GITHUB_ENV
+        run: |
+          echo "SIV3D_0_6_16=${{ github.workspace }}\sdk\OpenSiv3D-0.6.16" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
       - name: Build solution
-        run: msbuild Siv3DGameJam2025Project.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }}
+        run: msbuild Siv3DGameJam2025Project.sln ^
+          /p:Configuration=${{ matrix.configuration }} ^
+          /p:Platform=${{ matrix.platform }} ^
+          /p:AdditionalIncludeDirectories="%SIV3D_0_6_16%\include;%SIV3D_0_6_16%\include\ThirdParty" ^
+          /p:AdditionalLibraryDirectories="%SIV3D_0_6_16%\lib\Windows"
