@@ -29,4 +29,4 @@ jobs:
         run: echo "SIV3D_0_6_16=C:\Siv3D\0.6.16" >> $env:GITHUB_ENV
 
       - name: Build solution
-        run: msbuild Siv3DGameJam2025.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }}
+        run: msbuild Siv3DGameJam2025Project.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }}
