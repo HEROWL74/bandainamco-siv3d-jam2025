@@ -1,0 +1,32 @@
+name: Build (Siv3D)
+
+on:
+  push:
+    branches:
+      - develop
+      - 'feature/**'
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+        platform: [x64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Set up Siv3D environment variable
+        run: echo "SIV3D_0_6_16=C:\Siv3D\0.6.16" >> $env:GITHUB_ENV
+
+      - name: Build solution
+        run: msbuild Siv3DGameJam2025.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }}
