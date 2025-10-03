@@ -27,8 +27,8 @@ jobs:
           curl -L https://github.com/Siv3D/OpenSiv3D/archive/refs/tags/v0.6.16.zip -o siv3d-sdk.zip
           powershell -Command "Expand-Archive -Path siv3d-sdk.zip -DestinationPath sdk"
 
-      - name: Set environment variable
-        run: echo "SIV3D_0_6_16=${{ github.workspace }}\sdk\OpenSiv3D-0.6.16" >> $env:GITHUB_ENV
+      - name: Set SIV3D env
+        run: echo "SIV3D_0_6_16=${{ github.workspace }}\sdk\OpenSiv3D-0.6.16" >> $GITHUB_ENV
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
