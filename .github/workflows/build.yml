@@ -22,11 +22,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download Siv3D SDK
+        run: |
+          curl -L https://github.com/Siv3D/OpenSiv3D/archive/refs/tags/v0.6.16.zip -o siv3d-sdk.zip
+          powershell -Command "Expand-Archive -Path siv3d-sdk.zip -DestinationPath sdk"
+
+      - name: Set environment variable
+        run: echo "SIV3D_0_6_16=${{ github.workspace }}\sdk\OpenSiv3D-0.6.16" >> $env:GITHUB_ENV
+
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
-
-      - name: Set up Siv3D environment variable
-        run: echo "SIV3D_0_6_16=C:\Siv3D\0.6.16" >> $env:GITHUB_ENV
 
       - name: Build solution
         run: msbuild Siv3DGameJam2025Project.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }}
