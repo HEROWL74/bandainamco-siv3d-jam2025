@@ -35,8 +35,10 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Build solution
-        run: msbuild Siv3DGameJam2025Project.sln ^
-          /p:Configuration=${{ matrix.configuration }} ^
-          /p:Platform=${{ matrix.platform }} ^
-          /p:AdditionalIncludeDirectories="%SIV3D_0_6_16%\include;%SIV3D_0_6_16%\include\ThirdParty" ^
-          /p:AdditionalLibraryDirectories="%SIV3D_0_6_16%\lib\Windows"
+        run: |
+          msbuild Siv3DGameJam2025Project.sln `
+            /p:Configuration=${{ matrix.configuration }} `
+            /p:Platform=${{ matrix.platform }} `
+            /p:AdditionalIncludeDirectories="%SIV3D_0_6_16%\include;%SIV3D_0_6_16%\include\ThirdParty" `
+            /p:AdditionalLibraryDirectories="%SIV3D_0_6_16%\lib\Windows"
+        shell: pwsh
