@@ -1,4 +1,4 @@
-name: Build (Siv3D)
+name: CI Build
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - develop
+      - main
 
 jobs:
   build:
@@ -19,17 +20,14 @@ jobs:
         platform: [x64]
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Download Siv3D SDK
         run: |
           curl -L https://github.com/Siv3D/OpenSiv3D/archive/refs/tags/v0.6.16.zip -o siv3d-sdk.zip
           powershell -Command "Expand-Archive -Path siv3d-sdk.zip -DestinationPath sdk"
-
-      - name: Set SIV3D env
-        run: |
-          echo "SIV3D_0_6_16=${{ github.workspace }}\sdk\OpenSiv3D-0.6.16" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "SIV3D_0_6_16=$PWD\sdk\OpenSiv3D-0.6.16" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
@@ -39,6 +37,6 @@ jobs:
           msbuild Siv3DGameJam2025Project.sln `
             /p:Configuration=${{ matrix.configuration }} `
             /p:Platform=${{ matrix.platform }} `
-            /p:AdditionalIncludeDirectories="%SIV3D_0_6_16%\include;%SIV3D_0_6_16%\include\ThirdParty" `
-            /p:AdditionalLibraryDirectories="%SIV3D_0_6_16%\lib\Windows"
+            /p:AdditionalIncludeDirectories="$env:SIV3D_0_6_16\include;$env:SIV3D_0_6_16\include\ThirdParty" `
+            /p:AdditionalLibraryDirectories="$env:SIV3D_0_6_16\lib\Windows"
         shell: pwsh
