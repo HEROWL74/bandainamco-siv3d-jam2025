@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
+
   <PropertyGroup>
-    <!-- CI用: OpenSiv3D を展開したフォルダ -->
-    <IncludePath Condition="Exists('$(SIV3D_0_6_16)\Siv3D\include\Siv3D.hpp')">
-      $(SIV3D_0_6_16)\Siv3D\include;$(SIV3D_0_6_16)\Siv3D\include\ThirdParty;$(IncludePath)
-    </IncludePath>
-    <LibraryPath Condition="Exists('$(SIV3D_0_6_16)\Siv3D\lib\Windows\s3d.lib')">
-      $(SIV3D_0_6_16)\Siv3D\lib\Windows;$(LibraryPath)
-    </LibraryPath>
+    <!-- 共通: 環境変数 SIV3D_0_6_16 に依存 -->
+    <!-- 例: ローカルでは C:\Siv3D を設定
+             CI では build.yml で sdk/OpenSiv3D-0.6.16 を設定 -->
+
+  <IncludePath>$(SIV3D_0_6_16)\include;$(SIV3D_0_6_16)\include\ThirdParty;$(IncludePath)</IncludePath>
+  <LibraryPath>$(SIV3D_0_6_16)\lib\Windows;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
 </Project>
