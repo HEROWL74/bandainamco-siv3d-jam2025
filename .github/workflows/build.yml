@@ -27,8 +27,8 @@ jobs:
         run: |
           curl -L https://github.com/Siv3D/OpenSiv3D/archive/refs/tags/v0.6.16.zip -o siv3d-sdk.zip
           Expand-Archive -Path siv3d-sdk.zip -DestinationPath sdk
-          # ネストされたフォルダをリネームして揃える
-          mv sdk/OpenSiv3D-0.6.16/OpenSiv3D-0.6.16 sdk/siv3d
+          # 正しい階層にリネーム
+          mv sdk/OpenSiv3D-0.6.16 sdk/siv3d
           echo "SIV3D_0_6_16=$PWD/sdk/siv3d" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh
 
