@@ -10,16 +10,48 @@ Application::~Application()
 bool Application::init()
 {
 	Window::Resize(WINDOW_WIDTH, WINDOW_HEIGHT);
+	Graphics::SetVSyncEnabled(true);
+
+	// サークルの初期位置
+	mCirclePos.x = 400.0;
+	mCirclePos.y = 300.0;
+
 	return true;
 }
 
 void Application::update()
 {
+
 	//更新処理
+	if (KeyD.pressed())
+	{
+		mCirclePos.x += CIRCLE_SPEED;
+		if (mCirclePos.x > WINDOW_WIDTH - 50.0)
+			mCirclePos.x = WINDOW_WIDTH - 50.0;
+	}
+	if (KeyA.pressed())
+	{
+		mCirclePos.x -= CIRCLE_SPEED;
+		if (mCirclePos.x < 50.0)
+			mCirclePos.x = 50.0;
+	}
+	if (KeyS.pressed())
+	{
+		mCirclePos.y += CIRCLE_SPEED;
+		if (mCirclePos.y > WINDOW_HEIGHT - 50.0)
+			mCirclePos.y = WINDOW_HEIGHT - 50.0;
+	}
+	if (KeyW.pressed())
+	{
+		mCirclePos.y -= CIRCLE_SPEED;
+		if (mCirclePos.y < 50.0)
+			mCirclePos.y = 50.0;
+	}
+
 }
 
 void Application::draw()
 {
 	//描画処理
-	Circle{ 400,300,50 }.draw(Palette::Orange);
+	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
 }
