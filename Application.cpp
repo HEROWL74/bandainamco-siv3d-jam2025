@@ -21,7 +21,6 @@ bool Application::init()
 
 void Application::update()
 {
-
 	//更新処理
 	if (KeyD.pressed())
 	{
