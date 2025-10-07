@@ -1,11 +1,16 @@
 ﻿//Application.cpp
 #include "Application.hpp"
 
+
 Application::Application()
-{ }
+	: m_playerTexture(U"example/spritesheet/siv3d-kun-16.png")
+	, m_player(m_playerTexture)
+{
+}
 
 Application::~Application()
-{ }
+{
+}
 
 bool Application::init()
 {
@@ -15,6 +20,13 @@ bool Application::init()
 	// サークルの初期位置
 	mCirclePos.x = 400.0;
 	mCirclePos.y = 300.0;
+
+	//----------------------
+	// プレイヤー初期化
+	//---------------------
+
+	m_player.SetPosition(Scene::Center());
+	m_player.InitAnimation();
 
 	return true;
 }
@@ -47,10 +59,18 @@ void Application::update()
 			mCirclePos.y = 50.0;
 	}
 
+	// プレイヤー更新
+	m_player.Update();
 }
 
 void Application::draw()
 {
 	//描画処理
 	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
+
+	// プレイヤー描画
+	{
+		const ScopedRenderStates2D sampler{ SamplerState::ClampNearest };
+		m_player.Draw();
+	}
 }

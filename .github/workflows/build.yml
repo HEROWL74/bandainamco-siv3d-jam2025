@@ -48,9 +48,16 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Build
+      - name: Clean build directories
+        run: |
+          if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
+          if (Test-Path "x64") { Remove-Item -Recurse -Force "x64" }
+
+      - name: Build (single-threaded to avoid obj lock)
         shell: pwsh
         run: |
           msbuild "Siv3DGameJam2025Project.sln" `
             /p:Configuration=${{ matrix.configuration }} `
-            /p:Platform=${{ matrix.platform }}
+            /p:Platform=${{ matrix.platform }} `
+            /m:1 `
+            /t:Clean,Build

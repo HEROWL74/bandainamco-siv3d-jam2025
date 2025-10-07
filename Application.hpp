@@ -1,6 +1,7 @@
 ﻿//Application.hpp
 #pragma once
 #include <Siv3D.hpp>
+#include "Player.hpp"
 
 //アプリケーションクラス
 class Application
@@ -13,11 +14,13 @@ private:
 
 	Vec2 mCirclePos{};	// サークルの位置
 
+	Texture m_playerTexture;
+	Player m_player;
 public:
 	Application();
 	~Application();
 
-    bool init();
+	bool init();
 	void update();
 	void draw();
 };
