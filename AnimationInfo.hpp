@@ -22,4 +22,7 @@ namespace AnimationKeys
 	const String Walk_U = U"walk_U";
 	const String Walk_L = U"walk_L";
 	const String Walk_R = U"walk_R";
+
+	// Event
+	const String Event = U"event";
 }

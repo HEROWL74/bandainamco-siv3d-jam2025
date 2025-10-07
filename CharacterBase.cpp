@@ -35,6 +35,7 @@ void CharacterBase::Update()
 			m_currentFrame++;
 			if (m_currentFrame > (anim.endFrame - anim.startFrame)) // 最終フレームを超えたら
 			{
+				OnAnimationEnd(m_currentAnimationName); // アニメーション終了コールバック
 				m_currentFrame = 0; //最初のフレームに戻る
 			}
 		}

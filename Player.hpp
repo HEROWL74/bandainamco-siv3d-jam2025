@@ -10,4 +10,13 @@ public:
 	void Draw() const override;
 
 	void InitAnimation() override;
+
+private:
+	// イベントフラグ
+	bool m_isEvent = false;
+	void OnAnimationEnd(const String& animName) override;
+
+	// 向き管理
+	enum class Direction { Down, Up, Left, Right };
+	Direction m_lastDirection = Direction::Down;
 };

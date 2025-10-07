@@ -25,6 +25,7 @@ protected:
 	Vec2 m_position = Scene::Center(); // 位置
 	Vec2 m_velocity = { 0, 0 }; // 速度ベクトル
 	double m_moveSpeed = 2.0; // 移動速度
+	virtual void OnAnimationEnd(const String& animName) {} // アニメーション終了時コールバック
 private:
 
 	Texture m_texture; // スプライトシート
