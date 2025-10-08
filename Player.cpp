@@ -5,39 +5,53 @@ Player::Player(const Texture& texture)
 {
 }
 
+void Player::StartExclusiveAnimation(const String& animName)
+{
+	// 攻撃開始時に向きを記録
+	if (m_currentAnimationName == AnimationKeys::Walk_U || m_currentAnimationName == AnimationKeys::Idle_U) m_lastDirection = Direction::Up;
+	else if (m_currentAnimationName == AnimationKeys::Walk_D || m_currentAnimationName == AnimationKeys::Idle_D) m_lastDirection = Direction::Down;
+	else if (m_currentAnimationName == AnimationKeys::Walk_L || m_currentAnimationName == AnimationKeys::Idle_L) m_lastDirection = Direction::Left;
+	else if (m_currentAnimationName == AnimationKeys::Walk_R || m_currentAnimationName == AnimationKeys::Idle_R) m_lastDirection = Direction::Right;
+
+	PlayAnimation(animName);
+	SetVelocity({ 0, 0 });
+}
+
 void Player::Update()
 {
-	// イベント中は他の入力を受け付けない(仮)
-	if (m_isEvent)
+	// イベント中は移動不可
+	if (IsEvent())
 	{
 		CharacterBase::Update();
 		return;
 	}
 
+	// 移動ベクトル初期化
 	SetVelocity({ 0, 0 });
 
-	// FキーでAttackアニメーション
+	// スペースキーでイベントアニメーション開始
+	if (KeySpace.down())
+	{
+		StartExclusiveAnimation(AnimationKeys::Event_0);
+		CharacterBase::Update();
+		return; // アニメーション時中は他の入力を無視
+	}
+
+	// マウス左クリックでイベントアニメーション開始
 	if (MouseL.down())
 	{
-		// 攻撃開始時に向きを記録
-		if (m_currentAnimationName == AnimationKeys::Walk_U || m_currentAnimationName == AnimationKeys::Idle_U) m_lastDirection = Direction::Up;
-		else if (m_currentAnimationName == AnimationKeys::Walk_D || m_currentAnimationName == AnimationKeys::Idle_D) m_lastDirection = Direction::Down;
-		else if (m_currentAnimationName == AnimationKeys::Walk_L || m_currentAnimationName == AnimationKeys::Idle_L) m_lastDirection = Direction::Left;
-		else if (m_currentAnimationName == AnimationKeys::Walk_R || m_currentAnimationName == AnimationKeys::Idle_R) m_lastDirection = Direction::Right;
-
-		m_isEvent = true;
-		PlayAnimation(AnimationKeys::Event);
-		SetVelocity({ 0, 0 });
+		StartExclusiveAnimation(AnimationKeys::Event_1);
 		CharacterBase::Update();
 		return;
 	}
 
-	// 方向ごとに加算
+	// 移動入力
 	if (KeyW.pressed()) m_velocity.y -= 1;
 	if (KeyS.pressed()) m_velocity.y += 1;
 	if (KeyA.pressed()) m_velocity.x -= 1;
 	if (KeyD.pressed()) m_velocity.x += 1;
 
+	// 移動ベクトルに応じてアニメーション切り替え
 	if (m_velocity != Vec2{ 0, 0 })
 	{
 		if (m_velocity.y < 0) { PlayAnimation(AnimationKeys::Walk_U); m_lastDirection = Direction::Up; }
@@ -47,7 +61,7 @@ void Player::Update()
 
 		SetVelocity(m_velocity.normalize() * m_moveSpeed);
 	}
-	else
+	else // 停止時
 	{
 		if (m_currentAnimationName == AnimationKeys::Walk_U) { PlayAnimation(AnimationKeys::Idle_U); m_lastDirection = Direction::Up; }
 		else if (m_currentAnimationName == AnimationKeys::Walk_D) { PlayAnimation(AnimationKeys::Idle_D); m_lastDirection = Direction::Down; }
@@ -63,10 +77,13 @@ void Player::Update()
 
 void Player::OnAnimationEnd(const String& animName)
 {
-	if (animName == AnimationKeys::Event)
+	// アニメーション終了時
+	if (IsExclusiveAnimation(animName))
 	{
-		m_isEvent = false;
-		// イベント後はイベント前の向きに応じてIdleアニメーションに戻す
+		// アニメーション終了時にイベントフラグOFF
+		SetEvent(false);
+
+		// 向きに応じてIdleアニメーションに戻す
 		switch (m_lastDirection)
 		{
 		case Direction::Up:
@@ -92,7 +109,6 @@ void Player::Draw() const
 
 void Player::InitAnimation()
 {
-	// アニメーション定義
 	Animation player_Idle_D{ 1, 1, 0, {0.2} };
 	Animation player_Idle_U{ 1, 1, 3, {0.2} };
 	Animation player_Idle_L{ 1, 1, 1, {0.2} };
@@ -103,9 +119,9 @@ void Player::InitAnimation()
 	Animation player_Walk_L{ 0, 2, 1, {0.1, 0.1, 0.1} };
 	Animation player_Walk_R{ 0, 2, 2, {0.1, 0.1, 0.1} };
 
-	Animation player_Event{ 3, 5, 0, {0.1, 0.1, 0.1} };
+	Animation player_Event_0{ 3, 5, 0, {0.1, 0.1, 0.1}, true };
+	Animation player_Event_1{ 3, 5, 3, {0.1, 0.1, 0.1}, true };
 
-	// アニメーション登録
 	AddAnimation(AnimationKeys::Idle_D, player_Idle_D);
 	AddAnimation(AnimationKeys::Idle_U, player_Idle_U);
 	AddAnimation(AnimationKeys::Idle_L, player_Idle_L);
@@ -116,8 +132,8 @@ void Player::InitAnimation()
 	AddAnimation(AnimationKeys::Walk_L, player_Walk_L);
 	AddAnimation(AnimationKeys::Walk_R, player_Walk_R);
 
-	AddAnimation(AnimationKeys::Event, player_Event);
+	AddAnimation(AnimationKeys::Event_0, player_Event_0);
+	AddAnimation(AnimationKeys::Event_1, player_Event_1);
 
-	// 初期アニメーション
 	PlayAnimation(AnimationKeys::Idle_D);
 }

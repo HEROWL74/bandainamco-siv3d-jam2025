@@ -14,6 +14,13 @@ public:
 	void AddAnimation(const String& name, const Animation& anim); // アニメーション登録
 	void PlayAnimation(const String& name); // アニメーション再生
 
+	// 排他アニメーションの登録とチェック
+	bool IsExclusiveAnimation(const String& name) const;
+
+	// イベント状態の公開
+	bool IsEvent() const { return m_isEvent; }
+	void SetEvent(bool value) { m_isEvent = value; }
+
 	// まだ未使用な部分が多い。将来的に使う予定
 	void SetPosition(const Vec2& pos) { m_position = pos; } // 位置設定
 	void SetVelocity(const Vec2& vel) { m_velocity = vel; } // 速度設定
@@ -34,4 +41,7 @@ private:
 	int m_currentFrame = 0;
 	int m_framewidth = 20; //1枚のフレームの幅
 	int m_frameheight = 28;
+
+	// 排他アニメーション管理
+	bool m_isEvent = false;
 };

@@ -7,6 +7,7 @@ struct Animation
 	int endFrame = 0;   // アニメーションの終了フレーム
 	int row = 0;        // スプライトシートの行
 	Array<double> durations;
+	bool isExclusive = false; // 排他アニメーションかどうか
 };
 
 namespace AnimationKeys
@@ -24,5 +25,6 @@ namespace AnimationKeys
 	const String Walk_R = U"walk_R";
 
 	// Event
-	const String Event = U"event";
+	const String Event_0 = U"event_0";
+	const String Event_1 = U"event_1";
 }
