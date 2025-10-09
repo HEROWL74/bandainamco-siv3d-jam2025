@@ -3,14 +3,14 @@
 #include <memory>
 
 // シーンの状態遷移
-enum class State
+enum class SceneState
 {
 	TITLE,
 	GAME,
 	RESULT,
 };
 
-using App = SceneManager<State>;
+using App = SceneManager<SceneState>;
 
 class SceneTransition
 {

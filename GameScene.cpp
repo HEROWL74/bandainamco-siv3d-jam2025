@@ -1,9 +1,9 @@
-﻿#include "Game.hpp"
+﻿#include "GameScene.hpp"
 #include "Application.hpp"
 
 
 // コンストラクタ
-Game::Game(const InitData& init)
+GameScene::GameScene(const InitData& init)
 	:IScene(init)
 	, m_playerTexture(U"example/spritesheet/siv3d-kun-16.png")
 	, m_player(m_playerTexture)
@@ -13,19 +13,19 @@ Game::Game(const InitData& init)
 }
 
 // デストラクタ
-Game::~Game()
+GameScene::~GameScene()
 {
 	Release();
 }
 
-bool Game::SystemInit()
+bool GameScene::SystemInit()
 {
 
 
 	return true;
 }
 
-void Game::GameInit()
+void GameScene::GameInit()
 {
 	// サークルの初期位置
 	mCirclePos.x = 400.0;
@@ -38,11 +38,11 @@ void Game::GameInit()
 	m_player.InitAnimation();
 }
 
-void Game::update()
+void GameScene::update()
 {
 	if (KeyEnter.down() || MouseL.down())
 	{
-		changeScene(State::RESULT);
+		changeScene(SceneState::RESULT);
 	}
 
 	// 円の移動処理
@@ -75,7 +75,7 @@ void Game::update()
 	m_player.Update();
 }
 
-void Game::draw() const
+void GameScene::draw() const
 {
 	Scene::SetBackground(ColorF{ 0.8, 0.0, 0.2 });
 
@@ -89,7 +89,7 @@ void Game::draw() const
 	}
 }
 
-bool Game::Release()
+bool GameScene::Release()
 {
 
 

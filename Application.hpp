@@ -1,7 +1,6 @@
 ﻿//Application.hpp
 #pragma once
 #include <Siv3D.hpp>
-#include "Player.hpp"
 #include "SceneTransition.hpp"
 #include <memory>
 

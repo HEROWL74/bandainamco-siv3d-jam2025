@@ -2,13 +2,13 @@
 #include <Siv3D.hpp>
 #include "SceneTransition.hpp"
 
-class Result : public App::Scene
+class ResultScene : public App::Scene
 {
 private:
 
 public:
-	Result(const InitData& init);
-	~Result();
+	ResultScene(const InitData& init);
+	~ResultScene();
 
 	bool SystemInit();
 	void GameInit();

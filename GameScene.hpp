@@ -4,7 +4,7 @@
 #include "SceneTransition.hpp"
 #include "Player.hpp"
 
-class Game : public App::Scene
+class GameScene : public App::Scene
 {
 private:
 	static constexpr double CIRCLE_SPEED = 3.0;
@@ -15,8 +15,8 @@ private:
 	Player m_player;
 
 public:
-	Game(const InitData& init);
-	~Game();
+	GameScene(const InitData& init);
+	~GameScene();
 
 	bool SystemInit();
 	void GameInit();
