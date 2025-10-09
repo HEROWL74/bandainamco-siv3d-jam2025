@@ -2,7 +2,7 @@
 
 #include <Siv3D.hpp>
 #include "SceneTransition.hpp"
-#include "Player.hpp"
+#include "../Character/Player.hpp"
 
 class GameScene : public App::Scene
 {
