@@ -1,0 +1,32 @@
+name: Notify Discord on PR
+
+on:
+  pull_request:
+    types: [opened, reopened, closed]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discord通知（PR作成時）
+        if: github.event.action == 'opened' || github.event.action == 'reopened'
+        uses: Ilshidur/action-discord@v3
+        with:
+          webhook-url: ${{ secrets.DISCORD_PR_WEBHOOK }}
+          username: "DX12 CI Bot"
+          content: |
+            📨 **新しいプルリク！**
+            タイトル: `${{ github.event.pull_request.title }}`
+            作成者: `${{ github.actor }}`
+            🔗 [PRを見る](${{ github.event.pull_request.html_url }})
+
+      - name: Discord通知（マージ時）
+        if: github.event.action == 'closed' && github.event.pull_request.merged == true
+        uses: Ilshidur/action-discord@v3
+        with:
+          webhook-url: ${{ secrets.DISCORD_PR_WEBHOOK }}
+          username: "DX12 CI Bot"
+          content: |
+            🎉 **プルリクがマージされました！**
+            タイトル: `${{ github.event.pull_request.title }}`
+            ブランチ: `${{ github.event.pull_request.base.ref }}` ← `${{ github.event.pull_request.head.ref }}`
