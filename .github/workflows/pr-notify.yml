@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Discord通知（PR作成時）
         if: github.event.action == 'opened' || github.event.action == 'reopened'
-        uses: Ilshidur/action-discord@v3
+        uses: Ilshidur/action-discord@master
         with:
           webhook-url: ${{ secrets.DISCORD_PR_WEBHOOK }}
           username: "DX12 CI Bot"
@@ -22,7 +22,7 @@ jobs:
 
       - name: Discord通知（マージ時）
         if: github.event.action == 'closed' && github.event.pull_request.merged == true
-        uses: Ilshidur/action-discord@v3
+        uses: Ilshidur/action-discord@master
         with:
           webhook-url: ${{ secrets.DISCORD_PR_WEBHOOK }}
           username: "DX12 CI Bot"
