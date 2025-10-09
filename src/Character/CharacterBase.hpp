@@ -23,7 +23,7 @@ public:
 
 	// まだ未使用な部分が多い。将来的に使う予定
 	// convertible_toは明示的に何初期化してるかを書くために使っている
-	void SetPosition(const std::convertible_to<Vec2> auto& pos) { m_position = static_cast<Vec2>(pos) } // 位置設定
+	void SetPosition(const std::convertible_to<Vec2> auto& pos) { m_position = static_cast<Vec2>(pos); } // 位置設定
 	void SetVelocity(const std::convertible_to<Vec2> auto& vel) { m_velocity = static_cast<Vec2>(vel); } // 速度設定
 	[[nodiscard]]
 	Vec2 GetPosition() const noexcept { return m_position; } // 位置取得
