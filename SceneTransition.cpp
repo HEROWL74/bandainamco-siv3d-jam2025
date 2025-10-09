@@ -1,7 +1,7 @@
 ﻿#include "SceneTransition.hpp"
-#include "Title.hpp"
-#include "Game.hpp"
-#include "Result.hpp"
+#include "TitleScene.hpp"
+#include "GameScene.hpp"
+#include "ResultScene.hpp"
 
 SceneTransition::SceneTransition()
 	:mManager(nullptr)
@@ -18,9 +18,12 @@ bool SceneTransition::SystemInit()
 	mManager = std::make_unique<App>();
 
 	// シーンを登録
-	mManager->add<Title>(State::TITLE);
-	mManager->add<Game>(State::GAME);
-	mManager->add<Result>(State::RESULT);
+	mManager->add<TitleScene>(SceneState::TITLE);
+	mManager->add<GameScene>(SceneState::GAME);
+	mManager->add<ResultScene>(SceneState::RESULT);
+
+	// ゲーム起動時にゲーム画面からスタート（フェードイン時間無し）
+	mManager->init(SceneState::GAME, 0s);
 
 
 	return true;

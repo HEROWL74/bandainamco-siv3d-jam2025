@@ -162,13 +162,13 @@
     <ClCompile Include="SceneTransition.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Title.cpp">
+    <ClCompile Include="TitleScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Game.cpp">
+    <ClCompile Include="GameScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Result.cpp">
+    <ClCompile Include="ResultScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -845,16 +845,16 @@
     <ClInclude Include="Player.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Title.hpp">
+    <ClInclude Include="TitleScene.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SceneTransition.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Game.hpp">
+    <ClInclude Include="GameScene.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Result.hpp">
+    <ClInclude Include="ResultScene.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

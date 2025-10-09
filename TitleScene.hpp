@@ -4,13 +4,13 @@
 #include <vector>
 
 
-class Title : public App::Scene
+class TitleScene : public App::Scene
 {
 private:
 
 public:
-	Title(const InitData& init);
-	~Title();
+	TitleScene(const InitData& init);
+	~TitleScene();
 
 	bool SystemInit();
 	void GameInit();
