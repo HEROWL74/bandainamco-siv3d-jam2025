@@ -14,7 +14,7 @@ void Player::StartExclusiveAnimation(const String& animName)
 	else if (m_currentAnimationName == AnimationKeys::Walk_R || m_currentAnimationName == AnimationKeys::Idle_R) m_lastDirection = Direction::Right;
 
 	PlayAnimation(animName);
-	SetVelocity({ 0, 0 });
+	SetVelocity(Vec2{ 0, 0 });
 }
 
 void Player::Update()
@@ -27,7 +27,7 @@ void Player::Update()
 	}
 
 	// 移動ベクトル初期化
-	SetVelocity({ 0, 0 });
+	SetVelocity(Vec2{ 0, 0 });
 
 	// スペースキーでイベントアニメーション開始
 	if (KeySpace.down())
