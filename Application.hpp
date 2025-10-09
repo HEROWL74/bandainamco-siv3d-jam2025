@@ -2,20 +2,15 @@
 #pragma once
 #include <Siv3D.hpp>
 #include "Player.hpp"
+#include "SceneTransition.hpp"
+#include <memory>
 
 //アプリケーションクラス
 class Application
 {
 private:
-	static constexpr int WINDOW_WIDTH = 800;
-	static constexpr int WINDOW_HEIGHT = 600;
+	std::unique_ptr<SceneTransition> mScene;
 
-	static constexpr double CIRCLE_SPEED = 3.0;
-
-	Vec2 mCirclePos{};	// サークルの位置
-
-	Texture m_playerTexture;
-	Player m_player;
 public:
 	Application();
 	~Application();
@@ -23,4 +18,7 @@ public:
 	bool init();
 	void update();
 	void draw();
+
+	static constexpr int WINDOW_WIDTH = 800;
+	static constexpr int WINDOW_HEIGHT = 600;
 };
