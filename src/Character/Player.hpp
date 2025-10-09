@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "CharacterBase.hpp"
+#include "MainCamera.hpp"
 
 class Player : public CharacterBase
 {
@@ -10,6 +11,8 @@ public:
 	void Draw() const override;
 	void InitAnimation() override;
 
+	MainCamera& GetCamera() { return m_camera; }
+	MainCamera GetCamera() const { return m_camera; }
 private:
 	void OnAnimationEnd(const String& animName) override;
 
@@ -18,4 +21,6 @@ private:
 
 	enum class Direction { Down, Up, Left, Right };
 	Direction m_lastDirection = Direction::Down;
+
+	MainCamera m_camera;
 };

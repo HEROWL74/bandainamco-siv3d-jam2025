@@ -71,7 +71,7 @@ void Player::Update()
 
 	ClearPrint();
 	Print << m_currentAnimationName;
-
+	m_camera.Update(GetPosition());
 	CharacterBase::Update();
 }
 
