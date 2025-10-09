@@ -1,7 +1,7 @@
 ﻿//Application.hpp
 #pragma once
 #include <Siv3D.hpp>
-#include "SceneTransition.hpp"
+#include "../Scene/SceneTransition.hpp"
 #include <memory>
 
 //アプリケーションクラス

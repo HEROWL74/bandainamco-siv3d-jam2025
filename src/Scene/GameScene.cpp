@@ -1,5 +1,5 @@
 ﻿#include "GameScene.hpp"
-#include "Application.hpp"
+#include "../Core/Application.hpp"
 
 
 // コンストラクタ
