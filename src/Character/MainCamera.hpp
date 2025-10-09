@@ -6,11 +6,11 @@ class MainCamera
 public:
 	MainCamera();
 
-	void Update(const Vec2& targetPosition);
+	void Update();
 	void SetTarget(const Vec2& targetPosition);
-	Transformer2D GetTransformer() const;
-	Mat3x2 GetViewMatrix() const;
-	const Vec2& GetPosition() const;
+	[[nodiscard]] Transformer2D GetTransformer() const;
+	[[nodiscard]] Mat3x2 GetViewMatrix() const;
+	[[nodiscard]] const Vec2& GetPosition() const noexcept { return m_position; }
 
 private:
 	Vec2 m_position;

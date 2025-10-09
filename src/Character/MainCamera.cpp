@@ -5,9 +5,8 @@ MainCamera::MainCamera()
 {
 }
 
-void MainCamera::Update(const Vec2& targetPosition)
+void MainCamera::Update()
 {
-	m_target = targetPosition;
 	m_position += (m_target - m_position) * (m_lerpFactor * Scene::DeltaTime());
 }
 
@@ -24,9 +23,4 @@ Transformer2D MainCamera::GetTransformer() const
 Mat3x2 MainCamera::GetViewMatrix() const
 {
 	return Mat3x2::Translate(-m_position + Scene::Center());
-}
-
-const Vec2& MainCamera::GetPosition() const
-{
-	return m_position;
 }

@@ -73,13 +73,18 @@ void GameScene::update()
 
 	// プレイヤー更新
 	m_player.Update();
+
+	// カメラ更新
+	m_MainCamera.SetTarget(m_player.GetPosition());
+	m_MainCamera.Update();
 }
 
 void GameScene::draw() const
 {
 	Scene::SetBackground(ColorF{ 0.8, 0.0, 0.2 });
 
-	const auto transformer = m_player.GetCamera().GetTransformer();
+	// カメラ適用
+	const auto transformer = m_MainCamera.GetTransformer();
 
 	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
 	Rect{ 0, 0, Application::WINDOW_WIDTH, Application::WINDOW_HEIGHT }.drawFrame(40.0, Palette::Skyblue);
