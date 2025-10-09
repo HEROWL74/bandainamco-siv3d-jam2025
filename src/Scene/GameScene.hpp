@@ -14,6 +14,7 @@ private:
 	Texture m_playerTexture;
 	Player m_player;
 
+	MainCamera m_MainCamera;
 public:
 	GameScene(const InitData& init);
 	~GameScene();

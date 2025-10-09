@@ -73,20 +73,24 @@ void GameScene::update()
 
 	// プレイヤー更新
 	m_player.Update();
+
+	// カメラ更新
+	m_MainCamera.SetTarget(m_player.GetPosition());
+	m_MainCamera.Update();
 }
 
 void GameScene::draw() const
 {
 	Scene::SetBackground(ColorF{ 0.8, 0.0, 0.2 });
 
-	//描画処理
-	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
+	// カメラ適用
+	const auto transformer = m_MainCamera.GetTransformer();
 
-	// プレイヤー描画
-	{
-		const ScopedRenderStates2D sampler{ SamplerState::ClampNearest };
-		m_player.Draw();
-	}
+	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
+	Rect{ 0, 0, Application::WINDOW_WIDTH, Application::WINDOW_HEIGHT }.drawFrame(40.0, Palette::Skyblue);
+
+	const ScopedRenderStates2D sampler{ SamplerState::ClampNearest };
+	m_player.Draw();
 }
 
 bool GameScene::Release()

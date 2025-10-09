@@ -69,9 +69,6 @@ void Player::Update()
 		else if (m_currentAnimationName == AnimationKeys::Walk_R) { PlayAnimation(AnimationKeys::Idle_R); m_lastDirection = Direction::Right; }
 	}
 
-	ClearPrint();
-	Print << m_currentAnimationName;
-
 	CharacterBase::Update();
 }
 
