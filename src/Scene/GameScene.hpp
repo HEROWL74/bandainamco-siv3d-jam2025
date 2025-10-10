@@ -3,6 +3,7 @@
 #include <Siv3D.hpp>
 #include "SceneTransition.hpp"
 #include "../Character/Player.hpp"
+#include "../Character/Enemy.hpp"
 
 class GameScene : public App::Scene
 {
@@ -13,6 +14,9 @@ private:
 
 	Texture m_playerTexture;
 	Player m_player;
+
+	Texture m_enemyTexture;
+	Enemy m_enemy;
 
 	MainCamera m_MainCamera;
 public:

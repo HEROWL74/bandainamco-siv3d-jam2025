@@ -7,6 +7,8 @@ GameScene::GameScene(const InitData& init)
 	:IScene(init)
 	, m_playerTexture(U"example/spritesheet/siv3d-kun-16.png")
 	, m_player(m_playerTexture)
+	, m_enemyTexture(U"example/spritesheet/siv3d-kun-16.png")
+	, m_enemy(m_enemyTexture, m_player)
 {
 	SystemInit();
 	GameInit();
@@ -36,6 +38,9 @@ void GameScene::GameInit()
 	//----------------------
 	m_player.SetPosition(Scene::Center());
 	m_player.InitAnimation();
+
+	m_enemy.SetPosition(Scene::Center() + Vec2{ 200, -100 });
+	m_enemy.InitAnimation();
 }
 
 void GameScene::update()
@@ -74,6 +79,8 @@ void GameScene::update()
 	// プレイヤー更新
 	m_player.Update();
 
+	m_enemy.Update();
+
 	// カメラ更新
 	m_MainCamera.SetTarget(m_player.GetPosition());
 	m_MainCamera.Update();
@@ -91,11 +98,12 @@ void GameScene::draw() const
 #ifdef DEBUG
 	Rect{ 0, 0, Application::WINDOW_WIDTH, Application::WINDOW_HEIGHT }.drawFrame(40.0, Palette::Skyblue);
 #endif // DEBUG
-
+	Rect{ 0, 0, Application::WINDOW_WIDTH, Application::WINDOW_HEIGHT }.drawFrame(40.0, Palette::Skyblue);
 
 
 	const ScopedRenderStates2D sampler{ SamplerState::ClampNearest };
 	m_player.Draw();
+	m_enemy.Draw();
 }
 
 bool GameScene::Release()
