@@ -7,6 +7,7 @@ GameScene::GameScene(const InitData& init)
 	:IScene(init)
 	, m_playerTexture(U"example/spritesheet/siv3d-kun-16.png")
 	, m_player(m_playerTexture)
+	, m_gameOption(nullptr)
 {
 	SystemInit();
 	GameInit();
@@ -20,30 +21,47 @@ GameScene::~GameScene()
 
 bool GameScene::SystemInit()
 {
+	m_gameOption = std::make_unique<GameOption>();
+	m_gameOption->SystemInit();
 
+	m_optionIcon = Texture{ U"⚙️"_emoji };
 
 	return true;
 }
 
 void GameScene::GameInit()
 {
-	// サークルの初期位置
-	mCirclePos.x = 400.0;
-	mCirclePos.y = 300.0;
-
 	//----------------------
 	// プレイヤー初期化
 	//----------------------
 	m_player.SetPosition(Scene::Center());
 	m_player.InitAnimation();
+
+	// ゲームの状態
+	m_gameState = GameState::Game;
+
+	m_gameOption->GameInit();
+
+	// オプションボタンの座標
+	const double buttonX = 750.0;
+	const double buttonY = 550.0;
+	const double buttonW = 40;
+	const double ronded = 6;
+
+	m_optionButton = RectF{ Arg::center(buttonX, buttonY), buttonW, buttonW }.rounded(ronded);
 }
 
 void GameScene::update()
 {
-	if (KeyEnter.down() || MouseL.down())
+	switch (m_gameState)
 	{
-		changeScene(SceneState::RESULT);
-	}
+	case GameState::Game:												// ゲーム画面
+
+		// エンターキーでシーンをresultへ
+		if (KeyEnter.down())
+		{
+			changeScene(SceneState::RESULT);
+		}
 
 	// 円の移動処理
 	if (KeyD.pressed())
@@ -71,31 +89,54 @@ void GameScene::update()
 			mCirclePos.y = 50.0;
 	}
 
-	// プレイヤー更新
-	m_player.Update();
+		// プレイヤー更新
+		m_player.Update();
 
-	// カメラ更新
-	m_MainCamera.SetTarget(m_player.GetPosition());
-	m_MainCamera.Update();
+		break;
+
+	case GameState::Option:												// オプション画面
+		m_gameOption->Update();
+		if (m_gameOption->IsClosed())
+		{
+			m_gameState = GameState::Game;
+			m_gameOption->GameInit();
+		}
+		break;
+	}
+	
 }
 
 void GameScene::draw() const
 {
 	Scene::SetBackground(ColorF{ 0.8, 0.0, 0.2 });
 
-	// カメラ適用
-	const auto transformer = m_MainCamera.GetTransformer();
-
+	//描画処理
 	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
 
-#ifdef DEBUG
-	Rect{ 0, 0, Application::WINDOW_WIDTH, Application::WINDOW_HEIGHT }.drawFrame(40.0, Palette::Skyblue);
-#endif // DEBUG
+	// プレイヤー描画
+	{
+		const ScopedRenderStates2D sampler{ SamplerState::ClampNearest };
+		m_player.Draw();
+	}	
 
+	// 設定ボタンの描画	
+	m_optionButton.draw(Palette::Silver);
 
+	// マウスが図形の上に来たら影ができる
+	if (m_optionButton.mouseOver())
+	{
+		m_optionButton.drawShadow(Vec2{ 2, 2 }, 12, 1).draw(ColorF{ 0.9, 0.8, 0.6 });
+	}
+	// 歯車マーク
+	double iconX = 750.0;
+	double iconY = 550.0;
+	m_optionIcon.scaled(0.3).drawAt(iconX, iconY);
 
-	const ScopedRenderStates2D sampler{ SamplerState::ClampNearest };
-	m_player.Draw();
+	// オプション画面の描画
+	if (m_gameState == GameState::Option)
+	{
+		m_gameOption->Draw();
+	}
 }
 
 bool GameScene::Release()

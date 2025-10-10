@@ -3,7 +3,7 @@
 
 
 Application::Application()
-	:mScene(nullptr)
+	:m_scene(nullptr)
 {
 }
 
@@ -16,15 +16,15 @@ bool Application::init()
 	Window::Resize(WINDOW_WIDTH, WINDOW_HEIGHT);
 	Graphics::SetVSyncEnabled(true);
 
-	mScene = std::make_unique<SceneTransition>();
-	if (!mScene->SystemInit()) return false;
+	m_scene = std::make_unique<SceneTransition>();
+	if (!m_scene->SystemInit()) return false;
 
 	return true;
 }
 
 void Application::update()
 {
-	mScene->Update();
+	m_scene->Update();
 }
 
 void Application::draw()
