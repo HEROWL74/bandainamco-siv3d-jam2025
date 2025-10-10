@@ -8,7 +8,7 @@
 class Application
 {
 private:
-	std::unique_ptr<SceneTransition> mScene;
+	std::unique_ptr<SceneTransition> m_scene;
 
 public:
 	Application();

@@ -5,6 +5,15 @@
 #include "../Character/Player.hpp"
 #include "../Render/Spotlight.hpp"
 
+#include "../Option/GameOption.hpp"
+
+enum class GameState
+{
+	Game,
+	Option,
+};
+
+
 class GameScene : public App::Scene
 {
 private:
@@ -17,6 +26,12 @@ private:
 
 	MainCamera m_MainCamera;
 	Spotlight m_spotlight;
+	std::unique_ptr<class GameOption> m_gameOption;
+	GameState m_gameState;
+
+	Texture m_optionIcon;
+	RoundRect m_optionButton;
+
 public:
 	GameScene(const InitData& init);
 	~GameScene();
