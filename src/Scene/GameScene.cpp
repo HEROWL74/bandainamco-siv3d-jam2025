@@ -28,8 +28,8 @@ bool GameScene::SystemInit()
 void GameScene::GameInit()
 {
 	// サークルの初期位置
-	mCirclePos.x = 400.0;
-	mCirclePos.y = 300.0;
+	m_circlePos.x = 400.0;
+	m_circlePos.y = 300.0;
 
 	//----------------------
 	// プレイヤー初期化
@@ -48,27 +48,27 @@ void GameScene::update()
 	// 円の移動処理
 	if (KeyD.pressed())
 	{
-		mCirclePos.x += CIRCLE_SPEED;
-		if (mCirclePos.x > Application::WINDOW_WIDTH - 50.0)
-			mCirclePos.x = Application::WINDOW_WIDTH - 50.0;
+		m_circlePos.x += CIRCLE_SPEED;
+		if (m_circlePos.x > Application::WINDOW_WIDTH - 50.0)
+			m_circlePos.x = Application::WINDOW_WIDTH - 50.0;
 	}
 	if (KeyA.pressed())
 	{
-		mCirclePos.x -= CIRCLE_SPEED;
-		if (mCirclePos.x < 50.0)
-			mCirclePos.x = 50.0;
+		m_circlePos.x -= CIRCLE_SPEED;
+		if (m_circlePos.x < 50.0)
+			m_circlePos.x = 50.0;
 	}
 	if (KeyS.pressed())
 	{
-		mCirclePos.y += CIRCLE_SPEED;
-		if (mCirclePos.y > Application::WINDOW_HEIGHT - 50.0)
-			mCirclePos.y = Application::WINDOW_HEIGHT - 50.0;
+		m_circlePos.y += CIRCLE_SPEED;
+		if (m_circlePos.y > Application::WINDOW_HEIGHT - 50.0)
+			m_circlePos.y = Application::WINDOW_HEIGHT - 50.0;
 	}
 	if (KeyW.pressed())
 	{
-		mCirclePos.y -= CIRCLE_SPEED;
-		if (mCirclePos.y < 50.0)
-			mCirclePos.y = 50.0;
+		m_circlePos.y -= CIRCLE_SPEED;
+		if (m_circlePos.y < 50.0)
+			m_circlePos.y = 50.0;
 	}
 
 	// プレイヤー更新
@@ -80,7 +80,7 @@ void GameScene::draw() const
 	Scene::SetBackground(ColorF{ 0.8, 0.0, 0.2 });
 
 	//描画処理
-	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
+	Circle{ m_circlePos.x, m_circlePos.y, 50 }.draw(Palette::Orange);
 
 	// プレイヤー描画
 	{
