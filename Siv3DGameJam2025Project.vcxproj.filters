@@ -168,13 +168,13 @@
     <ClCompile Include="src\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OptionBase.cpp">
+    <ClCompile Include="src\Option\GameOption.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TitleOption.cpp">
+    <ClCompile Include="src\Option\OptionBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GameOption.cpp">
+    <ClCompile Include="src\Option\TitleOption.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -866,13 +866,13 @@
     <ClInclude Include="src\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OptionBase.hpp">
+    <ClInclude Include="src\Option\GameOption.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TitleOption.hpp">
+    <ClInclude Include="src\Option\OptionBase.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GameOption.hpp">
+    <ClInclude Include="src\Option\TitleOption.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
