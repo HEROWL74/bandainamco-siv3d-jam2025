@@ -863,5 +863,8 @@
     <ClInclude Include="src\Character\MainCamera.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Render\Spotlight.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

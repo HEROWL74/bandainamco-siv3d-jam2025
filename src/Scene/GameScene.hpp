@@ -3,6 +3,7 @@
 #include <Siv3D.hpp>
 #include "SceneTransition.hpp"
 #include "../Character/Player.hpp"
+#include "../Render/Spotlight.hpp"
 
 class GameScene : public App::Scene
 {
@@ -15,6 +16,7 @@ private:
 	Player m_player;
 
 	MainCamera m_MainCamera;
+	Spotlight m_spotlight;
 public:
 	GameScene(const InitData& init);
 	~GameScene();

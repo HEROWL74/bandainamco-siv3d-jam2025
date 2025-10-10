@@ -422,6 +422,7 @@
     <ClInclude Include="src\Character\MainCamera.hpp" />
     <ClInclude Include="src\Character\Player.hpp" />
     <ClInclude Include="src\Core\Application.hpp" />
+    <ClInclude Include="src\Render\Spotlight.hpp" />
     <ClInclude Include="src\Scene\GameScene.hpp" />
     <ClInclude Include="src\Scene\ResultScene.hpp" />
     <ClInclude Include="src\Scene\SceneTransition.hpp" />
