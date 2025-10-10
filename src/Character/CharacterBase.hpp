@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "AnimationInfo.hpp"
 #include <unordered_map>
+#include "MainCamera.hpp"
 
 class CharacterBase
 {
@@ -8,7 +9,7 @@ public:
 	CharacterBase(const Texture& texture);
 
 	virtual void Update();
-	virtual void Draw() const;
+	virtual void Draw(const MainCamera& camera) const;
 
 	virtual void InitAnimation() {} // 継承先でアニメーション初期化
 	void AddAnimation(const String& name, const Animation& anim); // アニメーション登録
@@ -34,6 +35,8 @@ protected:
 	String m_currentAnimationName; // 現在のアニメーション名
 	Vec2 m_position = Scene::Center(); // 位置
 	Vec2 m_velocity = { 0, 0 }; // 速度ベクトル
+	double m_height = 10.0; // Z軸
+	int m_frameheight = 28;
 	double m_moveSpeed = 2.0; // 移動速度
 	virtual void OnAnimationEnd(const String& animName) {} // アニメーション終了時コールバック
 private:
@@ -43,7 +46,6 @@ private:
 	double m_animationTimer = 0.0;
 	int m_currentFrame = 0;
 	int m_framewidth = 20; //1枚のフレームの幅
-	int m_frameheight = 28;
 
 	// 排他アニメーション管理
 	bool m_isEvent = false;

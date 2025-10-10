@@ -69,6 +69,26 @@ void Player::Update()
 		else if (m_currentAnimationName == AnimationKeys::Walk_R) { PlayAnimation(AnimationKeys::Idle_R); m_lastDirection = Direction::Right; }
 	}
 
+	//ライト方向計算
+	Vec2 lightDir{};
+	
+	switch (m_lastDirection)
+	{
+	case Direction::Up:
+		lightDir = Vec2{ 0,-1 };
+		break;
+	case Direction::Down:
+		lightDir = Vec2{ 0,1 };
+		break;
+	case Direction::Right:
+		lightDir = Vec2{ 1,0 };
+		break;
+	case Direction::Left:
+		lightDir = Vec2{ -1,0 };
+		break;
+	}
+	m_lightDirection = lightDir;
+
 	CharacterBase::Update();
 }
 
@@ -99,9 +119,64 @@ void Player::OnAnimationEnd(const String& animName)
 	}
 }
 
-void Player::Draw() const
+void Player::DrawCharacter(const MainCamera& camera) const
 {
-	CharacterBase::Draw();
+	CharacterBase::Draw(camera);
+}
+
+void Player::DrawLight(const MainCamera& camera) const
+{
+    // プレイヤーのワールド座標をスクリーン座標に変換
+    Vec3 worldPos{ m_position.x, m_position.y, m_height };
+    Vec2 playerScreenPos = camera.WorldToScreen(worldPos);
+
+    //ライトの座標も変換して合わせる
+    constexpr double scaleZ = 0.8; // MainCamera と同値にする
+    Vec2 dir = m_lightDirection;
+    Vec3 worldDir{ dir.x, dir.y, 0.0 }; // Vec3に
+    // Y軸をZ潰し（俯瞰補正）
+    Vec2 projectedDir = Vec2{ worldDir.x, worldDir.y - worldDir.z * scaleZ }.normalized();
+
+    const double theta = Math::Atan2(projectedDir.x, -projectedDir.y);
+	const double length = m_lightLength * 0.8;
+    const double angle  = m_lightAngle;
+
+    // 懐中電灯の手元に補正
+	playerScreenPos += m_lightDirection * 20.0;  // 前方に少し出す
+	playerScreenPos += Vec2{ 0, -m_frameheight * 0.1 };
+
+    // プレイヤー周囲の円形減衰光
+    for (int i = 0; i < 5; ++i)
+    {
+        double t = i / 5.0;
+        double alpha = 0.25 * (1.0 - t);
+        double radius = 120 * (1.0 - t * 0.2);
+        Circle{ playerScreenPos, radius }
+            .draw(ColorF{ 1.0, 1.0, 1.0, alpha });
+    }
+
+    // 懐中電灯の方向光
+    for (int i = 0; i < 4; ++i)
+    {
+        double scale = 1.0 + i * 0.03;
+        double alpha = 0.5 - i * 0.12;
+        Circle{ playerScreenPos, length * scale }
+            .drawPie(theta - angle / 2, angle,
+                     ColorF{ 1.0, 1.0, 0.9, alpha },
+                     ColorF{ 0.0 });
+    }
+}
+
+Vec2 Player::GetLightDirection() const
+{
+	switch (m_lastDirection)
+	{
+	case Direction::Up:    return Vec2{ 0, -1 };
+	case Direction::Down:  return Vec2{ 0,  1 };
+	case Direction::Left:  return Vec2{ -1, 0 };
+	case Direction::Right: return Vec2{ 1, 0 };
+	default: return Vec2{ 0, 1 };
+	}
 }
 
 void Player::InitAnimation()

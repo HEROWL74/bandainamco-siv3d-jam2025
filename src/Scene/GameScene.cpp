@@ -55,43 +55,12 @@ void GameScene::update()
 {
 	switch (m_gameState)
 	{
-	case GameState::Game:												// ゲーム画面
-
+	case GameState::Game:	// ゲーム画面
 		// エンターキーでシーンをresultへ
 		if (KeyEnter.down())
 		{
 			changeScene(SceneState::RESULT);
 		}
-
-	// 円の移動処理
-	if (KeyD.pressed())
-	{
-		mCirclePos.x += CIRCLE_SPEED;
-		if (mCirclePos.x > Application::WINDOW_WIDTH - 50.0)
-			mCirclePos.x = Application::WINDOW_WIDTH - 50.0;
-	}
-	if (KeyA.pressed())
-	{
-		mCirclePos.x -= CIRCLE_SPEED;
-		if (mCirclePos.x < 50.0)
-			mCirclePos.x = 50.0;
-	}
-	if (KeyS.pressed())
-	{
-		mCirclePos.y += CIRCLE_SPEED;
-		if (mCirclePos.y > Application::WINDOW_HEIGHT - 50.0)
-			mCirclePos.y = Application::WINDOW_HEIGHT - 50.0;
-	}
-	if (KeyW.pressed())
-	{
-		mCirclePos.y -= CIRCLE_SPEED;
-		if (mCirclePos.y < 50.0)
-			mCirclePos.y = 50.0;
-	}
-
-		// プレイヤー更新
-		m_player.Update();
-
 		break;
 
 	case GameState::Option:												// オプション画面
@@ -103,21 +72,58 @@ void GameScene::update()
 		}
 		break;
 	}
-	
+
+	if (m_optionButton.leftClicked())
+	{
+		m_gameState = GameState::Option;
+	}
+
+
+	// プレイヤー更新
+	m_player.Update();
+
+	//カメラ更新
+	m_MainCamera.SetTarget(m_player.GetPosition());
+	m_MainCamera.Update();
 }
 
 void GameScene::draw() const
 {
-	Scene::SetBackground(ColorF{ 0.8, 0.0, 0.2 });
+	Scene::SetBackground(ColorF{ 0.05, 0.0, 0.05 }); // 夜色
 
+	const ScopedRenderStates2D blend{ SamplerState::ClampNearest };
+
+	// カメラ視点で床を描く（ワールド座標）
+	{
+		const auto t = m_MainCamera.GetTransformer();
+#ifdef _DEBUG
+		// グリッド線で地面を可視化
+		for (int y = -5; y <= 5; ++y)
+		{
+			for (int x = -5; x <= 5; ++x)
+			{
+				Vec3 worldPos{ x * 64.0, y * 64.0, 0.0 };
+				Vec2 screenPos = m_MainCamera.WorldToScreen(worldPos);
+
+				RectF{ screenPos.x - 32, screenPos.y - 32, 128, 128 }
+				.draw(ColorF{ 0.1 + ((x + y) % 2) * 0.05 });
+			}
+		}
+#endif
+	}
+
+	// ライト
+	{
+		ScopedSpotlight target{ m_spotlight, ColorF{ 0.05, 0.05, 0.1 } };
+		m_player.DrawLight(m_MainCamera);
+	}
+
+	m_spotlight.draw();
+
+	// キャラ描画
+	m_player.DrawCharacter(m_MainCamera);
 	//描画処理
 	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
-
-	// プレイヤー描画
-	{
-		const ScopedRenderStates2D sampler{ SamplerState::ClampNearest };
-		m_player.Draw();
-	}	
 
 	// 設定ボタンの描画	
 	m_optionButton.draw(Palette::Silver);
@@ -138,6 +144,8 @@ void GameScene::draw() const
 		m_gameOption->Draw();
 	}
 }
+
+
 
 bool GameScene::Release()
 {

@@ -3,6 +3,8 @@
 #include <Siv3D.hpp>
 #include "SceneTransition.hpp"
 #include "../Character/Player.hpp"
+#include "../Render/Spotlight.hpp"
+
 #include "../Option/GameOption.hpp"
 
 enum class GameState
@@ -10,6 +12,7 @@ enum class GameState
 	Game,
 	Option,
 };
+
 
 class GameScene : public App::Scene
 {
@@ -21,6 +24,8 @@ private:
 	Texture m_playerTexture;
 	Player m_player;
 
+	MainCamera m_MainCamera;
+	Spotlight m_spotlight;
 	std::unique_ptr<class GameOption> m_gameOption;
 	GameState m_gameState;
 

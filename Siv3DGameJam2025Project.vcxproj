@@ -425,6 +425,7 @@
     <ClInclude Include="src\Character\MainCamera.hpp" />
     <ClInclude Include="src\Character\Player.hpp" />
     <ClInclude Include="src\Core\Application.hpp" />
+    <ClInclude Include="src\Render\Spotlight.hpp" />
     <ClInclude Include="src\Option\GameOption.hpp" />
     <ClInclude Include="src\Option\OptionBase.hpp" />
     <ClInclude Include="src\Option\TitleOption.hpp" />

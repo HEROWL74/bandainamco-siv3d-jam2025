@@ -52,18 +52,21 @@ void CharacterBase::Update()
     }
 }
 
-void CharacterBase::Draw() const
+void CharacterBase::Draw(const MainCamera& camera) const
 {
-    // スプライト描画
-    if (m_animations.contains(m_currentAnimationName))
-    {
-        const Animation& anim = m_animations.at(m_currentAnimationName);
-        int frame = anim.startFrame + m_currentFrame; // 現在のフレーム計算
-        int frameX = frame * m_framewidth; // スプライトシート上のX座標
-        int frameY = anim.row * m_frameheight; // スプライトシート上のY座標
+	if (m_animations.contains(m_currentAnimationName))
+	{
+		const Animation& anim = m_animations.at(m_currentAnimationName);
+		int frame = anim.startFrame + m_currentFrame;
+		int frameX = frame * m_framewidth;
+		int frameY = anim.row * m_frameheight;
 
-        m_texture(frameX, frameY, m_framewidth, m_frameheight)
-            .scaled(10)
-            .drawAt(m_position);
-    }
+		// 3D→2D変換
+		Vec3 worldPos{ m_position.x, m_position.y, m_height };
+		Vec2 screenPos = camera.WorldToScreen(worldPos);
+
+		m_texture(frameX, frameY, m_framewidth, m_frameheight)
+			.scaled(10)
+			.drawAt(screenPos);
+	}
 }
