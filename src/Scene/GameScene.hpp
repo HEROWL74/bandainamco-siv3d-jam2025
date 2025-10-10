@@ -16,7 +16,7 @@ class GameScene : public App::Scene
 private:
 	static constexpr double CIRCLE_SPEED = 3.0;
 
-	Vec2 m_circlePos{};	// サークルの位置
+	Vec2 mCirclePos{};	// サークルの位置
 
 	Texture m_playerTexture;
 	Player m_player;

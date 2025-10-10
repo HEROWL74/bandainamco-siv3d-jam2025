@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "CharacterBase.hpp"
+#include "MainCamera.hpp"
 
 class Player : public CharacterBase
 {

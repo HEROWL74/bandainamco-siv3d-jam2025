@@ -403,6 +403,7 @@
   <ItemGroup>
     <ClCompile Include="src\Character\AnimationInfo.cpp" />
     <ClCompile Include="src\Character\CharacterBase.cpp" />
+    <ClCompile Include="src\Character\MainCamera.cpp" />
     <ClCompile Include="src\Character\Player.cpp" />
     <ClCompile Include="src\Core\Application.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -421,6 +422,7 @@
   <ItemGroup>
     <ClInclude Include="src\Character\AnimationInfo.hpp" />
     <ClInclude Include="src\Character\CharacterBase.hpp" />
+    <ClInclude Include="src\Character\MainCamera.hpp" />
     <ClInclude Include="src\Character\Player.hpp" />
     <ClInclude Include="src\Core\Application.hpp" />
     <ClInclude Include="src\Option\GameOption.hpp" />
