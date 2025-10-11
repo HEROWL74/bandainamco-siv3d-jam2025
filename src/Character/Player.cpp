@@ -3,6 +3,7 @@
 Player::Player(const Texture& texture)
 	: CharacterBase(texture)
 {
+	m_moveSpeed = 4.0;
 }
 
 void Player::StartExclusiveAnimation(const String& animName)

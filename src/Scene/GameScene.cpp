@@ -94,12 +94,11 @@ void GameScene::draw() const
 	const auto transformer = m_MainCamera.GetTransformer();
 
 	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
+	Rect{ 400, 400, 700, 700 }.draw(Palette::Yellow);
 
-#ifdef DEBUG
+#ifdef _DEBUG
 	Rect{ 0, 0, Application::WINDOW_WIDTH, Application::WINDOW_HEIGHT }.drawFrame(40.0, Palette::Skyblue);
 #endif // DEBUG
-	Rect{ 0, 0, Application::WINDOW_WIDTH, Application::WINDOW_HEIGHT }.drawFrame(40.0, Palette::Skyblue);
-
 
 	const ScopedRenderStates2D sampler{ SamplerState::ClampNearest };
 	m_player.Draw();
