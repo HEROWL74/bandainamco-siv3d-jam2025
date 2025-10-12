@@ -2,6 +2,7 @@
 #include "AnimationInfo.hpp"
 #include <unordered_map>
 #include "MainCamera.hpp"
+#include "../Core/Collision.h"
 
 class CharacterBase
 {
@@ -31,6 +32,10 @@ public:
 	[[nodiscard]]
 	Vec2 GetVelocity() const noexcept { return m_velocity; } // 速度取得
 
+	void SetCollision(const CharacterCollision& col) { m_collision = col; }
+	[[nodiscard]]
+	const CharacterCollision& GetCollision() const { return m_collision; }
+
 protected:
 	String m_currentAnimationName; // 現在のアニメーション名
 	Vec2 m_position = Scene::Center(); // 位置
@@ -38,6 +43,7 @@ protected:
 	double m_height = 10.0; // Z軸
 	int m_frameheight = 28;
 	double m_moveSpeed = 2.0; // 移動速度
+
 	virtual void OnAnimationEnd(const String& animName) {} // アニメーション終了時コールバック
 private:
 
@@ -45,8 +51,7 @@ private:
 	std::unordered_map<String, Animation> m_animations; // アニメーションリスト
 	double m_animationTimer = 0.0;
 	int m_currentFrame = 0;
-	int m_framewidth = 20; //1枚のフレームの幅
-
-	// 排他アニメーション管理
-	bool m_isEvent = false;
+	int m_framewidth = 20; //1枚のフレームの幅	
+	bool m_isEvent = false;// 排他アニメーション管理
+	CharacterCollision m_collision;
 };

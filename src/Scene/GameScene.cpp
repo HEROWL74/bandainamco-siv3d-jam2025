@@ -37,6 +37,14 @@ void GameScene::GameInit()
 	m_player.SetPosition(Scene::Center());
 	m_player.InitAnimation();
 
+	// 外枠の壁（World座標が広がることを想定して広めに設定）
+	m_mapCollisions << RectF{ -1000, -1000, 2000, 50 };     // 上の壁
+	m_mapCollisions << RectF{ -1000, 1000, 2000, 50 };      // 下の壁
+	m_mapCollisions << RectF{ -1000, -1000, 50, 2050 };     // 左の壁
+	m_mapCollisions << RectF{ 1000, -1000, 50, 2050 };      // 右の壁
+
+	m_mapCollisions << RectF{ Scene::Center().x + 50, Scene::Center().y + 50, 150, 100 };
+
 	// ゲームの状態
 	m_gameState = GameState::Game;
 
@@ -82,6 +90,53 @@ void GameScene::update()
 	// プレイヤー更新
 	m_player.Update();
 
+	Vec2 currentPos = m_player.GetPosition();
+	Vec2 nextVelocity = m_player.GetVelocity();
+
+	// ===== X軸の移動チェック (スライド) =====
+	Vec2 nextPosX = currentPos + Vec2{ nextVelocity.x, 0.0 };
+	// 移動先の位置でコリジョン図形を取得
+	Circle nextPlayerColX = m_player.GetCollision().getWorldShape(nextPosX);
+
+	bool collideX = false;
+	for (const auto& mapCol : m_mapCollisions)
+	{
+		if (nextPlayerColX.intersects(mapCol))
+		{
+			collideX = true;
+			break;
+		}
+	}
+	if (!collideX)
+	{
+		// 衝突しなければX位置を更新
+		currentPos.x = nextPosX.x;
+	}
+
+	// ===== Y軸の移動チェック (スライド) =====
+	// X軸移動後の位置 (currentPos) からY移動を試みる
+	Vec2 nextPosY = currentPos + Vec2{ 0.0, nextVelocity.y };
+	Circle nextPlayerColY = m_player.GetCollision().getWorldShape(nextPosY);
+
+	bool collideY = false;
+	for (const auto& mapCol : m_mapCollisions)
+	{
+		if (nextPlayerColY.intersects(mapCol))
+		{
+			collideY = true;
+			break;
+		}
+	}
+	if (!collideY)
+	{
+		// 衝突しなければY位置を更新
+		currentPos.y = nextPosY.y;
+	}
+
+	// 3. 最終的な位置の確定と速度リセット
+	m_player.SetPosition(currentPos);
+	m_player.SetVelocity(Vec2{ 0, 0 }); // 速度はリセット
+
 	//カメラ更新
 	m_MainCamera.SetTarget(m_player.GetPosition());
 	m_MainCamera.Update();
@@ -96,7 +151,13 @@ void GameScene::draw() const
 	// カメラ視点で床を描く（ワールド座標）
 	{
 		const auto t = m_MainCamera.GetTransformer();
+		m_player.GetCollision().getWorldShape(m_player.GetPosition())
+			.drawFrame(2, 0, ColorF{ 0.0, 1.0, 0.0 }); // 緑枠で円形コリジョンを描画
 #ifdef _DEBUG
+		for (const auto& mapCol : m_mapCollisions)
+		{
+			mapCol.draw(ColorF{ 1.0, 0.0, 0.0, });
+		}
 		// グリッド線で地面を可視化
 		for (int y = -5; y <= 5; ++y)
 		{
@@ -122,6 +183,7 @@ void GameScene::draw() const
 
 	// キャラ描画
 	m_player.DrawCharacter(m_MainCamera);
+
 	//描画処理
 	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
 

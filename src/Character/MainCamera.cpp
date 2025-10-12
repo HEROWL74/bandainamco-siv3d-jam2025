@@ -7,7 +7,8 @@ MainCamera::MainCamera()
 
 void MainCamera::Update()
 {
-	m_position += (m_target - m_position) * (m_lerpFactor * Scene::DeltaTime());
+	m_position = m_target;
+	//m_position += (m_target - m_position) * (m_lerpFactor * Scene::DeltaTime());
 }
 
 Vec2 MainCamera::WorldToScreen(const Vec3& worldPos) const

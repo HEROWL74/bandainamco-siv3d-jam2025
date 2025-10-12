@@ -32,7 +32,7 @@ bool CharacterBase::IsExclusiveAnimation(const String& name) const
 
 void CharacterBase::Update()
 {
-    m_position += m_velocity;
+    //m_position += m_velocity;
     // アニメーション更新
     if (m_animations.contains(m_currentAnimationName)) // アニメーションが登録されているか
     {

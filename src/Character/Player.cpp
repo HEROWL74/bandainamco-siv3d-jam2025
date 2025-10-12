@@ -208,4 +208,9 @@ void Player::InitAnimation()
 	AddAnimation(AnimationKeys::Event_1, player_Event_1);
 
 	PlayAnimation(AnimationKeys::Idle_D);
+
+	CharacterCollision playerCol;
+	playerCol.shape = Circle{ 0,0,30 };
+	playerCol.offset = Vec2{ 0,m_frameheight * 10 / 2 - playerCol.shape.r };
+	SetCollision(playerCol);
 }

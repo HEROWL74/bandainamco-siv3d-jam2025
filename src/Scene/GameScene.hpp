@@ -24,6 +24,8 @@ private:
 	Texture m_playerTexture;
 	Player m_player;
 
+	Array<RectF> m_mapCollisions;
+
 	MainCamera m_MainCamera;
 	Spotlight m_spotlight;
 	std::unique_ptr<class GameOption> m_gameOption;
