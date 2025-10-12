@@ -408,6 +408,7 @@
     <ClCompile Include="src\Core\Application.cpp" />
     <ClCompile Include="src\Core\Collision.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Map\MapLoader.cpp" />
     <ClCompile Include="src\Option\GameOption.cpp" />
     <ClCompile Include="src\Option\OptionBase.cpp" />
     <ClCompile Include="src\Option\TitleOption.cpp" />
@@ -426,7 +427,8 @@
     <ClInclude Include="src\Character\MainCamera.hpp" />
     <ClInclude Include="src\Character\Player.hpp" />
     <ClInclude Include="src\Core\Application.hpp" />
-    <ClInclude Include="src\Core\Collision.h" />
+    <ClInclude Include="src\Core\Collision.hpp" />
+    <ClInclude Include="src\Map\MapLoader.hpp" />
     <ClInclude Include="src\Render\Spotlight.hpp" />
     <ClInclude Include="src\Option\GameOption.hpp" />
     <ClInclude Include="src\Option\OptionBase.hpp" />

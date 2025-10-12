@@ -2,7 +2,7 @@
 #include "AnimationInfo.hpp"
 #include <unordered_map>
 #include "MainCamera.hpp"
-#include "../Core/Collision.h"
+#include "../Core/Collision.hpp"
 
 class CharacterBase
 {
