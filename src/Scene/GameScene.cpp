@@ -163,10 +163,7 @@ void GameScene::draw() const
 		{
 			for (int x = -5; x <= 5; ++x)
 			{
-				Vec3 worldPos{ x * 64.0, y * 64.0, 0.0 };
-				Vec2 screenPos = m_MainCamera.WorldToScreen(worldPos);
-
-				RectF{ screenPos.x - 32, screenPos.y - 32, 128, 128 }
+				RectF{ x * 64.0 - 32, y * 64.0 - 32, 64, 64 }
 				.draw(ColorF{ 0.1 + ((x + y) % 2) * 0.05 });
 			}
 		}
