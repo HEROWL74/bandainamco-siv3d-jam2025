@@ -138,7 +138,6 @@ void GameScene::draw() const
 
 	const ScopedRenderStates2D blend{ SamplerState::ClampNearest };
 
-	// カメラ視点で床を描く（ワールド座標）
 	{
 		const auto t = m_MainCamera.GetTransformer();
 #ifdef _DEBUG
@@ -159,12 +158,10 @@ void GameScene::draw() const
 		}
 		// 緑枠でプレイヤー用の円形コリジョンを描画
 		m_player.GetCollision().getWorldShape(m_player.GetPosition())
-			.drawFrame(2, 0, ColorF{ 0.0, 1.0, 0.0 }); 
-
+			.drawFrame(2, 0, ColorF{ 0.0, 1.0, 0.0 });
 #endif
 	}
 
-	// ライト
 	{
 		ScopedSpotlight target{ m_spotlight, ColorF{ 0.05, 0.05, 0.1 } };
 		m_player.DrawLight(m_MainCamera);
@@ -172,8 +169,10 @@ void GameScene::draw() const
 
 	m_spotlight.draw();
 
-	// キャラ描画
-	m_player.DrawCharacter(m_MainCamera);
+	{
+		const auto t = m_MainCamera.GetTransformer();
+		m_player.DrawCharacter(m_MainCamera);
+	}
 
 	//描画処理
 	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);

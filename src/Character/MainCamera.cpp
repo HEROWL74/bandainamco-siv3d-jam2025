@@ -7,23 +7,13 @@ MainCamera::MainCamera()
 
 void MainCamera::Update()
 {
-	m_position = m_target;
-	//m_position += (m_target - m_position) * (m_lerpFactor * Scene::DeltaTime());
+	m_position += (m_target - m_position) * (m_lerpFactor * Scene::DeltaTime());
 }
 
 Vec2 MainCamera::WorldToScreen(const Vec3& worldPos) const
 {
-	constexpr double tilt = 0.6;   // 見下ろし角度（0=横,1=真上）
-	constexpr double scaleZ = 0.9; // 高さをどの程度潰すか
-
-	Vec3 relative = worldPos - Vec3{ m_position.x, m_position.y, 0.0 };
-
-	Vec2 projected = {
-		relative.x,
-		relative.y * (1.0 - tilt) - relative.z * scaleZ
-	};
-
-	return projected + Scene::Center();
+	Vec2 relative = Vec2{ worldPos.x, worldPos.y } - m_position;
+	return relative + Scene::Center();
 }
 
 void MainCamera::SetTarget(const Vec2& targetPosition)

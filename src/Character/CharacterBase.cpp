@@ -61,12 +61,8 @@ void CharacterBase::Draw(const MainCamera& camera) const
 		int frameX = frame * m_framewidth;
 		int frameY = anim.row * m_frameheight;
 
-		// 3D→2D変換
-		Vec3 worldPos{ m_position.x, m_position.y, m_height };
-		Vec2 screenPos = camera.WorldToScreen(worldPos);
-
 		m_texture(frameX, frameY, m_framewidth, m_frameheight)
 			.scaled(10)
-			.drawAt(screenPos);
+			.drawAt(m_position);
 	}
 }
