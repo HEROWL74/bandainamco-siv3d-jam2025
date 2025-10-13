@@ -1,11 +1,11 @@
 ﻿#include "GameScene.hpp"
 #include "../Core/Application.hpp"
-
+#include "../Map/MapLoader.hpp"	
 
 // コンストラクタ
 GameScene::GameScene(const InitData& init)
 	:IScene(init)
-	, m_playerTexture(U"example/spritesheet/siv3d-kun-16.png")
+	, m_playerTexture(U"Assets/player_spritesheet.png")
 	, m_player(m_playerTexture)
 	, m_gameOption(nullptr)
 {
@@ -35,7 +35,11 @@ void GameScene::GameInit()
 	// プレイヤー初期化
 	//----------------------
 	m_player.SetPosition(Scene::Center());
-	m_player.InitAnimation();
+	m_player.Init();
+
+	//m_mapCollisions << RectF{ -1000, -1000, 2000, 50 }; JSONから読み込むのでコメントアウト
+
+	m_mapCollisions = MapLoader::LoadCollisions(U"map_01");
 
 	// ゲームの状態
 	m_gameState = GameState::Game;
@@ -82,6 +86,8 @@ void GameScene::update()
 	// プレイヤー更新
 	m_player.Update();
 
+	m_player.TryMove(m_mapCollisions);
+
 	//カメラ更新
 	m_MainCamera.SetTarget(m_player.GetPosition());
 	m_MainCamera.Update();
@@ -89,30 +95,34 @@ void GameScene::update()
 
 void GameScene::draw() const
 {
-	Scene::SetBackground(ColorF{ 0.05, 0.0, 0.05 }); // 夜色
+	Scene::SetBackground(ColorF{ 1.0, 1.0, 1.0 }); // 白色
 
 	const ScopedRenderStates2D blend{ SamplerState::ClampNearest };
 
-	// カメラ視点で床を描く（ワールド座標）
 	{
 		const auto t = m_MainCamera.GetTransformer();
 #ifdef _DEBUG
+
 		// グリッド線で地面を可視化
 		for (int y = -5; y <= 5; ++y)
 		{
 			for (int x = -5; x <= 5; ++x)
 			{
-				Vec3 worldPos{ x * 64.0, y * 64.0, 0.0 };
-				Vec2 screenPos = m_MainCamera.WorldToScreen(worldPos);
-
-				RectF{ screenPos.x - 32, screenPos.y - 32, 128, 128 }
-				.draw(ColorF{ 0.1 + ((x + y) % 2) * 0.05 });
+				RectF{ x * 64.0 - 32, y * 64.0 - 32, 64, 64 }
+				.draw(ColorF{ (x + y) % 2 == 0 ? 1.0 : 0.0 });
 			}
 		}
+		// コリジョンを赤枠で描画
+		for (const auto& mapCol : m_mapCollisions)
+		{
+			mapCol.drawFrame((3,3),ColorF{ 1.0, 0.0, 0.0 });
+		}
+		// 緑枠でプレイヤー用の円形コリジョンを描画
+		m_player.GetCollision().getWorldShape(m_player.GetPosition())
+			.drawFrame(2, 0, ColorF{ 0.0, 1.0, 0.0 });
 #endif
 	}
 
-	// ライト
 	{
 		ScopedSpotlight target{ m_spotlight, ColorF{ 0.05, 0.05, 0.1 } };
 		m_player.DrawLight(m_MainCamera);
@@ -120,8 +130,11 @@ void GameScene::draw() const
 
 	m_spotlight.draw();
 
-	// キャラ描画
-	m_player.DrawCharacter(m_MainCamera);
+	{
+		const auto t = m_MainCamera.GetTransformer();
+		m_player.DrawCharacter(m_MainCamera);
+	}
+
 	//描画処理
 	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
 

@@ -125,47 +125,106 @@ void Player::DrawCharacter(const MainCamera& camera) const
 }
 
 void Player::DrawLight(const MainCamera& camera) const
-{
-    // プレイヤーのワールド座標をスクリーン座標に変換
-    Vec3 worldPos{ m_position.x, m_position.y, m_height };
-    Vec2 playerScreenPos = camera.WorldToScreen(worldPos);
+{	
+	Vec2 playerScreenPos = camera.GetViewMatrix().transformPoint(m_position); // プレイヤーに追従
+	const Vec2 lightCenterPos = Scene::Center(); // 画面中央に固定
+	const double maxRadius = Scene::Size().length() / 4.0; // 画面全体を覆う半径
 
-    //ライトの座標も変換して合わせる
-    constexpr double scaleZ = 0.8; // MainCamera と同値にする
-    Vec2 dir = m_lightDirection;
-    Vec3 worldDir{ dir.x, dir.y, 0.0 }; // Vec3に
-    // Y軸をZ潰し（俯瞰補正）
-    Vec2 projectedDir = Vec2{ worldDir.x, worldDir.y - worldDir.z * scaleZ }.normalized();
-
-    const double theta = Math::Atan2(projectedDir.x, -projectedDir.y);
+	// 懐中電灯の方向計算
+	Vec2 dir = m_lightDirection; 
+	Vec2 projectedDir = dir.normalized(); 
+	const double theta = Math::Atan2(projectedDir.x, -projectedDir.y);
 	const double length = m_lightLength * 0.8;
-    const double angle  = m_lightAngle;
+	const double angle = m_lightAngle;
 
-    // 懐中電灯の手元に補正
-	playerScreenPos += m_lightDirection * 20.0;  // 前方に少し出す
-	playerScreenPos += Vec2{ 0, -m_frameheight * 0.1 };
+	// 懐中電灯と手元光の描画位置補正
+	playerScreenPos.y += 40; // 垂直オフセット
+	//playerScreenPos += m_lightDirection * 20.0; // 水平オフセット
 
-    // プレイヤー周囲の円形減衰光
-    for (int i = 0; i < 5; ++i)
-    {
-        double t = i / 5.0;
-        double alpha = 0.25 * (1.0 - t);
-        double radius = 120 * (1.0 - t * 0.2);
-        Circle{ playerScreenPos, radius }
-            .draw(ColorF{ 1.0, 1.0, 1.0, alpha });
-    }
+	// 画面全体の薄い光
+	{
+		// 光の強さ: 薄い黄色 (0.1)
+		const ColorF centerColor = ColorF(m_lightColor_Dim, 0.1);
+		const ColorF outerColor = ColorF{ 0.0 }; // 完全に透明
 
-    // 懐中電灯の方向光
-    for (int i = 0; i < 4; ++i)
-    {
-        double scale = 1.0 + i * 0.03;
-        double alpha = 0.5 - i * 0.12;
-        Circle{ playerScreenPos, length * scale }
-            .drawPie(theta - angle / 2, angle,
-                     ColorF{ 1.0, 1.0, 0.9, alpha },
-                     ColorF{ 0.0 });
-    }
+		// 画面全体を覆う大きな円
+		Circle{ lightCenterPos, maxRadius }
+		.draw(centerColor, outerColor);
+	}
+
+
+	// プレイヤー周囲の円形の光
+	{
+		// 光の強さと範囲
+		constexpr double MAX_RADIUS = 120;
+		constexpr double MAX_ALPHA = 0.25;
+
+		const ColorF centerColor = ColorF(m_lightColor_Bright, MAX_ALPHA);
+		const ColorF outerColor = ColorF{ 0.0 };
+
+		Circle{ playerScreenPos, MAX_RADIUS }
+		.draw(centerColor, outerColor);
+	}
+
+	// 懐中電灯の光
+	{
+		// 光の強さと範囲
+		const double MAX_LENGTH = length * 1.0;
+		constexpr double MAX_ALPHA = 0.25;
+
+		const ColorF centerColor = ColorF(m_lightColor_Bright, MAX_ALPHA);
+		const ColorF outerColor = ColorF{ 0.0 };
+
+		Circle{ playerScreenPos, MAX_LENGTH }
+			.drawPie(theta - angle / 2, angle,
+						 centerColor, outerColor);
+	}
 }
+
+void Player::TryMove(const Array<RectF>& mapCollisions)
+{
+	if (IsEvent()) return;
+
+	Vec2 currentPos = m_position;
+	Vec2 nextVelocity = m_velocity;
+	Vec2 nextPosX = currentPos + Vec2{ nextVelocity.x, 0.0 };
+	Circle nextPlayerColX = GetCollision().getWorldShape(nextPosX);
+
+	bool collideX = false;
+	for (const auto& mapCol : mapCollisions)
+	{
+		if (nextPlayerColX.intersects(mapCol))
+		{
+			collideX = true;
+			break;
+		}
+	}
+	if (!collideX)
+	{
+		currentPos.x = nextPosX.x;
+	}
+
+	Vec2 nextPosY = currentPos + Vec2{ 0.0, nextVelocity.y };
+	Circle nextPlayerColY = GetCollision().getWorldShape(nextPosY);
+
+	bool collideY = false;
+	for (const auto& mapCol : mapCollisions)
+	{
+		if (nextPlayerColY.intersects(mapCol))
+		{
+			collideY = true;
+			break;
+		}
+	}
+	if (!collideY)
+	{
+		currentPos.y = nextPosY.y;
+	}
+
+	SetPosition(currentPos);
+	SetVelocity(Vec2{ 0, 0 });
+}
+
 
 Vec2 Player::GetLightDirection() const
 {
@@ -181,15 +240,15 @@ Vec2 Player::GetLightDirection() const
 
 void Player::InitAnimation()
 {
-	Animation player_Idle_D{ 1, 1, 0, {0.2} };
-	Animation player_Idle_U{ 1, 1, 3, {0.2} };
-	Animation player_Idle_L{ 1, 1, 1, {0.2} };
-	Animation player_Idle_R{ 1, 1, 2, {0.2} };
+	Animation player_Idle_D{ 2, 2, 0, {0.2} };
+	Animation player_Idle_U{ 2, 2, 3, {0.2} };
+	Animation player_Idle_L{ 2, 2, 1, {0.2} };
+	Animation player_Idle_R{ 2, 2, 2, {0.2} };
 
-	Animation player_Walk_D{ 0, 2, 0, {0.1, 0.1, 0.1} };
-	Animation player_Walk_U{ 0, 2, 3, {0.1, 0.1, 0.1} };
-	Animation player_Walk_L{ 0, 2, 1, {0.1, 0.1, 0.1} };
-	Animation player_Walk_R{ 0, 2, 2, {0.1, 0.1, 0.1} };
+	Animation player_Walk_D{ 0, 7, 0, {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1} };
+	Animation player_Walk_U{ 0, 7, 3, {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1} };
+	Animation player_Walk_L{ 0, 7, 1, {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1} };
+	Animation player_Walk_R{ 0, 7, 2, {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1} };
 
 	Animation player_Event_0{ 3, 5, 0, {0.1, 0.1, 0.1}, true };
 	Animation player_Event_1{ 3, 5, 3, {0.1, 0.1, 0.1}, true };
@@ -208,4 +267,18 @@ void Player::InitAnimation()
 	AddAnimation(AnimationKeys::Event_1, player_Event_1);
 
 	PlayAnimation(AnimationKeys::Idle_D);
+}
+
+void Player::InitCollision()
+{
+	CharacterCollision playerCol;
+	playerCol.shape = Circle{ 0,0,30 };
+	playerCol.offset = Vec2{ 0,m_frameheight * 8 / 2 - playerCol.shape.r };
+	SetCollision(playerCol);
+}
+
+void Player::Init()
+{
+	InitAnimation();
+	InitCollision();
 }

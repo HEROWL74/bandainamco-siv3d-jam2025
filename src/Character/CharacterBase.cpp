@@ -32,7 +32,7 @@ bool CharacterBase::IsExclusiveAnimation(const String& name) const
 
 void CharacterBase::Update()
 {
-    m_position += m_velocity;
+    //m_position += m_velocity;
     // アニメーション更新
     if (m_animations.contains(m_currentAnimationName)) // アニメーションが登録されているか
     {
@@ -61,12 +61,8 @@ void CharacterBase::Draw(const MainCamera& camera) const
 		int frameX = frame * m_framewidth;
 		int frameY = anim.row * m_frameheight;
 
-		// 3D→2D変換
-		Vec3 worldPos{ m_position.x, m_position.y, m_height };
-		Vec2 screenPos = camera.WorldToScreen(worldPos);
-
 		m_texture(frameX, frameY, m_framewidth, m_frameheight)
-			.scaled(10)
-			.drawAt(screenPos);
+			.scaled(7)
+			.drawAt(m_position);
 	}
 }
