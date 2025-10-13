@@ -5,7 +5,7 @@ Array<RectF> MapLoader::LoadCollisions(const String& mapName)
 {
 	Array<RectF> collisions;
 
-	// JSON ファイルのパスを構築 (例: "Map/map_01.json")
+	// JSON ファイルのパスを構築
 	const FilePath mapPath = U"Map/" + mapName + U".json";
 
 	// ファイルを読み込む
@@ -15,7 +15,6 @@ Array<RectF> MapLoader::LoadCollisions(const String& mapName)
 	{
 		// 読み込みに失敗した場合
 		Logger<<(U"マップファイル {} の読み込みに失敗しました。パスを確認してください: {}"_fmt(mapName, mapPath));
-		// 失敗時は空の配列を返して終了
 		return collisions;
 	}
 
@@ -54,7 +53,6 @@ Array<RectF> MapLoader::LoadCollisions(const String& mapName)
 		}
 		else
 		{
-			// "rect" 以外のタイプ（例: "circle" など）は現在スキップ
 			Logger << (U"マップ {} の未知のコリジョンタイプをスキップしました: {}"_fmt(mapName, rectData[U"type"].getString()));
 		}
 	}

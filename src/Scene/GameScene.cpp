@@ -5,7 +5,7 @@
 // コンストラクタ
 GameScene::GameScene(const InitData& init)
 	:IScene(init)
-	, m_playerTexture(U"example/spritesheet/siv3d-kun-16.png")
+	, m_playerTexture(U"Assets/player_spritesheet.png")
 	, m_player(m_playerTexture)
 	, m_gameOption(nullptr)
 {
@@ -35,7 +35,7 @@ void GameScene::GameInit()
 	// プレイヤー初期化
 	//----------------------
 	m_player.SetPosition(Scene::Center());
-	m_player.InitAnimation();
+	m_player.Init();
 
 	//m_mapCollisions << RectF{ -1000, -1000, 2000, 50 }; JSONから読み込むのでコメントアウト
 
@@ -86,46 +86,7 @@ void GameScene::update()
 	// プレイヤー更新
 	m_player.Update();
 
-	Vec2 currentPos = m_player.GetPosition();
-	Vec2 nextVelocity = m_player.GetVelocity();
-
-	Vec2 nextPosX = currentPos + Vec2{ nextVelocity.x, 0.0 };
-	Circle nextPlayerColX = m_player.GetCollision().getWorldShape(nextPosX);
-
-	bool collideX = false;
-	for (const auto& mapCol : m_mapCollisions)
-	{
-		if (nextPlayerColX.intersects(mapCol))
-		{
-			collideX = true;
-			break;
-		}
-	}
-	if (!collideX)
-	{
-		// 衝突しなければX位置を更新
-		currentPos.x = nextPosX.x;
-	}
-
-	Vec2 nextPosY = currentPos + Vec2{ 0.0, nextVelocity.y };
-	Circle nextPlayerColY = m_player.GetCollision().getWorldShape(nextPosY);
-
-	bool collideY = false;
-	for (const auto& mapCol : m_mapCollisions)
-	{
-		if (nextPlayerColY.intersects(mapCol))
-		{
-			collideY = true;
-			break;
-		}
-	}
-	if (!collideY)
-	{
-		currentPos.y = nextPosY.y;
-	}
-
-	m_player.SetPosition(currentPos);
-	m_player.SetVelocity(Vec2{ 0, 0 });
+	m_player.TryMove(m_mapCollisions);
 
 	//カメラ更新
 	m_MainCamera.SetTarget(m_player.GetPosition());
@@ -134,7 +95,7 @@ void GameScene::update()
 
 void GameScene::draw() const
 {
-	Scene::SetBackground(ColorF{ 0.05, 0.0, 0.05 }); // 夜色
+	Scene::SetBackground(ColorF{ 1.0, 1.0, 1.0 }); // 白色
 
 	const ScopedRenderStates2D blend{ SamplerState::ClampNearest };
 
@@ -148,13 +109,13 @@ void GameScene::draw() const
 			for (int x = -5; x <= 5; ++x)
 			{
 				RectF{ x * 64.0 - 32, y * 64.0 - 32, 64, 64 }
-				.draw(ColorF{ 0.1 + ((x + y) % 2) * 0.05 });
+				.draw(ColorF{ (x + y) % 2 == 0 ? 1.0 : 0.0 });
 			}
 		}
 		// コリジョンを赤枠で描画
 		for (const auto& mapCol : m_mapCollisions)
 		{
-			mapCol.draw(ColorF{ 1.0, 0.0, 0.0, });
+			mapCol.drawFrame((3,3),ColorF{ 1.0, 0.0, 0.0 });
 		}
 		// 緑枠でプレイヤー用の円形コリジョンを描画
 		m_player.GetCollision().getWorldShape(m_player.GetPosition())
