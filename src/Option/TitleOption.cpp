@@ -1,6 +1,7 @@
 ﻿#include "TitleOption.hpp"
 
-TitleOption::TitleOption()
+TitleOption::TitleOption(std::shared_ptr<Settings> settings, std::shared_ptr<AudioManager> audio)
+	:OptionBase(settings, audio)
 {
 
 }

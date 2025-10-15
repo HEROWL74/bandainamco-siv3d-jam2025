@@ -1,6 +1,8 @@
 ﻿//Application.hpp
 #pragma once
 #include <Siv3D.hpp>
+#include "../Option/Settings.hpp"
+#include "../Option/AudioManager.hpp"
 #include "../Scene/SceneTransition.hpp"
 #include <memory>
 
@@ -8,6 +10,8 @@
 class Application
 {
 private:
+	std::shared_ptr<Settings> m_settings;
+	std::shared_ptr<AudioManager> m_audio;
 	std::unique_ptr<SceneTransition> m_scene;
 
 public:

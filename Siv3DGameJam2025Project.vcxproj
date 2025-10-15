@@ -407,8 +407,10 @@
     <ClCompile Include="src\Character\Player.cpp" />
     <ClCompile Include="src\Core\Application.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Option\AudioManager.cpp" />
     <ClCompile Include="src\Option\GameOption.cpp" />
     <ClCompile Include="src\Option\OptionBase.cpp" />
+    <ClCompile Include="src\Option\Settings.cpp" />
     <ClCompile Include="src\Option\TitleOption.cpp" />
     <ClCompile Include="src\Scene\GameScene.cpp" />
     <ClCompile Include="src\Scene\ResultScene.cpp" />
@@ -425,8 +427,10 @@
     <ClInclude Include="src\Character\MainCamera.hpp" />
     <ClInclude Include="src\Character\Player.hpp" />
     <ClInclude Include="src\Core\Application.hpp" />
+    <ClInclude Include="src\Option\AudioManager.hpp" />
     <ClInclude Include="src\Option\GameOption.hpp" />
     <ClInclude Include="src\Option\OptionBase.hpp" />
+    <ClInclude Include="src\Option\Settings.hpp" />
     <ClInclude Include="src\Option\TitleOption.hpp" />
     <ClInclude Include="src\Scene\GameScene.hpp" />
     <ClInclude Include="src\Scene\ResultScene.hpp" />

@@ -21,8 +21,16 @@ GameScene::~GameScene()
 
 bool GameScene::SystemInit()
 {
-	m_gameOption = std::make_unique<GameOption>();
-	m_gameOption->SystemInit();
+	auto& data = getData();							// 共有データの所得
+
+	m_gameOption = std::make_unique<GameOption>(data.settings, data.audio);
+	if (m_gameOption == nullptr) return false;
+
+	// gameBGMのロード
+	if (data.audio)
+	{
+		data.audio->PreLoadBGM(U"GameBGM", U"example/test.mp3");
+	}
 
 	m_optionIcon = Texture{ U"⚙️"_emoji };
 
@@ -31,6 +39,13 @@ bool GameScene::SystemInit()
 
 void GameScene::GameInit()
 {
+	// BGM再生
+	auto& data = getData();
+	if (data.audio)
+	{
+		data.audio->PlayBGM(U"GameBGM", true);
+	}
+
 	//----------------------
 	// プレイヤー初期化
 	//----------------------
@@ -61,6 +76,7 @@ void GameScene::update()
 		if (KeyEnter.down())
 		{
 			changeScene(SceneState::RESULT);
+			getData().audio->StopBGM(1s);
 		}
 
 	// 円の移動処理
@@ -91,6 +107,12 @@ void GameScene::update()
 
 		// プレイヤー更新
 		m_player.Update();
+
+		// オプションボタンが押されたらオプション画面へ
+		if (m_optionButton.leftClicked())
+		{
+			m_gameState = GameState::Option;
+		}
 
 		break;
 

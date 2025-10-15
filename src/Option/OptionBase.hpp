@@ -1,16 +1,32 @@
 ﻿#pragma once
 #include <Siv3D.hpp>
+#include "Settings.hpp"
+#include "AudioManager.hpp"
+#include "../Core/Application.hpp"
 
 class OptionBase
 {
-protected:
+private:
+	double m_sliderX;
+	double m_sliderY;
 	bool m_isClosed;
 
-	// 仮
-	RoundRect m_roundRect;
+	RoundRect m_optionWindow;
+	Polygon m_closeOptionBtn;
+	Font m_closeMark;
+
+	std::shared_ptr<Settings> m_settings;
+	std::shared_ptr<AudioManager> m_audio;
+
+
+protected:
+	static constexpr double OPTION_WINDOW_X = Application::WINDOW_WIDTH / 10.0;
+	static constexpr double OPTION_WINDOW_Y = Application::WINDOW_HEIGHT / 10.0;
+	static constexpr double OPTION_WINDOW_WIDTH = Application::WINDOW_WIDTH * 8.0 / 10.0;
+	static constexpr double OPTION_WINDOW_HEIGHT = Application::WINDOW_HEIGHT * 8.0 / 10.0;
 
 public:
-	OptionBase();
+	OptionBase(std::shared_ptr<Settings> settings, std::shared_ptr<AudioManager> audio);
 	virtual ~OptionBase() = default;
 
 	virtual bool SystemInit();

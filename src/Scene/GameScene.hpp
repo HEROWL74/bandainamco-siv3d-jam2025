@@ -21,11 +21,13 @@ private:
 	Texture m_playerTexture;
 	Player m_player;
 
-	std::unique_ptr<class GameOption> m_gameOption;
-	GameState m_gameState;
-
+	// オプション関連
 	Texture m_optionIcon;
 	RoundRect m_optionButton;
+
+	std::unique_ptr<GameOption> m_gameOption;
+	GameState m_gameState;
+
 
 public:
 	GameScene(const InitData& init);
