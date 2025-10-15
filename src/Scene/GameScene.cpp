@@ -1,11 +1,11 @@
 ﻿#include "GameScene.hpp"
 #include "../Core/Application.hpp"
-
+#include "../Map/MapLoader.hpp"	
 
 // コンストラクタ
 GameScene::GameScene(const InitData& init)
 	:IScene(init)
-	, m_playerTexture(U"example/spritesheet/siv3d-kun-16.png")
+	, m_playerTexture(U"Assets/player_spritesheet.png")
 	, m_player(m_playerTexture)
 	, m_gameOption(nullptr)
 {
@@ -50,7 +50,11 @@ void GameScene::GameInit()
 	// プレイヤー初期化
 	//----------------------
 	m_player.SetPosition(Scene::Center());
-	m_player.InitAnimation();
+	m_player.Init();
+
+	//m_mapCollisions << RectF{ -1000, -1000, 2000, 50 }; JSONから読み込むのでコメントアウト
+
+	m_mapCollisions = MapLoader::LoadCollisions(U"map_01");
 
 	// ゲームの状態
 	m_gameState = GameState::Game;
@@ -70,48 +74,12 @@ void GameScene::update()
 {
 	switch (m_gameState)
 	{
-	case GameState::Game:												// ゲーム画面
-
+	case GameState::Game:	// ゲーム画面
 		// エンターキーでシーンをresultへ
 		if (KeyEnter.down())
 		{
 			changeScene(SceneState::RESULT);
 			getData().audio->StopBGM(1s);
-		}
-
-	// 円の移動処理
-	if (KeyD.pressed())
-	{
-		mCirclePos.x += CIRCLE_SPEED;
-		if (mCirclePos.x > Application::WINDOW_WIDTH - 50.0)
-			mCirclePos.x = Application::WINDOW_WIDTH - 50.0;
-	}
-	if (KeyA.pressed())
-	{
-		mCirclePos.x -= CIRCLE_SPEED;
-		if (mCirclePos.x < 50.0)
-			mCirclePos.x = 50.0;
-	}
-	if (KeyS.pressed())
-	{
-		mCirclePos.y += CIRCLE_SPEED;
-		if (mCirclePos.y > Application::WINDOW_HEIGHT - 50.0)
-			mCirclePos.y = Application::WINDOW_HEIGHT - 50.0;
-	}
-	if (KeyW.pressed())
-	{
-		mCirclePos.y -= CIRCLE_SPEED;
-		if (mCirclePos.y < 50.0)
-			mCirclePos.y = 50.0;
-	}
-
-		// プレイヤー更新
-		m_player.Update();
-
-		// オプションボタンが押されたらオプション画面へ
-		if (m_optionButton.leftClicked())
-		{
-			m_gameState = GameState::Option;
 		}
 
 		break;
@@ -125,21 +93,67 @@ void GameScene::update()
 		}
 		break;
 	}
-	
+
+	if (m_optionButton.leftClicked())
+	{
+		m_gameState = GameState::Option;
+	}
+
+
+	// プレイヤー更新
+	m_player.Update();
+
+	m_player.TryMove(m_mapCollisions);
+
+	//カメラ更新
+	m_MainCamera.SetTarget(m_player.GetPosition());
+	m_MainCamera.Update();
 }
 
 void GameScene::draw() const
 {
-	Scene::SetBackground(ColorF{ 0.8, 0.0, 0.2 });
+	Scene::SetBackground(ColorF{ 1.0, 1.0, 1.0 }); // 白色
+
+	const ScopedRenderStates2D blend{ SamplerState::ClampNearest };
+
+	{
+		const auto t = m_MainCamera.GetTransformer();
+#ifdef _DEBUG
+
+		// グリッド線で地面を可視化
+		for (int y = -5; y <= 5; ++y)
+		{
+			for (int x = -5; x <= 5; ++x)
+			{
+				RectF{ x * 64.0 - 32, y * 64.0 - 32, 64, 64 }
+				.draw(ColorF{ (x + y) % 2 == 0 ? 1.0 : 0.0 });
+			}
+		}
+		// コリジョンを赤枠で描画
+		for (const auto& mapCol : m_mapCollisions)
+		{
+			mapCol.drawFrame((3,3),ColorF{ 1.0, 0.0, 0.0 });
+		}
+		// 緑枠でプレイヤー用の円形コリジョンを描画
+		m_player.GetCollision().getWorldShape(m_player.GetPosition())
+			.drawFrame(2, 0, ColorF{ 0.0, 1.0, 0.0 });
+#endif
+	}
+
+	{
+		ScopedSpotlight target{ m_spotlight, ColorF{ 0.05, 0.05, 0.1 } };
+		m_player.DrawLight(m_MainCamera);
+	}
+
+	m_spotlight.draw();
+
+	{
+		const auto t = m_MainCamera.GetTransformer();
+		m_player.DrawCharacter(m_MainCamera);
+	}
 
 	//描画処理
 	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
-
-	// プレイヤー描画
-	{
-		const ScopedRenderStates2D sampler{ SamplerState::ClampNearest };
-		m_player.Draw();
-	}	
 
 	// 設定ボタンの描画	
 	m_optionButton.draw(Palette::Silver);
@@ -160,6 +174,8 @@ void GameScene::draw() const
 		m_gameOption->Draw();
 	}
 }
+
+
 
 bool GameScene::Release()
 {

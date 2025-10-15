@@ -8,10 +8,11 @@ public:
 
 	void Update();
 	void SetTarget(const Vec2& targetPosition);
+	Vec2 WorldToScreen(const Vec3& worldPos)const;
 	[[nodiscard]] Transformer2D GetTransformer() const;
 	[[nodiscard]] Mat3x2 GetViewMatrix() const;
-	[[nodiscard]] const Vec2& GetPosition() const noexcept { return m_position; }
-
+	[[nodiscard]] const Vec2& GetPosition() const  noexcept { return m_position; }
+	
 private:
 	Vec2 m_position;
 	Vec2 m_target;
