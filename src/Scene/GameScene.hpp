@@ -35,10 +35,6 @@ private:
 	Texture m_optionIcon;
 	RoundRect m_optionButton;
 
-	std::unique_ptr<GameOption> m_gameOption;
-	GameState m_gameState;
-
-
 public:
 	GameScene(const InitData& init);
 	~GameScene();
