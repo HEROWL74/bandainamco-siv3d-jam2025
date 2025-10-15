@@ -1,6 +1,7 @@
 ﻿#include "GameOption.hpp"
 
-GameOption::GameOption()
+GameOption::GameOption(std::shared_ptr<Settings> settings, std::shared_ptr<AudioManager> audio)
+	:OptionBase(settings, audio)
 {
 
 }

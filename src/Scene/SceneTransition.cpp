@@ -3,8 +3,10 @@
 #include "GameScene.hpp"
 #include "ResultScene.hpp"
 
-SceneTransition::SceneTransition()
-	:mManager(nullptr)
+SceneTransition::SceneTransition(std::shared_ptr<Settings> settings, std::shared_ptr<AudioManager> audio)
+	:m_manager(nullptr)
+	,m_settings(settings)
+	,m_audio(audio)
 {
 
 }
@@ -15,15 +17,19 @@ SceneTransition::~SceneTransition()
 
 bool SceneTransition::SystemInit()
 {
-	mManager = std::make_unique<App>();
+	m_manager = std::make_unique<App>();
+
+	// 共有データの設定
+	m_manager->get()->settings = m_settings;
+	m_manager->get()->audio = m_audio;
 
 	// シーンを登録
-	mManager->add<TitleScene>(SceneState::TITLE);
-	mManager->add<GameScene>(SceneState::GAME);
-	mManager->add<ResultScene>(SceneState::RESULT);
+	m_manager->add<TitleScene>(SceneState::TITLE);
+	m_manager->add<GameScene>(SceneState::GAME);
+	m_manager->add<ResultScene>(SceneState::RESULT);
 
 	// ゲーム起動時にゲーム画面からスタート（フェードイン時間無し）
-	mManager->init(SceneState::GAME, 0s);
+	m_manager->init(SceneState::TITLE, 0s);
 
 
 	return true;
@@ -31,5 +37,5 @@ bool SceneTransition::SystemInit()
 
 void SceneTransition::Update()
 {
-	mManager->update();
+	m_manager->update();
 }

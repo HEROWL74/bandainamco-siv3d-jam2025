@@ -7,7 +7,7 @@ private:
 
 
 public:
-	TitleOption();
+	TitleOption(std::shared_ptr<Settings> settings, std::shared_ptr<AudioManager> audio);
 	~TitleOption();
 
 	void Update() override;

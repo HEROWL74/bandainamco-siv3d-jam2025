@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <Siv3D.hpp>
 #include <memory>
+#include "../Option/Settings.hpp"
+#include "../Option/AudioManager.hpp"
 
 // シーンの状態遷移
 enum class SceneState
@@ -10,16 +12,25 @@ enum class SceneState
 	RESULT,
 };
 
-using App = SceneManager<SceneState>;
+// シーン間で共有するデータ
+struct SharedData
+{
+	std::shared_ptr<Settings> settings;
+	std::shared_ptr<AudioManager> audio;
+};
+
+using App = SceneManager<SceneState, SharedData>;
 
 class SceneTransition
 {
 private:
-	std::unique_ptr<App> mManager;
+	std::unique_ptr<App> m_manager;
+	std::shared_ptr<Settings> m_settings;
+	std::shared_ptr<AudioManager> m_audio;
 
 
 public:
-	SceneTransition();
+	SceneTransition(std::shared_ptr<Settings> settings, std::shared_ptr<AudioManager> audio);
 	~SceneTransition();
 
 	bool SystemInit();

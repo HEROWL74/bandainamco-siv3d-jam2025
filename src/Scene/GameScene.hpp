@@ -24,6 +24,7 @@ private:
 	Texture m_playerTexture;
 	Player m_player;
 
+	// オプション関連
 	Array<RectF> m_mapCollisions;
 
 	MainCamera m_MainCamera;
