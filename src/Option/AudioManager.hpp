@@ -30,6 +30,7 @@ public:
 	void PlayBGM(const String& id, bool loop = true);
 	void StopBGM(Seconds fade = 0s);
 	void PlaySE(const String& id);
+	void PlaySEPan(const String& id, const Vec2& sourcePos, const Vec2& listenerPos);		// 位置によってパンを変更する関数
 
 	// マスター/バスの音量制御
 	void SetMasterVolume(double v);
