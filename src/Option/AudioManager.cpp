@@ -83,6 +83,33 @@ void AudioManager::PlaySE(const String& id)
 	m_seMap[id].playOneShot();
 }
 
+// 位置によってパンを変更する関数
+void AudioManager::PlaySEPan(const String& id, const Vec2& sourcePos, const Vec2& listenerPos)
+{
+	if (!m_seMap.contains(id)) return;
+
+	// 音源とリスナーの距離
+	const Vec2 dir = sourcePos - listenerPos;
+	const double dist = dir.length();
+
+	// パンの計算
+	const double angle = std::atan2(dir.y, dir.x);						// 音源への角度（ラジアン：[-π, π]）
+	double pan = std::cos(angle);										// panの値を[-1, 1]に変換
+	pan = Clamp(pan, -1.0, 1.0);										// Clamp:上限と下限を設定する
+
+	// 距離減衰の計算
+	const double refDist = 200.0;										// 参照距離（音量が半分くらいになる距離）
+	double atten = 1.0 / (1.0 + (dist * dist) / (refDist * refDist));	// 距離による減衰計算
+	atten = Clamp(atten, 0.0, 1.0);
+
+	// 音量設定
+	double vol = m_busVolume[static_cast<int>(Bus::SE)] * atten;		// SEバスの音量に距離減衰を掛ける
+	vol = Clamp(vol, 0.0, 1.0);
+
+	// 再生処理
+	m_seMap[id].playOneShot(vol, pan);
+}
+
 // マスター/バスの音量制御
 void AudioManager::SetMasterVolume(double v)
 {
