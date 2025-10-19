@@ -29,16 +29,16 @@ void Player::Update()
 	// 移動ベクトル初期化
 	SetVelocity(Vec2{ 0, 0 });
 
-	// スペースキーでイベントアニメーション開始
-	if (KeySpace.down())
+	// Eキーでイベントアニメーション開始
+	if (KeyE.down())
 	{
 		StartExclusiveAnimation(AnimationKeys::Event_0);
 		CharacterBase::Update();
 		return; // アニメーション時中は他の入力を無視
 	}
 
-	// マウス左クリックでイベントアニメーション開始
-	if (MouseL.down())
+	// Qキーでイベントアニメーション開始
+	if (KeyQ.down())
 	{
 		StartExclusiveAnimation(AnimationKeys::Event_1);
 		CharacterBase::Update();

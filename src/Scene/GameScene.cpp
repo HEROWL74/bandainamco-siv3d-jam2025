@@ -46,15 +46,21 @@ void GameScene::GameInit()
 		data.audio->PlayBGM(U"GameBGM", true);
 	}
 
-	//----------------------
 	// プレイヤー初期化
-	//----------------------
-	m_player.SetPosition(Scene::Center());
+	m_player.SetPosition(Vec2{0,0});
 	m_player.Init();
 
-	//m_mapCollisions << RectF{ -1000, -1000, 2000, 50 }; JSONから読み込むのでコメントアウト
+	// カメラ初期化
+	m_MainCamera.SetPosition(m_player.GetPosition());
 
+	// マップ初期化
 	m_mapCollisions = MapLoader::LoadCollisions(U"map_01");
+
+	const Vec2 drawCenter = { 0, -150.0 };
+	const Vec2 hitBoxCenter = { 0.0, 80.0 };
+	const Vec2 hitBoxSize = { 150.0, 150.0 };
+	const FilePath doorPath = U"Assets/Props/door_test.png";
+	m_door = std::make_unique<Door>(drawCenter, hitBoxCenter, hitBoxSize, doorPath);
 
 	// ゲームの状態
 	m_gameState = GameState::Game;
@@ -108,6 +114,8 @@ void GameScene::update()
 	//カメラ更新
 	m_MainCamera.SetTarget(m_player.GetPosition());
 	m_MainCamera.Update();
+
+	HandleDoorTransition();
 }
 
 void GameScene::draw() const
@@ -118,17 +126,19 @@ void GameScene::draw() const
 
 	{
 		const auto t = m_MainCamera.GetTransformer();
+		m_door->draw();
+		const Circle playerCol = m_player.GetCollision().getWorldShape(m_player.GetPosition());
 #ifdef _DEBUG
 
 		// グリッド線で地面を可視化
-		for (int y = -5; y <= 5; ++y)
-		{
-			for (int x = -5; x <= 5; ++x)
-			{
-				RectF{ x * 64.0 - 32, y * 64.0 - 32, 64, 64 }
-				.draw(ColorF{ (x + y) % 2 == 0 ? 1.0 : 0.0 });
-			}
-		}
+		//for (int y = -5; y <= 5; ++y)
+		//{
+		//	for (int x = -5; x <= 5; ++x)
+		//	{
+		//		RectF{ x * 64.0 - 32, y * 64.0 - 32, 64, 64 }
+		//		.draw(ColorF{ (x + y) % 2 == 0 ? 1.0 : 0.0 });
+		//	}
+		//}
 		// コリジョンを赤枠で描画
 		for (const auto& mapCol : m_mapCollisions)
 		{
@@ -182,4 +192,42 @@ bool GameScene::Release()
 
 
 	return true;
+}
+
+void GameScene::HandleDoorTransition()
+{
+	const Circle playerCol = m_player.GetCollision().getWorldShape(m_player.GetPosition());
+
+	if (m_door->isNear(playerCol))
+	{
+		if (KeySpace.down())
+		{
+			// 共有データから次に遷移するミニゲーム番号を取得して遷移
+			auto& data = getData();
+
+			switch (data.nextMiniGame)
+			{
+			case 0:
+				changeScene(SceneState::MINIGAME_0);
+				break;
+			case 1:
+				changeScene(SceneState::MINIGAME_1);
+				break;
+			case 2:
+				changeScene(SceneState::MINIGAME_2);
+				break;
+			case 3:
+				changeScene(SceneState::MINIGAME_3);
+				break;
+			default:
+				changeScene(SceneState::MINIGAME_0);
+				break;
+			}
+
+			// 次回は次のミニゲームへ
+			data.nextMiniGame = (data.nextMiniGame % 4) + 1;
+
+			if (data.audio) data.audio->StopBGM(1s);
+		}
+	}
 }

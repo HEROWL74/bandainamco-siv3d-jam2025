@@ -10,6 +10,10 @@ enum class SceneState
 	TITLE,
 	GAME,
 	RESULT,
+	MINIGAME_0,
+	MINIGAME_1,
+	MINIGAME_2,
+	MINIGAME_3,
 };
 
 // シーン間で共有するデータ
@@ -17,6 +21,8 @@ struct SharedData
 {
 	std::shared_ptr<Settings> settings;
 	std::shared_ptr<AudioManager> audio;
+
+	uint8 nextMiniGame = 0;	// 次に遷移するミニゲームの番号 (0~3)
 };
 
 using App = SceneManager<SceneState, SharedData>;

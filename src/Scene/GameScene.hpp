@@ -4,7 +4,7 @@
 #include "SceneTransition.hpp"
 #include "../Character/Player.hpp"
 #include "../Render/Spotlight.hpp"
-
+#include "../Map/Door/Door.hpp"
 #include "../Option/GameOption.hpp"
 
 enum class GameState
@@ -17,12 +17,17 @@ enum class GameState
 class GameScene : public App::Scene
 {
 private:
+	void HandleDoorTransition();
+
 	static constexpr double CIRCLE_SPEED = 3.0;
 
 	Vec2 mCirclePos{};	// サークルの位置
 
 	Texture m_playerTexture;
+
 	Player m_player;
+
+	std::unique_ptr<Door> m_door;
 
 	// オプション関連
 	Array<RectF> m_mapCollisions;
