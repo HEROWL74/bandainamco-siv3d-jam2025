@@ -6,7 +6,7 @@
 GameScene::GameScene(const InitData& init)
 	:IScene(init)
 	, m_playerTexture(U"Assets/player_spritesheet.png")
-	, m_player(m_playerTexture)
+	, m_player(m_playerTexture, getData().audio)
 	, m_gameOption(nullptr)
 {
 	SystemInit();
@@ -30,6 +30,7 @@ bool GameScene::SystemInit()
 	if (data.audio)
 	{
 		data.audio->PreLoadBGM(U"GameBGM", U"example/test.mp3");
+		data.audio->PreLoadSE(U"TestSE", U"example/test.mp3");
 	}
 
 	m_optionIcon = Texture{ U"⚙️"_emoji };

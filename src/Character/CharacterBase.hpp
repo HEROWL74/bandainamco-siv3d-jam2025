@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include "MainCamera.hpp"
 #include "../Core/Collision.hpp"
+#include "../Option/AudioManager.hpp"
 
 class CharacterBase
 {

@@ -1,7 +1,8 @@
 ﻿#include "Player.hpp"
 
-Player::Player(const Texture& texture)
+Player::Player(const Texture& texture, std::shared_ptr<AudioManager> audio)
 	: CharacterBase(texture)
+	, m_audio(audio)
 {
 }
 
@@ -19,6 +20,13 @@ void Player::StartExclusiveAnimation(const String& animName)
 
 void Player::Update()
 {
+
+	if(MouseR.down())
+	{
+		m_audio->PlaySE(U"TestSE");
+		Print << U"TestSE";
+	}
+
 	// イベント中は移動不可
 	if (IsEvent())
 	{

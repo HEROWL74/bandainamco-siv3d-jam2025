@@ -5,7 +5,7 @@
 class Player : public CharacterBase
 {
 public:
-	Player(const Texture& texture);
+	Player(const Texture& texture, std::shared_ptr<AudioManager> audio);
 
 	void Update() override;
 	void Init();
@@ -34,4 +34,6 @@ private:
 	//ColorF m_lightColor = ColorF{ 0.5, 0.5, 1.0,0.9 }; //青色
 	ColorF m_lightColor_Bright = ColorF{ 1.0, 1.0, 0.7,0.9 }; //黄色
 	ColorF m_lightColor_Dim = ColorF{ 0.5, 0.5, 1.0,0.9 }; //青色
+
+	std::shared_ptr<AudioManager> m_audio;
 };
