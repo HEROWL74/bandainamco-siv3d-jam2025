@@ -7,12 +7,17 @@
 // ノーツのデータ構造
 struct Note
 {
-	// ノーツが到達する時間（秒）
-	double startTime;
-	// ノーツの長さ（秒）
-	double duration;
-	// ノーツのピッチ（画面上のY座標に対応させる）
-	int pitch;
+	double startTime;// ノーツが到達する時間（秒）	
+	double duration; // ノーツの長さ（秒）
+	int pitch; // ノーツのピッチ（画面上のY座標に対応させる）
+
+	enum class State {
+		None,// 未判定
+		Active, // 判定ライン到達済、判定中
+		Hit, // 成功
+		Miss, // ミス
+	};
+	State state = State::None;
 };
 
 enum class GameStatus
@@ -49,6 +54,8 @@ private:
 
 	// ゲームステータス
 	GameStatus m_status = GameStatus::Ready;
+
+	bool m_isPitchPerfect = false;
 
 	// スコアリング
 	int m_score = 0;

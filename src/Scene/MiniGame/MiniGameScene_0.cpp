@@ -17,23 +17,20 @@ MiniGameScene_0::~MiniGameScene_0()
 
 void MiniGameScene_0::loadBGMAndNotes()
 {
-	// **ステップ 1: BGMの読み込み**
-	// 注: ここでは直接 Audio を生成しますが、AudioManagerでStream再生する場合はそちらを使用します。
-	// m_bgm = Audio(U"example/sample.mp3", Audio::Stream);
 	if (getData().audio)
 	{
-		getData().audio->PreLoadBGM(U"MiniGame0BGM", U"example/test.mp3"); // MiniGame用IDでロード
+		getData().audio->PreLoadBGM(U"MiniGame0BGM", U"assets/sound/bgm/Beethoven-Symphony-No9-1st-2013.mp3");
 	}
 
-// 0秒〜8秒のノーツ (既存のもの)
-	m_notes.push_back({ 1.0, 0.5, 300 }); 
-	m_notes.push_back({ 2.0, 0.7, 500 }); 
-	m_notes.push_back({ 3.5, 1.0, 400 }); 
-	m_notes.push_back({ 5.0, 0.5, 300 }); 
-	m_notes.push_back({ 6.0, 0.5, 500 }); 
-	m_notes.push_back({ 7.0, 0.5, 300 }); 
-	m_notes.push_back({ 8.5, 1.0, 400 }); 
-	
+	// 0秒〜8秒のノーツ
+	m_notes.push_back({ 1.0, 0.5, 300 });
+	m_notes.push_back({ 2.0, 0.7, 500 });
+	m_notes.push_back({ 3.5, 1.0, 400 });
+	m_notes.push_back({ 5.0, 0.5, 300 });
+	m_notes.push_back({ 6.0, 0.5, 500 });
+	m_notes.push_back({ 7.0, 0.5, 300 });
+	m_notes.push_back({ 8.5, 1.0, 400 });
+
 	// 10秒〜20秒のノーツ (追加分)
 	m_notes.push_back({ 10.0, 0.5, 300 }); // 10秒
 	m_notes.push_back({ 10.5, 0.3, 500 });
@@ -48,7 +45,33 @@ void MiniGameScene_0::loadBGMAndNotes()
 	m_notes.push_back({ 18.0, 0.5, 500 });
 	m_notes.push_back({ 19.0, 1.5, 400 }); // さらに長いノーツ
 
-	// ... 実際の曲に合わせて増やす
+	// 20~40
+	m_notes.push_back({ 20.0, 0.5, 300 });
+	m_notes.push_back({ 20.5, 0.3, 400 });
+	m_notes.push_back({ 21.0, 0.3, 500 });
+	m_notes.push_back({ 22.0, 0.5, 300 });
+	m_notes.push_back({ 22.5, 0.5, 500 });
+	m_notes.push_back({ 23.0, 1.0, 400 });
+
+	m_notes.push_back({ 25.0, 0.5, 300 });
+	m_notes.push_back({ 25.5, 0.3, 400 });
+	m_notes.push_back({ 26.0, 0.3, 500 });
+	m_notes.push_back({ 27.0, 0.5, 300 });
+	m_notes.push_back({ 27.5, 0.5, 500 });
+	m_notes.push_back({ 28.0, 1.0, 400 });
+
+	m_notes.push_back({ 30.0, 0.5, 300 });
+	m_notes.push_back({ 30.5, 0.5, 400 });
+	m_notes.push_back({ 31.0, 0.5, 500 });
+	m_notes.push_back({ 32.0, 0.5, 300 });
+	m_notes.push_back({ 32.5, 1.0, 500 }); // 少し長め
+
+	m_notes.push_back({ 34.0, 0.5, 400 });
+	m_notes.push_back({ 35.0, 0.5, 500 });
+	m_notes.push_back({ 36.0, 0.5, 300 });
+	m_notes.push_back({ 37.0, 0.5, 400 });
+	m_notes.push_back({ 38.0, 0.5, 500 });
+	m_notes.push_back({ 39.0, 1.5, 300 }); // 終盤の長いノーツ
 
 	m_status = GameStatus::Ready;
 }
@@ -75,72 +98,117 @@ void MiniGameScene_0::updateReady()
 
 void MiniGameScene_0::updatePlaying()
 {
-	
-	m_playerSlideY = Cursor::Pos().y;
 
-	const double currentTime = Scene::Time() - m_gameStartTime;
+	m_playerSlideY = Cursor::Pos().y; // マウスのY座標をプレイヤーのスライド位置に対応させる
 
-	// **ステップ 4: ノーツの判定**
-	// BGMの再生位置(m_bgm.posSec())を使う方が厳密だが、ここではScene::Time()で代用
+	const double currentTime = Scene::Time() - m_gameStartTime; // ゲーム開始からの経過時間
+
+	m_isPitchPerfect = false; // ピッチが合っているかどうかのフラグをリセット
+	bool isNoteCurrentlyActive = false; // 現在アクティブなノーツがあるかどうか
+
+	// ノーツの判定処理
 	for (int i = m_currentNoteIndex; i < m_notes.size(); ++i)
 	{
-		const auto& note = m_notes[i];
-		const double arrivalTime = note.startTime;
-		const double noteEndTime = note.startTime + note.duration;
+		// ノーツ情報を取得
+		auto& note = m_notes[i];
+		const double arrivalTime = note.startTime; // ノーツが判定ラインに到達する時間
+		const double noteEndTime = note.startTime + note.duration; // ノーツの終了時間
 
-		// ノーツが判定ラインに到達する直前の時間
-		if (arrivalTime - currentTime < -0.1) // 判定を逃した場合（-0.1秒を超過したらMiss）
+		// ノーツが終了時間を過ぎている場合 (ミス判定が確定した場合や、ヒットして通り過ぎた場合)
+		if (arrivalTime - currentTime < -noteEndTime)
 		{
-			// Miss処理
-			m_combo = 0;
-			m_currentNoteIndex++; // 次のノーツへ
-			// (SE再生、エフェクト表示などをここに追加)
+			// ノーツが未判定またはアクティブ状態の場合、Missに設定
+			if (note.state == Note::State::None || note.state == Note::State::Active)
+			{
+				note.state = Note::State::Miss;
+				m_combo = 0;
+			}
+			m_currentNoteIndex++;
 			continue; // 次のノーツへ
 		}
 
-		// ノーツが判定ラインに到達した（または滞在中の）時間帯
+		// ノーツが判定ラインに到達したかチェック
 		if (currentTime >= arrivalTime)
 		{
-			// ノーツのピッチ範囲
+			// ノーツが未判定の場合、アクティブ状態に変更
+			if (note.state == Note::State::None)
+			{
+				note.state = Note::State::Active;
+			}
+
+			isNoteCurrentlyActive = true;
+
+			// ノーツのピッチ範囲をチェック
 			const int pitchCenter = note.pitch;
-			const int pitchRange = 30; // 判定の許容範囲（ピクセル）
+			const int pitchRange = 30;
 
 			// プレイヤーの位置がノーツの範囲内かチェック
 			if (m_playerSlideY >= pitchCenter - pitchRange && m_playerSlideY <= pitchCenter + pitchRange)
 			{
-				// 成功判定中
-				// 長いノーツの場合、プレイヤーが範囲内にいる間は成功判定を継続
-				m_combo++;
-				m_score += 100; // 成功でスコア加算
+				// ピッチHit
+				m_isPitchPerfect = true;
 
-				// ノーツの終了時間もチェック
+				const int scorePerSecond = 2000;
+				const double scoreToAdd = scorePerSecond * Scene::DeltaTime();
+
+				// スコア加算
+				m_score += static_cast<int>(scoreToAdd);
+
+				// ノーツの終了判定
 				if (currentTime >= noteEndTime)
 				{
-					// 長いノーツが終了したら、次のノーツへ
+					// ノーツ成功判定
+					note.state = Note::State::Hit;
 					m_currentNoteIndex++;
 				}
-				// (成功SE、エフェクト表示などをここに追加)
 			}
 			else
 			{
-				// ピッチMiss（範囲外）
-				m_combo = 0;
-				// 長いノーツでピッチMissした場合でも、終了時間までは同じノーツをチェックし続ける
+				// ピッチMiss
+				m_combo = 0; // コンボリセット
+
+				// ノーツの終了判定
 				if (currentTime >= noteEndTime)
 				{
+					note.state = Note::State::Miss;
 					m_currentNoteIndex++;
 				}
+				// アクティブ中にMissの場合も、終了時まで状態はActiveのまま（ピッチが合えばHitに変わる可能性があるため）
 			}
 
-			break; // 一番手前のノーツの判定を行ったら、ループを抜ける（同時に複数のノーツを処理しないため）
+			break; // 一番手前のノーツの判定を行ったら、ループを抜ける
 		}
 	}
 
-	// **ステップ 5: ゲーム終了判定**
+	if (getData().audio)
+	{
+		double targetPitch = 0.0; // デフォルトは通常ピッチ (0.0)
+
+		if (isNoteCurrentlyActive)
+		{
+			targetPitch = m_isPitchPerfect ? 0.0 : -1.0; // ピッチが合っていれば通常ピッチ、外れていれば遅くする
+		}
+
+		// 現在の BGM ピッチを取得
+		const double currentPitch = getData().audio->GetBGMPitch(U"MiniGame0BGM");
+
+		// ピッチを徐々に目標値に近づける
+		const double newPitch = Math::Lerp(currentPitch, targetPitch, 0.05);
+
+		getData().audio->SetBGMPitch(U"MiniGame0BGM", newPitch);
+	}
+
+	// ゲーム終了判定
 	if (m_currentNoteIndex >= m_notes.size() && !m_bgm.isPlaying())
 	{
 		m_status = GameStatus::Result;
 		// changeScene(SceneState::RESULT); // 結果画面へ遷移
+
+		// ゲーム終了時、BGMのピッチを通常に戻す
+		if (getData().audio)
+		{
+			getData().audio->SetBGMPitch(U"MiniGame0BGM", 0.0);
+		}
 	}
 }
 
@@ -156,6 +224,7 @@ void MiniGameScene_0::updateResult()
 
 void MiniGameScene_0::update()
 {
+	Cursor::RequestStyle(CursorStyle::Hidden);
 	switch (m_status)
 	{
 	case GameStatus::Ready:
@@ -177,49 +246,64 @@ void MiniGameScene_0::draw() const
 
 	const double currentTime = Scene::Time() - m_gameStartTime;
 
-	// **ステップ 6: 描画処理**
-
-	// 判定ラインの描画
-	Line{ 0, m_judgmentLineY, Scene::Width(), m_judgmentLineY }.draw(4, Palette::Red);
-
-	// プレイヤーのスライド位置（トロンボーンのマウスカーソル）の描画
-	Circle{ 200, m_playerSlideY, 10 }.draw(Palette::Yellow).drawFrame(2, Palette::Black);
-
-	// ノーツの描画
-	for (const auto& note : m_notes)
+	if (m_status == GameStatus::Playing)
 	{
-		// 判定ライン到達までの時間（負の値だと既に過ぎたノーツ）
-		const double timeToArrival = note.startTime - currentTime;
+		// 判定ライン
+		Line{ 200, 0, 200, Scene::Height() }.draw(4, Palette::Red);
 
-		// 画面上のX座標（右から左に流れる）
-		const double x = Scene::Width() - (timeToArrival / m_approachTime) * (Scene::Width() - 200.0);
+		// プレイヤーのスライド位置
+		Circle{ 200, m_playerSlideY, 10 }.draw(Palette::Yellow).drawFrame(2, Palette::Black);
 
-		// ノーツの長さ（X方向）
-		const double lengthX = (note.duration / m_approachTime) * (Scene::Width() - 200.0);
+		// ノーツの描画
+		for (const auto& note : m_notes)
+		{
+			// 判定ライン到達までの時間（負の値だと既に過ぎたノーツ）
+			const double timeToArrival = note.startTime - currentTime;
 
-		// ノーツのY座標（ピッチ）
-		const double y = note.pitch;
+			const double x = 200.0 + (timeToArrival / m_approachTime) * (Scene::Width() - 200.0); // ノーツのX座標（時間に基づく）			
+			const double lengthX = (note.duration / m_approachTime) * (Scene::Width() - 200.0); // ノーツの長さに基づく幅			
+			const double y = note.pitch; // ノーツのY座標（ピッチに基づく）
 
-		// ノーツが画面外に出たら描画しない
-		if (x + lengthX < 0) continue;
+			if (x + lengthX < 0) continue;// 画面外のノーツは描画しない
 
-		RectF(x, y - 15, lengthX, 30)
-			.draw(ColorF{ 0.3, 0.7, 1.0, 0.8 });
-		// トロンボーンのスライド位置を示す小さな円（ノーツの目標位置）
-		Circle{ x + 10, y, 5 }.draw(Palette::Orange);
+			//ノーツの状態に応じて色を変更
+			ColorF noteColor;
+			switch (note.state)
+			{
+			case Note::State::None:
+				// 未判定 (画面遠くにあるノーツ)
+				noteColor = ColorF{ 0.3, 0.7, 1.0, 0.8 }; // デフォルトの明るい青
+				break;
+			case Note::State::Active:
+				// 判定中
+				noteColor = ColorF{ 1.0, 1.0, 0.3, 0.8 }; // 黄色
+				break;
+			case Note::State::Hit:
+				// 成功
+				noteColor = ColorF{ 0.3, 1.0, 0.3, 0.8 }; // 緑
+				break;
+			case Note::State::Miss:
+				// 失敗 (ミスしたノーツ)
+				noteColor = ColorF{ 1.0, 0.3, 0.3, 0.8 }; // 赤
+				break;
+			}
+
+			RectF(x, y - 15, lengthX, 30).draw(noteColor); // ノーツ本体	
+			Circle{ x + 10, y, 5 }.draw(Palette::Orange);// ノーツの先端
+		}
 	}
+
 
 	// ステータス表示
 	if (m_status == GameStatus::Ready)
 	{
-		Print << U"MiniGame Scene 0: Trombone Champ風";
+		Print << U"MiniGame Scene 0";
 		Print << U"Click to Start!";
 	}
 	else if (m_status == GameStatus::Playing)
 	{
 		Print << U"Time: " << currentTime;
 		Print << U"Score: " << m_score;
-		Print << U"Combo: " << m_combo;
 	}
 	else if (m_status == GameStatus::Result)
 	{

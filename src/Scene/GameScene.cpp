@@ -5,7 +5,7 @@
 // コンストラクタ
 GameScene::GameScene(const InitData& init)
 	:IScene(init)
-	, m_playerTexture(U"Assets/player_spritesheet.png")
+	, m_playerTexture(U"assets/player_spritesheet.png")
 	, m_player(m_playerTexture)
 	, m_gameOption(nullptr)
 {
@@ -59,7 +59,7 @@ void GameScene::GameInit()
 	const Vec2 drawCenter = { 0, -150.0 };
 	const Vec2 hitBoxCenter = { 0.0, 80.0 };
 	const Vec2 hitBoxSize = { 150.0, 150.0 };
-	const FilePath doorPath = U"Assets/Props/door_test.png";
+	const FilePath doorPath = U"assets/props/door_test.png";
 	m_door = std::make_unique<Door>(drawCenter, hitBoxCenter, hitBoxSize, doorPath);
 
 	// ゲームの状態
