@@ -197,11 +197,11 @@ void MiniGameScene_1::updatePlaying()
 		}
 	}
 
-	if (allNotesJudged)
+	const double lastNoteEnd = m_notes.back().startTime + m_notes.back().duration;
+	if (currentTime > lastNoteEnd + 1.0) // 最後のノーツの2秒後に遷移
 	{
 		if (getData().audio)
 		{
-			// BGMのピッチを通常に戻す
 			getData().audio->SetBGMPitch(U"MiniGame1BGM", 0.0);
 			getData().audio->StopBGM(1s);
 		}
@@ -214,6 +214,10 @@ void MiniGameScene_1::updateResult()
 	// クリックでゲームへ戻る
 	if (MouseL.down())
 	{
+		// 共有データの取得
+		auto& data = getData();
+		data.nextMiniGame = (data.nextMiniGame % 4) + 1; // 次のミニゲームへ (0->1->2->3->0...)
+
 		changeScene(SceneState::GAME);
 		if (getData().audio)
 		{

@@ -120,7 +120,30 @@ void GameScene::update()
 
 void GameScene::draw() const
 {
-	Scene::SetBackground(ColorF{ 1.0, 1.0, 1.0 }); // 白色
+	const auto& data = getData();
+	ColorF backgroundColor;
+
+	// nextMiniGame の値に基づいて背景色を決定
+	switch (data.nextMiniGame)
+	{
+	case 0: // 例: ミニゲーム0 の時
+		backgroundColor = ColorF{ 1.0, 0.0, 0.0 }; // 赤
+		break;
+	case 1: // 例: ミニゲーム1 の時
+		backgroundColor = ColorF{ 0.0, 0.0, 1.0 }; // 青
+		break;
+	case 2: // 例: ミニゲーム2 の時
+		backgroundColor = ColorF{ 0.0, 1.0, 0.0 }; // 緑
+		break;
+	case 3: // 例: ミニゲーム3 の時
+		backgroundColor = ColorF{ 1.0, 1.0, 0.6 }; // 薄いマゼンタ
+		break;
+	default:
+		backgroundColor = ColorF{ 1.0, 1.0, 1.0 }; // デフォルト（白）
+		break;
+	}
+
+	Scene::SetBackground(backgroundColor); // 決定した背景色を設定
 
 	const ScopedRenderStates2D blend{ SamplerState::ClampNearest };
 
@@ -223,9 +246,6 @@ void GameScene::HandleDoorTransition()
 				changeScene(SceneState::MINIGAME_0);
 				break;
 			}
-
-			// 次回は次のミニゲームへ
-			data.nextMiniGame = (data.nextMiniGame % 4) + 1;
 
 			if (data.audio) data.audio->StopBGM(1s);
 		}
