@@ -45,8 +45,8 @@ private:
 	std::shared_ptr<class Settings> m_settings;
 
 	// 音源の実体
-	std::unordered_map<String, Audio> m_bgmMap;
-	std::unordered_map<String, Audio> m_seMap;
+	HashTable<String, Audio> m_bgmMap;
+	HashTable<String, Audio> m_seMap;
 
 	String m_currentBGMId;
 
