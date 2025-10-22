@@ -11,8 +11,10 @@ private:
 	//
 	static constexpr int NumLanes = 4;
 	const double m_approachTime = 2.0; // ノーツが降ってくる時間（秒）
-	const double m_judgmentLineY = 500.0; // 判定ラインのY座標
-	const Array<double> m_laneXPositions = { 0.0, 200.0, 400.0, 600.0, 800.0 };
+	const double m_judgmentLineY = 900; // 判定ラインのY座標
+	static constexpr double LaneWidth = 200.0; // 1レーンあたりの幅
+	static constexpr double GameAreaWidth = NumLanes * LaneWidth; // ゲーム領域の総幅 (800.0)
+	const Array<double> m_laneRelativeXPositions = { 0.0, 200.0, 400.0, 600.0, 800.0 };
 	const Array<Input> m_judgmentKeys = { KeyD, KeyF, KeyJ, KeyK };
 
 	// ゲームの状態

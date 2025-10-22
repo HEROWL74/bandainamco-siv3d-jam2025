@@ -24,7 +24,7 @@ void MiniGameScene_1::loadBGMAndNotes()
 	if (getData().audio)
 	{
 		// 新しいBGMをロード (必要に応じて変更)
-		getData().audio->PreLoadBGM(U"MiniGame1BGM", U"assets/sound/bgm/Beethoven-Symphony-No9-1st-2013.mp3");
+		getData().audio->PreLoadBGM(U"MiniGame1BGM", U"assets/sound/bgm/Beethoven-Symphony-No9-2nd-2023.mp3");
 	}
 
 	// 4レーン用の簡単な譜面
@@ -86,8 +86,6 @@ void MiniGameScene_1::updatePlaying()
 		const double judgmentWindow = 0.1;
 		const double judgmentStart = arrivalTime - judgmentWindow;
 		const double judgmentEnd = arrivalTime + judgmentWindow;
-
-		// --- 1. ノーツの開始判定 ---
 
 		// 単発ノーツの判定
 		if (note.duration == 0.0)
@@ -258,8 +256,11 @@ RectF MiniGameScene_1::getLaneRect(int lane, double timeToArrival, double durati
 	const double noteStartY = Math::Lerp(nearY, topY, t);
 
 	// レーンのX座標と幅
-	const double laneXStart = m_laneXPositions[lane];
-	const double laneXEnd = m_laneXPositions[lane + 1];
+	const double gameAreaOffsetX = (Scene::Width() - GameAreaWidth) / 2.0; // MiniGameScene_1.hppで定義した定数を使用
+
+	const double laneXStart = m_laneRelativeXPositions[lane] + gameAreaOffsetX;
+	const double laneXEnd = m_laneRelativeXPositions[lane + 1] + gameAreaOffsetX;
+
 	const double currentWidth = laneXEnd - laneXStart;
 
 	RectF noteRect;
@@ -299,9 +300,14 @@ void MiniGameScene_1::drawNote(const Note& note, double timeToArrival) const
 	const double topY = 0.0;
 	const double nearY = m_judgmentLineY;
 
+	const double gameAreaOffsetX = (Scene::Width() - GameAreaWidth) / 2.0;
+
 	// レーンのX座標と幅 (パース計算を削除)
-	const double laneXStart = m_laneXPositions[lane];
-	const double laneXEnd = m_laneXPositions[lane + 1];
+	// const double laneXStart = m_laneXPositions[lane]; // ← 削除 (または置き換え)
+	// const double laneXEnd = m_laneXPositions[lane + 1]; // ← 削除 (または置き換え)
+	const double laneXStart = m_laneRelativeXPositions[lane] + gameAreaOffsetX;
+	const double laneXEnd = m_laneRelativeXPositions[lane + 1] + gameAreaOffsetX;
+
 	const double currentWidth = laneXEnd - laneXStart;
 
 	// ノーツの先端（下端）のY座標 (線形補間)
@@ -371,6 +377,8 @@ void MiniGameScene_1::draw() const
 	const double sceneWidth = Scene::Width();
 	const double sceneHeight = Scene::Height();
 
+	const double gameAreaOffsetX = (sceneWidth - GameAreaWidth) / 2.0; // 800.0 は MiniGameScene_1.hpp で定義した GameAreaWidth
+
 	// 演奏レーンの描画 (垂直型に修正)
 	// レーンの上端Y座標
 	const double laneTopY = 0.0; // 画面上端
@@ -379,8 +387,8 @@ void MiniGameScene_1::draw() const
 	// 各レーンの描画
 	for (int i = 0; i < NumLanes; ++i)
 	{
-		const double laneX1 = m_laneXPositions[i];
-		const double laneX2 = m_laneXPositions[i + 1];
+		const double laneX1 = m_laneRelativeXPositions[i] + gameAreaOffsetX;
+		const double laneX2 = m_laneRelativeXPositions[i + 1] + gameAreaOffsetX;
 		const double laneWidth = laneX2 - laneX1;
 
 		// レーンの矩形
@@ -424,24 +432,27 @@ void MiniGameScene_1::draw() const
 			drawNote(note, timeToArrival);
 		}
 
-		// 判定ラインの描画 (鮮やかな赤色を維持)
-		Line{ m_laneXPositions.front(), m_judgmentLineY, m_laneXPositions.back(), m_judgmentLineY }.draw(4, Palette::Red);
+		const double lineXStart = m_laneRelativeXPositions.front() + gameAreaOffsetX;
+		const double lineXEnd = m_laneRelativeXPositions.back() + gameAreaOffsetX;
+		Line{ lineXStart, m_judgmentLineY, lineXEnd, m_judgmentLineY }.draw(4, Palette::Red);
 
 		// 判定キーの表示と強調
 		for (int i = 0; i < NumLanes; ++i)
 		{
 			const String keyName = m_judgmentKeys[i].name();
-			const double x = (m_laneXPositions[i] + m_laneXPositions[i + 1]) / 2.0;
+			// === 変更点: オフセットを加えて中心 X 座標を計算 ===
+			const double x = (m_laneRelativeXPositions[i] + m_laneRelativeXPositions[i + 1]) / 2.0 + gameAreaOffsetX;
 
 			// キーが押されているレーンの強調表示
 			if (m_judgmentKeys[i].pressed())
 			{
 				// 判定ライン付近を白く強調（より鮮明に）
-				RectF(m_laneXPositions[i], m_judgmentLineY - 10, m_laneXPositions[i + 1] - m_laneXPositions[i], 20)
+				// === 変更点: 強調表示の X 座標にオフセットを適用 ===
+				RectF(m_laneRelativeXPositions[i] + gameAreaOffsetX, m_judgmentLineY - 10, LaneWidth, 20)
 					.draw(ColorF{ 1.0, 1.0, 1.0, 0.6 });
 			}
 
-			// 判定キーの文字は、強調表示に重ならないように少し下へ
+			// 判定キーの文字
 			m_font20(keyName).drawAt(x, m_judgmentLineY + 35, Palette::White);
 		}
 	}
