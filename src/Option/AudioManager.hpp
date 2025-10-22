@@ -38,6 +38,10 @@ public:
 	void SetBusVolume(Bus bus, double v);
 	double GetBusVolume(Bus bus) const;
 
+	// BGMのピッチ（再生速度）制御
+	void SetBGMPitch(const String& id, double pitch);
+	double GetBGMPitch(const String& id) const;
+
 	// 状態チェック
 	bool IsLoaded(const String& id) const;
 
@@ -54,4 +58,5 @@ private:
 	double m_masterVolume = 0.0;
 	double m_busVolume[static_cast<int>(Bus::Count)] = {};
 
+	double m_bgmPitchShift = 0.0;
 };
