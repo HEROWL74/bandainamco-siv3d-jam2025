@@ -22,6 +22,6 @@ public:
 	void update();
 	void draw();
 
-	static constexpr int WINDOW_WIDTH = 800;
-	static constexpr int WINDOW_HEIGHT = 600;
+	static constexpr int WINDOW_WIDTH = 1920;
+	static constexpr int WINDOW_HEIGHT = 1080;
 };

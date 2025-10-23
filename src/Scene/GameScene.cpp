@@ -5,7 +5,7 @@
 // コンストラクタ
 GameScene::GameScene(const InitData& init)
 	:IScene(init)
-	, m_playerTexture(U"Assets/player_spritesheet.png")
+	, m_playerTexture(U"assets/player_spritesheet.png")
 	, m_player(m_playerTexture)
 	, m_gameOption(nullptr)
 {
@@ -59,7 +59,7 @@ void GameScene::GameInit()
 	const Vec2 drawCenter = { 0, -150.0 };
 	const Vec2 hitBoxCenter = { 0.0, 80.0 };
 	const Vec2 hitBoxSize = { 150.0, 150.0 };
-	const FilePath doorPath = U"Assets/Props/door_test.png";
+	const FilePath doorPath = U"assets/props/door_test.png";
 	m_door = std::make_unique<Door>(drawCenter, hitBoxCenter, hitBoxSize, doorPath);
 
 	// ゲームの状態
@@ -68,8 +68,8 @@ void GameScene::GameInit()
 	m_gameOption->GameInit();
 
 	// オプションボタンの座標
-	const double buttonX = 750.0;
-	const double buttonY = 550.0;
+	const double buttonX = 1600.0;
+	const double buttonY = 950.0;
 	const double buttonW = 40;
 	const double ronded = 6;
 
@@ -120,7 +120,30 @@ void GameScene::update()
 
 void GameScene::draw() const
 {
-	Scene::SetBackground(ColorF{ 1.0, 1.0, 1.0 }); // 白色
+	const auto& data = getData();
+	ColorF backgroundColor;
+
+	// nextMiniGame の値に基づいて背景色を決定
+	switch (data.nextMiniGame)
+	{
+	case 0: // 例: ミニゲーム0 の時
+		backgroundColor = ColorF{ 1.0, 0.0, 0.0 }; // 赤
+		break;
+	case 1: // 例: ミニゲーム1 の時
+		backgroundColor = ColorF{ 0.0, 0.0, 1.0 }; // 青
+		break;
+	case 2: // 例: ミニゲーム2 の時
+		backgroundColor = ColorF{ 0.0, 1.0, 0.0 }; // 緑
+		break;
+	case 3: // 例: ミニゲーム3 の時
+		backgroundColor = ColorF{ 1.0, 1.0, 0.6 }; // 薄いマゼンタ
+		break;
+	default:
+		backgroundColor = ColorF{ 1.0, 1.0, 1.0 }; // デフォルト（白）
+		break;
+	}
+
+	Scene::SetBackground(backgroundColor); // 決定した背景色を設定
 
 	const ScopedRenderStates2D blend{ SamplerState::ClampNearest };
 
@@ -174,8 +197,8 @@ void GameScene::draw() const
 		m_optionButton.drawShadow(Vec2{ 2, 2 }, 12, 1).draw(ColorF{ 0.9, 0.8, 0.6 });
 	}
 	// 歯車マーク
-	double iconX = 750.0;
-	double iconY = 550.0;
+	const double iconX = 1600.0;
+	const double iconY = 950.0;
 	m_optionIcon.scaled(0.3).drawAt(iconX, iconY);
 
 	// オプション画面の描画
@@ -223,9 +246,6 @@ void GameScene::HandleDoorTransition()
 				changeScene(SceneState::MINIGAME_0);
 				break;
 			}
-
-			// 次回は次のミニゲームへ
-			data.nextMiniGame = (data.nextMiniGame % 4) + 1;
 
 			if (data.audio) data.audio->StopBGM(1s);
 		}

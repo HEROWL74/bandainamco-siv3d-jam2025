@@ -45,8 +45,8 @@ void TitleScene::GameInit()
 	}
 
 	// オプションボタンの座標
-	const double buttonX = 750.0;
-	const double buttonY = 550.0;
+	const double buttonX = 1600.0;
+	const double buttonY = 950.0;
 	const double buttonW = 40;
 	const double ronded = 6;
 
@@ -106,8 +106,8 @@ void TitleScene::draw() const
 		m_optionButton.drawShadow(Vec2{ 2, 2 }, 12, 1).draw(ColorF{ 0.9, 0.8, 0.6 });
 	}
 	// 歯車マーク
-	double iconX = 750.0;
-	double iconY = 550.0;
+	const double iconX = 1600.0;
+	const double iconY = 950.0;
 	m_optionIcon.scaled(0.3).drawAt(iconX, iconY);
 
 	// オプション画面の描画

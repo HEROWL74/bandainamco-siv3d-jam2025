@@ -59,7 +59,7 @@ void Player::Update()
 		else if (m_velocity.x < 0) { PlayAnimation(AnimationKeys::Walk_L); m_lastDirection = Direction::Left; }
 		else if (m_velocity.x > 0) { PlayAnimation(AnimationKeys::Walk_R); m_lastDirection = Direction::Right; }
 
-		SetVelocity(m_velocity.normalize() * m_moveSpeed);
+		SetVelocity(m_velocity.normalize() * m_moveSpeed * Scene::DeltaTime());
 	}
 	else // 停止時
 	{

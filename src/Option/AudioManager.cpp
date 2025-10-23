@@ -9,6 +9,7 @@ AudioManager::AudioManager(std::shared_ptr<Settings> settings)
 		m_busVolume[static_cast<int>(Bus::BGM)] = m_settings->bgmVolume;
 		m_busVolume[static_cast<int>(Bus::SE)] = m_settings->seVolume;
 	}
+	//GlobalAudio::BusSetPitchShiftFilter(MixBus0, 0, m_bgmPitchShift);
 }
 
 AudioManager::~AudioManager()
@@ -149,6 +150,17 @@ void AudioManager::SetBusVolume(Bus bus, double v)
 double AudioManager::GetBusVolume(Bus bus) const
 {
 	return m_busVolume[static_cast<int>(bus)];
+}
+
+void AudioManager::SetBGMPitch(const String& id, double pitch)
+{
+	m_bgmPitchShift = pitch;
+	GlobalAudio::BusSetPitchShiftFilter(MixBus0, 0, m_bgmPitchShift);
+}
+
+double AudioManager::GetBGMPitch(const String& id) const
+{
+	return m_bgmPitchShift;
 }
 
 // 補助
