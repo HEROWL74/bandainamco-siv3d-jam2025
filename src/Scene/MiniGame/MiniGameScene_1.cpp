@@ -1,5 +1,6 @@
 ﻿#include "MiniGameScene_1.hpp"
 #include "../../Core/Application.hpp" // getData()を使うため追加
+#include "../../Effect/BubbleEffect.hpp"
 
 // コンストラクタ
 MiniGameScene_1::MiniGameScene_1(const InitData& init)
@@ -69,7 +70,9 @@ void MiniGameScene_1::updateReady()
 void MiniGameScene_1::updatePlaying()
 {
 	const double currentTime = Scene::Time() - m_gameStartTime; // ゲーム開始からの経過時間
-
+	const double sceneWidth = Scene::Width();
+	// GameAreaWidthはMiniGameScene_1.hppで定義されている定数
+	const double gameAreaOffsetX = (sceneWidth - GameAreaWidth) / 2.0;
 	// 判定処理
 	for (int i = 0; i < m_notes.size(); ++i)
 	{
@@ -104,6 +107,11 @@ void MiniGameScene_1::updatePlaying()
 					note.state = Note::State::Hit;
 					m_score += 100;
 					m_combo++;
+
+					const double laneCenterX = (m_laneRelativeXPositions[lane] + m_laneRelativeXPositions[lane + 1]) / 2.0 + gameAreaOffsetX;
+					const Vec2 effectPos = { laneCenterX, m_judgmentLineY };
+
+					m_effectManager.Add<BubbleEffect>(effectPos, Random(180.0, 300.0)); // ★ エフェクト生成
 				}
 			}
 		}
@@ -241,6 +249,8 @@ void MiniGameScene_1::update()
 		updateResult();
 		break;
 	}
+
+	m_effectManager.Update();
 }
 
 RectF MiniGameScene_1::getLaneRect(int lane, double timeToArrival, double duration) const
@@ -372,7 +382,11 @@ void MiniGameScene_1::draw() const
 {
 	ClearPrint();
 	Scene::SetBackground(ColorF{ 0.1, 0.1, 0.2 }); // 暗い背景
-
+	if (m_status == GameStatus::Playing)
+	{
+		const ScopedRenderStates2D blend{ BlendState::Additive };
+		m_effectManager.Draw(); // ★ カメラ引数なしの Draw() を呼び出す
+	}
 	const double currentTime = Scene::Time() - m_gameStartTime;
 	const double sceneWidth = Scene::Width();
 	const double sceneHeight = Scene::Height();

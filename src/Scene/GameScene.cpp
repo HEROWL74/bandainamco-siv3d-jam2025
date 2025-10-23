@@ -1,6 +1,7 @@
 ﻿#include "GameScene.hpp"
 #include "../Core/Application.hpp"
 #include "../Map/MapLoader.hpp"	
+#include "../Effect/BubbleEffect.hpp"
 
 // コンストラクタ
 GameScene::GameScene(const InitData& init)
@@ -116,6 +117,29 @@ void GameScene::update()
 	m_MainCamera.Update();
 
 	HandleDoorTransition();
+
+	m_effectManager.Update();
+
+	// ★ 2. BubbleEffectを定期的に生成するロジック (例: 0.2秒ごと)
+	static double lastEffectTime = 0.0;
+	const double spawnInterval = 0.2; // 0.2秒ごとにエフェクトを発生
+
+	if (Scene::Time() > lastEffectTime + spawnInterval)
+	{
+		// Doorの位置 (ワールド座標) にエフェクトを生成
+		// GameInit() で定義された Door の描画中心座標 {0, -150.0} を使用します。
+		const Vec2 doorCenterPos = { 0, 0 };
+
+		// エフェクト生成位置を調整 (Doorの中心 {0, -150.0} の周囲 20px 以内にランダムに生成)
+		const Vec2 effectSpawnPos = doorCenterPos + s3d::RandomVec2(s3d::Circle{ 500 });
+
+		const double baseHue = s3d::Random(0.0, 360.0); // 色相をランダムに
+
+		// EffectManager::Add<Type>(Args...) で生成
+		m_effectManager.Add<BubbleEffect>(effectSpawnPos, baseHue);
+
+		lastEffectTime = Scene::Time();
+	}
 }
 
 void GameScene::draw() const
@@ -176,6 +200,12 @@ void GameScene::draw() const
 	{
 		ScopedSpotlight target{ m_spotlight, ColorF{ 0.05, 0.05, 0.1 } };
 		m_player.DrawLight(m_MainCamera);
+
+		{
+			// エフェクトを光らせるため、加算合成(Additive Blend)を適用
+			const s3d::ScopedRenderStates2D additiveBlend{ s3d::BlendState::Additive };
+			m_effectManager.Draw(m_MainCamera); // Doorの位置（ワールド座標）に描画
+		}
 	}
 
 	m_spotlight.draw();

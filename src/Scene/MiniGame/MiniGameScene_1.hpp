@@ -4,6 +4,7 @@
 #include "../SceneTransition.hpp"
 #include "../../Option/AudioManager.hpp" // MiniGameScene_1.cppでgetData().audioを使っているため
 #include "MiniGameScene_0.hpp" // Note構造体とGameStatus enumを使うため
+#include "../../Effect/EffectManager.hpp"
 
 class MiniGameScene_1 : public App::Scene
 {
@@ -40,6 +41,8 @@ private:
 	// 描画関連
 	RectF getLaneRect(int lane, double timeToArrival, double duration) const;
 	void drawNote(const Note& note, double timeToArrival) const;
+
+	EffectManager m_effectManager;
 
 public:
 	MiniGameScene_1(const InitData& init);
