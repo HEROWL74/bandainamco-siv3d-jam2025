@@ -111,7 +111,7 @@ void MiniGameScene_1::updatePlaying()
 					const double laneCenterX = (m_laneRelativeXPositions[lane] + m_laneRelativeXPositions[lane + 1]) / 2.0 + gameAreaOffsetX;
 					const Vec2 effectPos = { laneCenterX, m_judgmentLineY };
 
-					m_effectManager.Add<BubbleEffect>(effectPos, Random(180.0, 300.0)); // ★ エフェクト生成
+					m_effectManager.Add<BubbleEffect>(effectPos, 0.3, Random(180.0, 300.0)); // ★ エフェクト生成
 				}
 			}
 		}
@@ -150,7 +150,7 @@ void MiniGameScene_1::updatePlaying()
 					// 毎フレームではなく、一定確率 (ここでは 30%) でエフェクトを生成し、負荷を軽減
 					if (RandomBool(0.3))
 					{
-						m_effectManager.Add<BubbleEffect>(effectPos, Random(180.0, 300.0));
+						m_effectManager.Add<BubbleEffect>(effectPos, 0.3, Random(180.0, 300.0));
 					}
 				}
 				else

@@ -136,7 +136,7 @@ void GameScene::update()
 		const double baseHue = s3d::Random(0.0, 360.0); // 色相をランダムに
 
 		// EffectManager::Add<Type>(Args...) で生成
-		m_effectManager.Add<BubbleEffect>(effectSpawnPos, baseHue);
+		m_effectManager.Add<BubbleEffect>(effectSpawnPos, 0.3, baseHue);
 
 		lastEffectTime = Scene::Time();
 	}

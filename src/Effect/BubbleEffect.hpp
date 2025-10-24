@@ -19,10 +19,9 @@ private:
 	};
 
 	Array<Bubble> m_bubbles;
-	static constexpr double LIFETIME = 0.3;
 
 public:
-	BubbleEffect(const Vec2& pos, double baseHue);
+	BubbleEffect(const Vec2& pos, double lifeSpanSec, double baseHue);
 
 	void Update() override;
 	void Draw() const override;
