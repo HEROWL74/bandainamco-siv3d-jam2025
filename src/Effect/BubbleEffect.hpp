@@ -19,7 +19,7 @@ private:
 	};
 
 	Array<Bubble> m_bubbles;
-	static constexpr double LIFETIME = 1.3;
+	static constexpr double LIFETIME = 0.3;
 
 public:
 	BubbleEffect(const Vec2& pos, double baseHue);
