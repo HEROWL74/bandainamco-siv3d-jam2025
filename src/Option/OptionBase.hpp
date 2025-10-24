@@ -4,26 +4,22 @@
 #include "AudioManager.hpp"
 #include "../Core/Application.hpp"
 
+
 class OptionBase
 {
 private:
-	double m_sliderX;
-	double m_sliderY;
-	bool m_isClosed;
+	bool m_isClosed;							// オプション画面の開閉のフラグ
 
-	RoundRect m_optionWindow;
-	Polygon m_closeOptionBtn;
-	Font m_closeMark;
+	Vec2 m_optionWindowPos;						// オプション画面のウィンドウの左上の座標
+	Vec2 m_optionWindowSize;					// オプション画面のウィンドウの縦と横のサイズ
+	RoundRect m_optionWindow;					// オプション画面のウィンドウ
+	Vec2 m_optionCloseBtnPos;					// オプション画面の閉じるボタンの左上の座標
+	Vec2 m_optionCloseBtnSize;					// オプション画面の閉じるボタンの縦と横のサイズ
+	Polygon m_optionCloseBtn;					// オプション画面の閉じるボタン
+	Font m_closeMark;							// オプション画面の×マーク
 
 	std::shared_ptr<Settings> m_settings;
 	std::shared_ptr<AudioManager> m_audio;
-
-
-protected:
-	static constexpr double OPTION_WINDOW_X = Application::WINDOW_WIDTH / 10.0;
-	static constexpr double OPTION_WINDOW_Y = Application::WINDOW_HEIGHT / 10.0;
-	static constexpr double OPTION_WINDOW_WIDTH = Application::WINDOW_WIDTH * 8.0 / 10.0;
-	static constexpr double OPTION_WINDOW_HEIGHT = Application::WINDOW_HEIGHT * 8.0 / 10.0;
 
 public:
 	OptionBase(std::shared_ptr<Settings> settings, std::shared_ptr<AudioManager> audio);
