@@ -55,7 +55,7 @@ private:
 	String m_currentBGMId;
 
 	// 音量
-	double m_masterVolume = 0.0;
+	double m_masterVolume{ 0.0 };
 	double m_busVolume[static_cast<int>(Bus::Count)] = {};
 
 	double m_bgmPitchShift = 0.0;
