@@ -25,7 +25,7 @@ void MiniGameScene_1::loadBGMAndNotes()
 	if (getData().audio)
 	{
 		// 新しいBGMをロード (必要に応じて変更)
-		getData().audio->PreLoadBGM(U"MiniGame1BGM", U"assets/sound/bgm/Beethoven-Symphony-No9-2nd-2023.mp3");
+		getData().audio->PreLoadBGM(U"MiniGame1BGM", U"assets/sound/bgm/No9_2nd.mp3");
 	}
 
 	// 4レーン用の簡単な譜面
@@ -236,7 +236,7 @@ void MiniGameScene_1::updateResult()
 		changeScene(SceneState::GAME);
 		if (getData().audio)
 		{
-			getData().audio->PlayBGM(U"GameBGM", true); // ゲームシーンのBGMを再生
+			//getData().audio->PlayBGM(U"GameBGM", true); // ゲームシーンのBGMを再生
 		}
 	}
 }

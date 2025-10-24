@@ -19,59 +19,44 @@ void MiniGameScene_0::loadBGMAndNotes()
 {
 	if (getData().audio)
 	{
-		getData().audio->PreLoadBGM(U"MiniGame0BGM", U"assets/sound/bgm/Beethoven-Symphony-No9-1st-2013.mp3");
+		getData().audio->PreLoadBGM(U"MiniGame0BGM", U"assets/sound/bgm/No9_1st.mp3");
 	}
 
-	// 0秒〜8秒のノーツ
+	// 中難易度：テンポよくリズミカルに配置（40秒想定）
 	m_notes.push_back({ 1.0, 0.5, 300 });
-	m_notes.push_back({ 2.0, 0.7, 500 });
-	m_notes.push_back({ 3.5, 1.0, 400 });
-	m_notes.push_back({ 5.0, 0.5, 300 });
-	m_notes.push_back({ 6.0, 0.5, 500 });
-	m_notes.push_back({ 7.0, 0.5, 300 });
-	m_notes.push_back({ 8.5, 1.0, 400 });
+	m_notes.push_back({ 2.0, 0.5, 400 });
+	m_notes.push_back({ 3.2, 0.5, 500 });
+	m_notes.push_back({ 4.5, 0.8, 400 });
 
-	//// 10秒〜20秒のノーツ (追加分)
-	//m_notes.push_back({ 10.0, 0.5, 300 }); // 10秒
-	//m_notes.push_back({ 10.5, 0.3, 500 });
-	//m_notes.push_back({ 11.0, 0.2, 400 });
-	//m_notes.push_back({ 11.5, 0.5, 300 });
-	//m_notes.push_back({ 12.5, 0.5, 500 });
-	//m_notes.push_back({ 13.0, 0.5, 400 });
-	//m_notes.push_back({ 13.5, 0.5, 300 });
-	//m_notes.push_back({ 14.5, 2.0, 500 }); // 長いノーツ
-	//m_notes.push_back({ 17.0, 0.5, 300 });
-	//m_notes.push_back({ 17.5, 0.5, 400 });
-	//m_notes.push_back({ 18.0, 0.5, 500 });
-	//m_notes.push_back({ 19.0, 1.5, 400 }); // さらに長いノーツ
+	m_notes.push_back({ 6.0, 0.5, 300 });
+	m_notes.push_back({ 7.2, 0.5, 500 });
+	m_notes.push_back({ 8.5, 0.5, 400 });
+	m_notes.push_back({ 10.0, 1.0, 500 }); // 長押し1
 
-	//// 20~40
-	//m_notes.push_back({ 20.0, 0.5, 300 });
-	//m_notes.push_back({ 20.5, 0.3, 400 });
-	//m_notes.push_back({ 21.0, 0.3, 500 });
-	//m_notes.push_back({ 22.0, 0.5, 300 });
-	//m_notes.push_back({ 22.5, 0.5, 500 });
-	//m_notes.push_back({ 23.0, 1.0, 400 });
+	m_notes.push_back({ 12.0, 0.5, 300 });
+	m_notes.push_back({ 13.0, 0.5, 400 });
+	m_notes.push_back({ 14.2, 0.5, 500 });
+	m_notes.push_back({ 15.5, 0.5, 300 });
+	m_notes.push_back({ 16.8, 0.8, 400 });
 
-	//m_notes.push_back({ 25.0, 0.5, 300 });
-	//m_notes.push_back({ 25.5, 0.3, 400 });
-	//m_notes.push_back({ 26.0, 0.3, 500 });
-	//m_notes.push_back({ 27.0, 0.5, 300 });
-	//m_notes.push_back({ 27.5, 0.5, 500 });
-	//m_notes.push_back({ 28.0, 1.0, 400 });
+	m_notes.push_back({ 18.5, 0.5, 500 });
+	m_notes.push_back({ 19.5, 0.5, 300 });
+	m_notes.push_back({ 20.8, 1.0, 400 }); // 長押し2
 
-	//m_notes.push_back({ 30.0, 0.5, 300 });
-	//m_notes.push_back({ 30.5, 0.5, 400 });
-	//m_notes.push_back({ 31.0, 0.5, 500 });
-	//m_notes.push_back({ 32.0, 0.5, 300 });
-	//m_notes.push_back({ 32.5, 1.0, 500 }); // 少し長め
+	m_notes.push_back({ 23.0, 0.5, 300 });
+	m_notes.push_back({ 24.0, 0.5, 500 });
+	m_notes.push_back({ 25.2, 0.5, 400 });
+	m_notes.push_back({ 26.5, 0.5, 300 });
+	m_notes.push_back({ 27.8, 0.5, 500 });
 
-	//m_notes.push_back({ 34.0, 0.5, 400 });
-	//m_notes.push_back({ 35.0, 0.5, 500 });
-	//m_notes.push_back({ 36.0, 0.5, 300 });
-	//m_notes.push_back({ 37.0, 0.5, 400 });
-	//m_notes.push_back({ 38.0, 0.5, 500 });
-	//m_notes.push_back({ 39.0, 1.5, 300 }); // 終盤の長いノーツ
+	m_notes.push_back({ 29.0, 1.0, 400 }); // やや長押し
+	m_notes.push_back({ 31.0, 0.5, 300 });
+	m_notes.push_back({ 32.0, 0.5, 400 });
+	m_notes.push_back({ 33.2, 0.5, 500 });
+	m_notes.push_back({ 34.5, 0.5, 400 });
+	m_notes.push_back({ 36.0, 1.5, 300 }); // 終盤の長いノーツ
+
+
 
 	m_status = GameStatus::Ready;
 }
@@ -85,7 +70,7 @@ void MiniGameScene_0::updateReady()
 		if (getData().audio)
 		{
 			// MiniGame0BGMを再生開始 (フェードインなし)
-			getData().audio->PlayBGM(U"MiniGame0BGM", true);
+			getData().audio->PlayBGM(U"MiniGame0BGM", true,19s);
 		}
 
 		m_gameStartTime = Scene::Time();
@@ -222,7 +207,7 @@ void MiniGameScene_0::updateResult()
 		data.nextMiniGame = (data.nextMiniGame % 4) + 1; // 次のミニゲームへ (0->1->2->3->0...)
 
 		changeScene(SceneState::GAME);
-		data.audio->PlayBGM(U"GameBGM", true); // ゲームシーンのBGMを再生
+		//data.audio->PlayBGM(U"GameBGM", true); // ゲームシーンのBGMを再生
 	}
 }
 

@@ -6,7 +6,7 @@
 // コンストラクタ
 GameScene::GameScene(const InitData& init)
 	:IScene(init)
-	, m_playerTexture(U"assets/player_spritesheet.png")
+	, m_playerTexture(U"assets/player_spritesheet_test.png")
 	, m_player(m_playerTexture)
 	, m_gameOption(nullptr)
 {
@@ -30,7 +30,7 @@ bool GameScene::SystemInit()
 	// gameBGMのロード
 	if (data.audio)
 	{
-		data.audio->PreLoadBGM(U"GameBGM", U"example/test.mp3");
+		data.audio->PreLoadBGM(U"GameBGM", U"assets/sound/bgm/No5_1st.mp3");
 	}
 
 	m_optionIcon = Texture{ U"⚙️"_emoji };
@@ -48,7 +48,7 @@ void GameScene::GameInit()
 	}
 
 	// プレイヤー初期化
-	m_player.SetPosition(Vec2{0,0});
+	m_player.SetPosition(Vec2{0,400});
 	m_player.Init();
 
 	// カメラ初期化
@@ -203,8 +203,8 @@ void GameScene::draw() const
 
 		{
 			// エフェクトを光らせるため、加算合成(Additive Blend)を適用
-			const s3d::ScopedRenderStates2D additiveBlend{ s3d::BlendState::Additive };
-			m_effectManager.Draw(m_MainCamera); // Doorの位置（ワールド座標）に描画
+			//const s3d::ScopedRenderStates2D additiveBlend{ s3d::BlendState::Additive };
+			//m_effectManager.Draw(m_MainCamera); // Doorの位置（ワールド座標）に描画
 		}
 	}
 

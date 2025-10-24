@@ -23,12 +23,23 @@ bool MiniGameScene_2::SystemInit()
 	if (!m_puzzle->SystemInit()) return false;
 	m_puzzle->GameInit();
 
+	if (getData().audio)
+	{
+		getData().audio->PreLoadBGM(U"MiniGame2BGM", U"assets/sound/bgm/No9_3rd.mp3");
+	}
+
 	return true;
 }
 
 void MiniGameScene_2::GameInit()
 {
 	m_fontPos = { Scene::Width() / 8.0, Scene::Height() / 4.0 };
+
+	// BGMの再生を追加
+	if (getData().audio)
+	{
+		getData().audio->PlayBGM(U"MiniGame2BGM", true);
+	}
 }
 
 void MiniGameScene_2::update()
@@ -40,6 +51,11 @@ void MiniGameScene_2::update()
 		// クリックでタイトルへ戻る
 		if (MouseL.down())
 		{
+			if (getData().audio)
+			{
+				getData().audio->StopBGM(1s); // フェードアウトしながら停止 (フェード時間は任意)
+			}
+
 			changeScene(SceneState::GAME);
 		}
 	}
