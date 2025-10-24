@@ -214,6 +214,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Effect\BubbleEffect.cpp">
+        <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_2\Piece.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_2\Puzzle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -957,6 +963,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Effect\BubbleEffect.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_2\Piece.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_2\Puzzle.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
