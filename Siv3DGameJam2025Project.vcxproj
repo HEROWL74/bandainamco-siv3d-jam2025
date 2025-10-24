@@ -418,6 +418,8 @@
     <ClCompile Include="src\Scene\GameScene.cpp" />
     <ClCompile Include="src\Scene\MiniGame\MiniGameScene_1.cpp" />
     <ClCompile Include="src\Scene\MiniGame\MiniGameScene_2.cpp" />
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_2\Piece.cpp" />
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_2\Puzzle.cpp" />
     <ClCompile Include="src\Scene\MiniGame\MiniGameScene_3.cpp" />
     <ClCompile Include="src\Scene\MiniGame\MiniGameScene_0.cpp" />
     <ClCompile Include="src\Scene\ResultScene.cpp" />
@@ -446,6 +448,8 @@
     <ClInclude Include="src\Scene\GameScene.hpp" />
     <ClInclude Include="src\Scene\MiniGame\MiniGameScene_1.hpp" />
     <ClInclude Include="src\Scene\MiniGame\MiniGameScene_2.hpp" />
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_2\Piece.hpp" />
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_2\Puzzle.hpp" />
     <ClInclude Include="src\Scene\MiniGame\MiniGameScene_3.hpp" />
     <ClInclude Include="src\Scene\MiniGame\MiniGameScene_0.hpp" />
     <ClInclude Include="src\Scene\ResultScene.hpp" />
