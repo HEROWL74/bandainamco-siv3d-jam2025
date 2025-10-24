@@ -216,7 +216,7 @@ void GameScene::draw() const
 	}
 
 	//描画処理
-	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
+	//Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
 
 	// 設定ボタンの描画	
 	m_optionButton.draw(Palette::Silver);
