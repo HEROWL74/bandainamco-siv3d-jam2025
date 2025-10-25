@@ -58,8 +58,8 @@ void GameScene::GameInit()
 	m_mapCollisions = MapLoader::LoadCollisions(U"map_01");
 
 	const Vec2 drawCenter = { 0, -150.0 };
-	const Vec2 hitBoxCenter = { 0.0, 80.0 };
-	const Vec2 hitBoxSize = { 150.0, 150.0 };
+	const Vec2 hitBoxCenter = { 0.0, 200.0 };
+	const Vec2 hitBoxSize = { 300.0, 150.0 };
 	const FilePath doorPath = U"assets/props/door_test.png";
 	m_door = std::make_unique<Door>(drawCenter, hitBoxCenter, hitBoxSize, doorPath);
 
