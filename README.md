@@ -17,3 +17,5 @@
 - PM・プログラマー：HEROWL74（Git管理・Actions・リリース担当）
 - プランナー&プログラマー：KOJIMA CREATE
 - プランナー&プログラマー：KR9827 
+
+![Build](https://img.shields.io/github/actions/workflow/status/Hero74/ForestTale/build.yml?branch=main&label=Build&logo=githubactions&color=2ea44f)
