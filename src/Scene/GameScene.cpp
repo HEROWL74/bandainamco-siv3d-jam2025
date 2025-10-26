@@ -92,15 +92,25 @@ void GameScene::update()
 
 	case GameState::Option:												// オプション画面
 		m_gameOption->Update();
+
+		//オプション画面の閉じるボタンを押したとき 
 		if (m_gameOption->IsClosed())
 		{
 			m_gameState = GameState::Game;
 			m_gameOption->GameInit();
 		}
+
+		// オプション画面のタイトルに戻るボタンを押したとき
+		if (m_gameOption->IsTitle())
+		{
+			changeScene(SceneState::TITLE);
+			getData().audio->StopBGM(1s);
+			m_gameOption->GameInit();
+		}
 		break;
 	}
 
-	if (m_optionButton.leftClicked())
+	if (m_optionButton.leftClicked() || KeyO.down())
 	{
 		m_gameState = GameState::Option;
 	}
