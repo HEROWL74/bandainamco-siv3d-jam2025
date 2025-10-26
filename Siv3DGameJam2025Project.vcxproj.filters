@@ -214,12 +214,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Effect\BubbleEffect.cpp">
-        <Filter>Source Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\MiniGame\MiniGameScene_2\Piece.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\MiniGame\MiniGameScene_2\Puzzle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Effect\StarDustEffect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -969,6 +972,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\MiniGame\MiniGameScene_2\Puzzle.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Effect\StarDustEffect.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

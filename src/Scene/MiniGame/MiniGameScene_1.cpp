@@ -5,11 +5,11 @@
 // コンストラクタ
 MiniGameScene_1::MiniGameScene_1(const InitData& init)
 	:IScene(init)
-	// メンバー変数初期化リストでフォントを一度だけ作成
+	// フォント初期化
 	, m_font20(20)
 	, m_font30(30)
 	, m_font24(24)
-	, m_font40(40, Typeface::Bold) // コンボ用に太字フォントを追加
+	, m_font40(40, Typeface::Bold)
 {
 	loadBGMAndNotes();
 }
@@ -17,19 +17,16 @@ MiniGameScene_1::MiniGameScene_1(const InitData& init)
 // デストラクタ
 MiniGameScene_1::~MiniGameScene_1()
 {
-	// BGMはAudioManagerに任せる
 }
 
 void MiniGameScene_1::loadBGMAndNotes()
 {
 	if (getData().audio)
 	{
-		// 新しいBGMをロード (必要に応じて変更)
 		getData().audio->PreLoadBGM(U"MiniGame1BGM", U"assets/sound/bgm/No9_2nd.mp3");
 	}
 
 	// 4レーン用の簡単な譜面
-	// MiniGameScene_0 の Note 構造体を使っているため、3つ目の引数は 'pitch' ではなく 'lane' の意味で使います
 	m_notes.push_back({ 1.0, 0.0, 0 }); // レーン0 単発
 	m_notes.push_back({ 1.5, 0.0, 1 }); // レーン1 単発
 	m_notes.push_back({ 2.0, 0.0, 2 }); // レーン2 単発
@@ -71,71 +68,84 @@ void MiniGameScene_1::updatePlaying()
 {
 	const double currentTime = Scene::Time() - m_gameStartTime; // ゲーム開始からの経過時間
 	const double sceneWidth = Scene::Width();
-	// GameAreaWidthはMiniGameScene_1.hppで定義されている定数
 	const double gameAreaOffsetX = (sceneWidth - GameAreaWidth) / 2.0;
-	// 判定処理
+
+	const double perfectWindow = 0.1; // Perfect判定の境界線
+	const double totalWindow = 0.2;    // Miss判定の境界線
+
+	// ノーツの判定処理
 	for (int i = 0; i < m_notes.size(); ++i)
 	{
 		auto& note = m_notes[i];
-		// 判定が確定したノーツは、これ以上の判定処理をスキップ
+		// 判定が確定したノーツはスキップ
 		if (note.state == Note::State::Hit || note.state == Note::State::Miss) continue;
 
 		const double arrivalTime = note.startTime;
 		const double noteEndTime = note.startTime + note.duration;
-
 		const int lane = note.pitch;
 
-		// 判定開始時間（単発ノーツ用: 判定ライン到達前後100ms）
-		const double judgmentWindow = 0.1;
-		const double judgmentStart = arrivalTime - judgmentWindow;
-		const double judgmentEnd = arrivalTime + judgmentWindow;
+		const double perfectStart = arrivalTime - perfectWindow / 2.0;
+		const double totalEnd = arrivalTime + totalWindow / 2.0;
 
 		// 単発ノーツの判定
 		if (note.duration == 0.0)
 		{
-			// ノーツが判定エリアに到達
-			if (currentTime >= judgmentStart && currentTime <= judgmentEnd)
+			// ノーツが判定可能エリア内にある場合
+			if (currentTime >= perfectStart && currentTime <= totalEnd)
 			{
 				if (note.state == Note::State::None)
 				{
-					note.state = Note::State::Active; // 演出用だが、単発なので通常は即時Hit/Miss
+					// 判定エリアに入ったことを示す
+					note.state = Note::State::Active_Perfect;
 				}
 
 				if (m_judgmentKeys[lane].down())
 				{
-					// 成功判定
+					// 判定成功 (Perfectとして扱う)
 					note.state = Note::State::Hit;
-					m_score += 100;
 					m_combo++;
+					m_score += 300; // 一律高得点
 
+					// エフェクト生成
 					const double laneCenterX = (m_laneRelativeXPositions[lane] + m_laneRelativeXPositions[lane + 1]) / 2.0 + gameAreaOffsetX;
 					const Vec2 effectPos = { laneCenterX, m_judgmentLineY };
-
-					m_effectManager.Add<BubbleEffect>(effectPos, 0.3, Random(180.0, 300.0)); // ★ エフェクト生成
+					m_effectManager.Add<BubbleEffect>(effectPos, 0.3, Random(180.0, 300.0));
 				}
+			}
+			// ノーツが判定時間を過ぎてしまった場合のMiss判定
+			else if (currentTime > totalEnd && note.state == Note::State::None)
+			{
+				note.state = Note::State::Miss;
+				m_combo = 0;
 			}
 		}
 		// 長押しノーツの開始判定
 		else // note.duration > 0.0
 		{
-			// ノーツ開始時間 (arrivalTime) 以降、終了時間 (noteEndTime) まで、キーの down() を監視する
-			if (currentTime >= arrivalTime - judgmentWindow && currentTime < noteEndTime)
+			// ノーツ開始判定時間内 (少し早めから判定可能)
+			if (currentTime >= perfectStart && currentTime < noteEndTime)
 			{
 				if (m_judgmentKeys[lane].down())
 				{
-					// Activeに遷移し、継続判定を開始する
+					// Active_Perfectに遷移し、継続判定を開始する
 					if (note.state == Note::State::None)
 					{
-						note.state = Note::State::Active;
-						m_activeNotes.push_back(i); // アクティブなノーツのインデックスを保持
+						note.state = Note::State::Active_Perfect; // 長押し中はPerfectとして扱う
+						m_activeNotes.push_back(i);
 					}
 				}
+			}
+			// 長押しノーツのMiss判定: 終了時間を過ぎても押されなかった場合
+			else if (currentTime > noteEndTime && note.state == Note::State::None)
+			{
+				note.state = Note::State::Miss;
+				m_combo = 0;
 			}
 		}
 
 
-		// --- 2. 長押しノーツの継続/終了判定 ---
-		if (note.duration > 0.0 && note.state == Note::State::Active)
+		// 長押しノーツのActive_Perfect中の継続判定
+		if (note.duration > 0.0 && note.state == Note::State::Active_Perfect)
 		{
 			if (currentTime < noteEndTime)
 			{
@@ -144,19 +154,18 @@ void MiniGameScene_1::updatePlaying()
 					// 継続して押されている場合、スコア加算（フレーム毎）
 					m_score += 10;
 
-					const double laneCenterX = (m_laneRelativeXPositions[lane] + m_laneRelativeXPositions[lane + 1]) / 2.0 + gameAreaOffsetX;
-					const Vec2 effectPos = { laneCenterX, m_judgmentLineY };
-
-					// 毎フレームではなく、一定確率 (ここでは 30%) でエフェクトを生成し、負荷を軽減
+					// エフェクト生成 (負荷軽減のため一定確率)
 					if (RandomBool(0.3))
 					{
+						const double laneCenterX = (m_laneRelativeXPositions[lane] + m_laneRelativeXPositions[lane + 1]) / 2.0 + gameAreaOffsetX;
+						const Vec2 effectPos = { laneCenterX, m_judgmentLineY };
 						m_effectManager.Add<BubbleEffect>(effectPos, 0.3, Random(180.0, 300.0));
 					}
 				}
 				else
 				{
-					// 継続中にキーを離したらMiss確定
-					note.state = Note::State::Miss;
+					// 継続中にキーを離したらMiss確定前の状態に遷移
+					note.state = Note::State::Active_Miss;
 					m_combo = 0;
 				}
 			}
@@ -166,9 +175,7 @@ void MiniGameScene_1::updatePlaying()
 				{
 					// 終了時間まで押し続けたらHit
 					note.state = Note::State::Hit;
-					m_score += 200
-
-						; // 終了ボーナス
+					m_score += 200; // 終了ボーナス
 					m_combo++;
 				}
 				else
@@ -179,33 +186,26 @@ void MiniGameScene_1::updatePlaying()
 				}
 			}
 		}
-
-		// --- 3. Miss判定（単発ノーツ、および長押しノーツの最終的なMiss判定）---
-
-		if (note.state == Note::State::None)
+		// 長押しノーツのActive_Miss中の判定
+		else if (note.duration > 0.0 && note.state == Note::State::Active_Miss)
 		{
-			// 単発ノーツのMiss判定: 判定時間を過ぎた場合
-			if (note.duration == 0.0 && currentTime > judgmentEnd)
+			// Active_Missに遷移したら、キーを押し直してもMissのまま。時間経過で最終Missに
+			if (currentTime > noteEndTime)
 			{
 				note.state = Note::State::Miss;
-				m_combo = 0;
-			}
-			// 長押しノーツのMiss判定: 終了時間を過ぎても押されなかった場合
-			else if (note.duration > 0.0 && currentTime > noteEndTime)
-			{
-				note.state = Note::State::Miss;
-				m_combo = 0;
 			}
 		}
 	}
-
-	// アクティブリストのクリーンアップ (今回は簡略化のためスキップ。完全な実装では必要)
 
 	// 全ノーツが終了し、BGMも終了したらリザルトへ
 	bool allNotesJudged = true;
 	for (const auto& note : m_notes)
 	{
-		if (note.state == Note::State::None || note.state == Note::State::Active)
+		// Active_Perfect または Active_Miss の状態のノーツが残っていたら、ゲームは継続中
+		if (note.state == Note::State::None ||
+			note.state == Note::State::Active_Perfect ||
+			note.state == Note::State::Active_Miss
+			)
 		{
 			allNotesJudged = false;
 			break;
@@ -213,7 +213,7 @@ void MiniGameScene_1::updatePlaying()
 	}
 
 	const double lastNoteEnd = m_notes.back().startTime + m_notes.back().duration;
-	if (currentTime > lastNoteEnd + 1.0) // 最後のノーツの2秒後に遷移
+	if (currentTime > lastNoteEnd + 1.0) // 最後のノーツの1秒後に遷移
 	{
 		if (getData().audio)
 		{
@@ -243,7 +243,7 @@ void MiniGameScene_1::updateResult()
 
 void MiniGameScene_1::update()
 {
-	// MiniGameScene_0を参考に、カーソルを非表示に
+	// カーソル非表示
 	Cursor::RequestStyle(CursorStyle::Hidden);
 
 	switch (m_status)
@@ -275,7 +275,7 @@ RectF MiniGameScene_1::getLaneRect(int lane, double timeToArrival, double durati
 	const double noteStartY = Math::Lerp(nearY, topY, t);
 
 	// レーンのX座標と幅
-	const double gameAreaOffsetX = (Scene::Width() - GameAreaWidth) / 2.0; // MiniGameScene_1.hppで定義した定数を使用
+	const double gameAreaOffsetX = (Scene::Width() - GameAreaWidth) / 2.0;
 
 	const double laneXStart = m_laneRelativeXPositions[lane] + gameAreaOffsetX;
 	const double laneXEnd = m_laneRelativeXPositions[lane + 1] + gameAreaOffsetX;
@@ -309,7 +309,6 @@ RectF MiniGameScene_1::getLaneRect(int lane, double timeToArrival, double durati
 // ノーツの描画
 void MiniGameScene_1::drawNote(const Note& note, double timeToArrival) const
 {
-	// 修正: note.lane は存在しないため、note.pitch を使用します。
 	const int lane = note.pitch;
 
 	// 補間率 t (0.0: 判定ライン, 1.0: 画面上端)
@@ -321,9 +320,7 @@ void MiniGameScene_1::drawNote(const Note& note, double timeToArrival) const
 
 	const double gameAreaOffsetX = (Scene::Width() - GameAreaWidth) / 2.0;
 
-	// レーンのX座標と幅 (パース計算を削除)
-	// const double laneXStart = m_laneXPositions[lane]; // ← 削除 (または置き換え)
-	// const double laneXEnd = m_laneXPositions[lane + 1]; // ← 削除 (または置き換え)
+	// レーンのX座標と幅
 	const double laneXStart = m_laneRelativeXPositions[lane] + gameAreaOffsetX;
 	const double laneXEnd = m_laneRelativeXPositions[lane + 1] + gameAreaOffsetX;
 
@@ -358,21 +355,24 @@ void MiniGameScene_1::drawNote(const Note& note, double timeToArrival) const
 	}
 
 
-	// ノーツの状態に応じた色 (変更なし)
+	// ノーツの状態に応じて色を変更
 	ColorF noteColor;
 	switch (note.state)
 	{
 	case Note::State::None:
 		noteColor = ColorF{ 0.3, 0.7, 1.0, 0.8 }; // 青
 		break;
-	case Note::State::Active:
-		noteColor = ColorF{ 1.0, 1.0, 0.3, 0.9 }; // 黄色（より鮮やかに）
+	case Note::State::Active_Perfect: // 判定ライン到達済、または長押し中
+		noteColor = ColorF{ 1.0, 1.0, 0.3, 0.9 }; // 黄色
+		break;
+	case Note::State::Active_Miss: // 長押し中に離した時
+		noteColor = ColorF{ 0.8, 0.3, 0.8, 0.9 }; // 赤紫
 		break;
 	case Note::State::Hit:
-		noteColor = ColorF{ 0.3, 1.0, 0.3, 0.9 }; // 緑（より鮮やかに）
+		noteColor = ColorF{ 0.3, 1.0, 0.3, 0.9 }; // 緑
 		break;
 	case Note::State::Miss:
-		noteColor = ColorF{ 1.0, 0.3, 0.3, 0.9 }; // 赤（より鮮やかに）
+		noteColor = ColorF{ 1.0, 0.3, 0.3, 0.9 }; // 赤
 		break;
 	}
 

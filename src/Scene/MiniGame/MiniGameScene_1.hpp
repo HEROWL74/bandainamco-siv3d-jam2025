@@ -2,8 +2,8 @@
 
 #include <Siv3D.hpp>
 #include "../SceneTransition.hpp"
-#include "../../Option/AudioManager.hpp" // MiniGameScene_1.cppでgetData().audioを使っているため
-#include "MiniGameScene_0.hpp" // Note構造体とGameStatus enumを使うため
+#include "../../Option/AudioManager.hpp"
+#include "MiniGameScene_0.hpp"
 #include "../../Effect/EffectManager.hpp"
 
 class MiniGameScene_1 : public App::Scene
