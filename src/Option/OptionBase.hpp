@@ -21,6 +21,11 @@ private:
 	std::shared_ptr<Settings> m_settings;
 	std::shared_ptr<AudioManager> m_audio;
 
+protected:
+	Vec2 m_btnPos;								// オプション画面の下方ボタンの左上の位置
+	Vec2 m_btnSize;								// オプション画面の下方ボタンの縦幅と横幅
+	RoundRect m_btn;							// ボタン（派生クラスで実装内容が変わる）
+
 public:
 	OptionBase(std::shared_ptr<Settings> settings, std::shared_ptr<AudioManager> audio);
 	virtual ~OptionBase() = default;
