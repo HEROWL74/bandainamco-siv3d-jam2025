@@ -25,6 +25,7 @@ struct Note
 enum class GameStatus
 {
 	Ready,
+	Countdown,
 	Playing,
 	Result,
 };
@@ -51,6 +52,8 @@ private:
 	Array<Star> m_stars; // 星のリスト
 
 	EffectManager m_effectManager;
+	double m_lastHoldEffectTime = 0.0; // 長押しエフェクトが最後に発生した時間
+	const double m_holdEffectInterval = 0.03; // エフェクトを発生させる間隔（秒）
 
 	// ノーツリスト（譜面）
 	Array<Note> m_notes;

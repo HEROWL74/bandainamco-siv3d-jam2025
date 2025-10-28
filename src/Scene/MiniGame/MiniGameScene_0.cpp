@@ -93,6 +93,7 @@ void MiniGameScene_0::updateReady()
 		m_currentNoteIndex = 0;
 		m_score = 0;
 		m_combo = 0;
+		m_lastHoldEffectTime = m_gameStartTime;
 	}
 }
 
@@ -165,11 +166,14 @@ void MiniGameScene_0::updatePlaying()
 				{
 					note.state = Note::State::Active_Perfect;
 
-					if (Scene::FrameCount() % 6 == 0)
+					const double gameTime = Scene::Time();
+					if (gameTime - m_lastHoldEffectTime >= m_holdEffectInterval)
 					{
 						m_effectManager.Add<StarDustEffect>(effectPos, 0.2, baseHue, m_playerSlideY); // 短いライフスパンで連続的に流れるように
-					}
 
+						// 最後に発生した時間を更新
+						m_lastHoldEffectTime = gameTime;
+					}
 				}
 
 				// ノーツの終了判定
