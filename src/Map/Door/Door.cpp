@@ -21,7 +21,7 @@ void Door::update()
 
 void Door::draw() const
 {
-	m_texture.scaled(10).drawAt(m_drawCenterPos);
+	m_texture.scaled(20).drawAt(m_drawCenterPos);
 
 #ifdef _DEBUG
 	RectF(Arg::center(m_hitBoxCenterPos), m_hitBoxSize.x, m_hitBoxSize.y).drawFrame(3, ColorF{ 0.0, 1.0, 1.0, 0.7 });

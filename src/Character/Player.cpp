@@ -240,15 +240,15 @@ Vec2 Player::GetLightDirection() const
 
 void Player::InitAnimation()
 {
-	Animation player_Idle_D{ 2, 2, 0, {0.2} };
-	Animation player_Idle_U{ 2, 2, 3, {0.2} };
-	Animation player_Idle_L{ 2, 2, 1, {0.2} };
-	Animation player_Idle_R{ 2, 2, 2, {0.2} };
+	Animation player_Idle_D{ 0, 4, 1, {0.1, 0.1, 0.1, 0.1, 0.1} };
+	Animation player_Idle_U{ 0, 4, 0, {0.1, 0.1, 0.1, 0.1, 0.1} };
+	Animation player_Idle_L{ 0, 4, 2, {0.1, 0.1, 0.1, 0.1, 0.1} };
+	Animation player_Idle_R{ 0, 4, 3, {0.1, 0.1, 0.1, 0.1, 0.1} };
 
-	Animation player_Walk_D{ 0, 7, 0, {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1} };
-	Animation player_Walk_U{ 0, 7, 3, {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1} };
-	Animation player_Walk_L{ 0, 7, 1, {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1} };
-	Animation player_Walk_R{ 0, 7, 2, {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1} };
+	Animation player_Walk_D{ 0, 3, 5, {0.1, 0.1, 0.1, 0.1} };
+	Animation player_Walk_U{ 0, 3, 4, {0.1, 0.1, 0.1, 0.1} };
+	Animation player_Walk_L{ 0, 3, 6, {0.1, 0.1, 0.1, 0.1} };
+	Animation player_Walk_R{ 0, 3, 7, {0.1, 0.1, 0.1, 0.1} };
 
 	Animation player_Event_0{ 3, 5, 0, {0.1, 0.1, 0.1}, true };
 	Animation player_Event_1{ 3, 5, 3, {0.1, 0.1, 0.1}, true };

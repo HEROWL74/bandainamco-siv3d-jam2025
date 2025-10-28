@@ -2,13 +2,37 @@
 
 #include <Siv3D.hpp>
 #include "../SceneTransition.hpp"
-#include "../../Option/AudioManager.hpp" // MiniGameScene_1.cppでgetData().audioを使っているため
-#include "MiniGameScene_0.hpp" // Note構造体とGameStatus enumを使うため
+#include "../../Option/AudioManager.hpp"
+#include "MiniGameScene_0.hpp"
+#include "../../Effect/EffectManager.hpp"
+
+enum class DinosaurType
+{	
+	Tyrannosaurus,
+	Triceratops,
+	Pteranodon,
+	Tyrannosaurus_hair,
+	Trex_kokkaku,
+	Pachycephalosaurus,
+	Stegosaurus,
+	Brachiosaurus,
+	Iguanodon
+};
+
+struct MovingDinosaur
+{
+	DinosaurType type;
+	Texture texture;
+	double x = 0.0;
+	double speed = 0.0;
+	bool movingRight = true;
+	double scale = 1.0;
+	double spawnTime = 0.0;
+};
 
 class MiniGameScene_1 : public App::Scene
 {
 private:
-	//
 	static constexpr int NumLanes = 4;
 	const double m_approachTime = 2.0; // ノーツが降ってくる時間（秒）
 	const double m_judgmentLineY = 900; // 判定ラインのY座標
@@ -16,6 +40,11 @@ private:
 	static constexpr double GameAreaWidth = NumLanes * LaneWidth; // ゲーム領域の総幅 (800.0)
 	const Array<double> m_laneRelativeXPositions = { 0.0, 200.0, 400.0, 600.0, 800.0 };
 	const Array<Input> m_judgmentKeys = { KeyD, KeyF, KeyJ, KeyK };
+	double m_lastHoldEffectTime = 0.0; // 長押しエフェクトが最後に発生した時間
+	const double m_holdEffectInterval = 0.15; // エフェクトを発生させる間隔（秒）
+
+	Audio m_laneAudios[NumLanes];
+	Audio m_missAudio;
 
 	// ゲームの状態
 	GameStatus m_status = GameStatus::Ready;
@@ -25,6 +54,7 @@ private:
 	int m_score = 0;
 	int m_combo = 0;
 	Array<int> m_activeNotes;
+	bool m_isFullCombo = true;
 
 	// フォント
 	Font m_font20;
@@ -32,14 +62,39 @@ private:
 	Font m_font24;
 	Font m_font40;
 
+	Texture m_timeIcon;
+	Texture m_BackgroundTexture;
+
+	Texture m_tyrannosaurusTexture; // ティラノサウルスのテクスチャ
+	Texture m_triceratopsTexture;   // トリケラトプスのテクスチャ
+	Texture m_tyrannosaurusHairTexture;
+	Texture m_trexKokkakuTexture;
+	Texture m_pteranodonTexture;
+	Texture m_pachycephalosaurusTexture;
+	Texture m_stegosaurusTexture;
+	Texture m_brachiosaurusTexture;
+	Texture m_iguanodonTexture;
+	Texture m_keyboardTexture; // キーボード操作の説明用テクスチャ
+
+	Array<MovingDinosaur> m_movingDinosaurs; // 現在画面上にいる恐竜の配列
+
+	const double m_dinosaurSpawnInterval = 1.0; // 恐竜が出現する基本間隔（秒）
+	double m_dinosaurNextSpawnTime = 0.0; // 次の出現時間
+	DinosaurType m_nextDinosaurType = DinosaurType::Tyrannosaurus;
+	int m_dinosaurOrderIndex = 0;
+
+	void drawLanes() const;
 	void loadBGMAndNotes();
 	void updateReady();
+	void updateCountdown();
 	void updatePlaying();
 	void updateResult();
 
 	// 描画関連
 	RectF getLaneRect(int lane, double timeToArrival, double duration) const;
 	void drawNote(const Note& note, double timeToArrival) const;
+
+	EffectManager m_effectManager;
 
 public:
 	MiniGameScene_1(const InitData& init);

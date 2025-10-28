@@ -37,7 +37,7 @@ bool SceneTransition::SystemInit()
 	m_manager->add<MiniGameScene_3>(SceneState::MINIGAME_3);
 
 	// ゲーム起動時にゲーム画面からスタート（フェードイン時間無し）
-	m_manager->init(SceneState::GAME, 0s);
+	m_manager->init(SceneState::MINIGAME_1, 0s);
 
 	return true;
 }

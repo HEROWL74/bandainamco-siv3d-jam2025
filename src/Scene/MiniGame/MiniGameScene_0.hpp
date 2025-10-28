@@ -3,6 +3,7 @@
 #include <Siv3D.hpp>
 #include "../SceneTransition.hpp"
 #include "../../Option/AudioManager.hpp"
+#include "../../Effect/EffectManager.hpp"
 
 // ノーツのデータ構造
 struct Note
@@ -13,7 +14,8 @@ struct Note
 
 	enum class State {
 		None,// 未判定
-		Active, // 判定ライン到達済、判定中
+		Active_Perfect,
+		Active_Miss,
 		Hit, // 成功
 		Miss, // ミス
 	};
@@ -23,6 +25,7 @@ struct Note
 enum class GameStatus
 {
 	Ready,
+	Countdown,
 	Playing,
 	Result,
 };
@@ -37,6 +40,21 @@ public:
 	void draw() const override;
 
 private:
+	Font m_font20;
+	Font m_font24;
+	Font m_font30;
+
+	struct Star {
+		Vec2 pos;
+		double speedRatio; // 0.0:遠い(静止) - 1.0:近い(ノーツと同じ移動)
+		double size;
+	};
+	Array<Star> m_stars; // 星のリスト
+
+	EffectManager m_effectManager;
+	double m_lastHoldEffectTime = 0.0; // 長押しエフェクトが最後に発生した時間
+	const double m_holdEffectInterval = 0.03; // エフェクトを発生させる間隔（秒）
+
 	// ノーツリスト（譜面）
 	Array<Note> m_notes;
 
@@ -62,6 +80,10 @@ private:
 	int m_combo = 0;
 	int m_currentNoteIndex = 0; // 次に判定するノーツのインデックス
 	double m_gameStartTime = 0.0; // ゲーム開始時の時刻（Scene::Time()）
+
+	const Texture m_earthIcon;
+	const Texture m_starIcon;
+	const Texture m_timeIcon;
 
 	// プライベート関数
 	void loadBGMAndNotes();

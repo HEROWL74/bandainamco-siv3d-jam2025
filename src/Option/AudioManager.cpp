@@ -56,16 +56,23 @@ bool AudioManager::PreLoadSE(const String& id, const FilePath& path)
 
 
 // 再生（bus指定）
-void AudioManager::PlayBGM(const String& id, bool loop)
+void AudioManager::PlayBGM(const String& id, bool loop, Seconds startTime)
 {
-	// 登録されていない/再生中の場合は何にもしない
 	if (!m_bgmMap.contains(id)) return;
-	if (m_currentBGMId == id && m_bgmMap[id].isPlaying()) return;
 
-	// 再生処理
+	// 別の BGM が再生中なら停止する
+	if (m_currentBGMId != id && !m_currentBGMId.isEmpty())
+	{
+		m_bgmMap[m_currentBGMId].stop(0s);
+	}
+
 	m_currentBGMId = id;
-	m_bgmMap[id].setLoop(loop);
-	m_bgmMap[id].play();
+	auto& audio = m_bgmMap[id];
+
+	audio.stop(0s);
+	audio.setLoop(loop);
+	audio.seekTime(startTime.count());
+	audio.play();
 }
 
 void AudioManager::StopBGM(Seconds fade)

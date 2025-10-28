@@ -3,6 +3,7 @@
 #include <Siv3D.hpp>
 #include "SceneTransition.hpp"
 #include "../Character/Player.hpp"
+#include "../Effect/EffectManager.hpp"
 #include "../Render/Spotlight.hpp"
 #include "../Map/Door/Door.hpp"
 #include "../Option/GameOption.hpp"
@@ -28,6 +29,8 @@ private:
 	Player m_player;
 
 	std::unique_ptr<Door> m_door;
+
+	EffectManager m_effectManager;
 
 	// オプション関連
 	Array<RectF> m_mapCollisions;

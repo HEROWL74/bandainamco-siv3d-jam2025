@@ -62,7 +62,7 @@ void CharacterBase::Draw(const MainCamera& camera) const
 		int frameY = anim.row * m_frameheight;
 
 		m_texture(frameX, frameY, m_framewidth, m_frameheight)
-			.scaled(7)
+			.scaled(12)
 			.drawAt(m_position);
 	}
 }
