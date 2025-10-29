@@ -7,64 +7,6 @@ Puzzle::Puzzle()
 
 }
 
-bool Puzzle::SystemInit()
-{
-	// 画像読み込み
-	//m_img = Image(U"Assets/Beethoven.jpg");
-	//if (!m_img) return false;
-
-	return true;
-}
-
-//void Puzzle::GameInit()
-//{
-//	m_gridN = 3;
-//	pieces.clear();
-//	m_grabbedIndex = -1;
-//	m_tileSizeScreen = 200;
-//	m_margin = 2;
-//	m_snapRange = 36.0;
-//
-//	// 元画像を正方形に切り抜く（中央トリミング）
-//	const int32 sourceSize = Min(m_img.width(), m_img.height());
-//	const int32 ox = (m_img.width() - sourceSize) / 2;
-//	const int32 oy = (m_img.height() - sourceSize) / 2;
-//	Image square = m_img.clipped(Rect(ox, oy, sourceSize, sourceSize));
-//
-//	// ボードの位置をXに対して中央に配置
-//	const double boardWidth = m_gridN * (m_tileSizeScreen + m_margin) - m_margin;
-//	const double boardHeight = boardWidth;
-//	m_boardOrigin = Vec2{ (Scene::Width() - boardWidth) / 2.0, 80.0 };
-//
-//	// 完成図をボードの背景にするための画像設定
-//	Image boardPreview = square.scaled(static_cast<int>(boardWidth), static_cast<int>(boardHeight));
-//	m_previewTex = Texture(boardPreview);
-//
-//
-//	// 1ピースのサイズ
-//	m_piecePx = sourceSize / m_gridN;
-//
-//
-//
-//	// ピース生成
-//	for (int y = 0; y < m_gridN; ++y) {
-//		for (int x = 0; x < m_gridN; ++x) {
-//			const Rect pieceSrc(x * m_piecePx, y * m_piecePx, m_piecePx, m_piecePx);
-//			Image sub = square.clipped(pieceSrc);
-//			Texture tex(sub); // GPU に転送（起動時一度だけ）
-//
-//			// 正しい中心座標
-//			Vec2 correct = m_boardOrigin + Vec2(x * (m_tileSizeScreen + m_margin) + m_tileSizeScreen / 2.0,
-//											  y * (m_tileSizeScreen + m_margin) + m_tileSizeScreen / 2.0);
-//			// 初期位置は左側にばらまく
-//			Vec2 initPos = Vec2(Random(0.0, Scene::Width() / 2.0), Random(150.0, Scene::Height() - 80.0));
-//
-//			pieces.emplace_back(tex, correct, initPos);			// コンストラクタの引数を直接渡して新しい要素を構築する
-//			// tex:ピースの画像、correct:そのピースの正解の位置、initPos:ランダムに設定される初期位置
-//		}
-//	}
-//}
-
 void Puzzle::GameInit(const FilePath& path)
 {
 	m_img = Image(path);
