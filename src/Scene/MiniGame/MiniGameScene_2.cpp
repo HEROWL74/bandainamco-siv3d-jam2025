@@ -3,12 +3,21 @@
 // コンストラクタ
 MiniGameScene_2::MiniGameScene_2(const InitData& init)
 	:IScene(init)
-	,m_puzzle(nullptr)
-	,m_state(State::Idle)
-	,m_bigFont(48)
-	,m_puzzleIndex(0)
-	,m_timer(0.0)
+	, m_puzzle(nullptr)
+	, m_state(State::Idle)
+	, m_bigFont(48)
+	, m_puzzleIndex(0)
+	, m_timer(0.0)
+	, m_background(U"assets/Image/Background/2050036.png") // 背景画像テクスチャのロード
 {
+	const FilePath animal1Path = U"assets/Image/Animal/bird_aoitori_bluebird.png";
+	const FilePath animal2Path = U"assets/Image/Animal/eto_uma_furikaeri.png";
+	const FilePath animal3Path = U"assets/Image/Animal/eto_remake_ushi.png";
+
+	m_animals.emplace_back(Texture(animal1Path));
+	m_animals.emplace_back(Texture(animal2Path));
+	m_animals.emplace_back(Texture(animal3Path));
+
 	SystemInit();
 	GameInit();
 }
@@ -23,6 +32,7 @@ bool MiniGameScene_2::SystemInit()
 	m_puzzle = std::make_unique<Puzzle>();
 	if (m_puzzle == nullptr) return false;
 
+	m_puzzle->SetEffectManager(&m_effectManager);
 
 	// 使う画像をロード
 	m_puzzleImages = {
@@ -31,9 +41,28 @@ bool MiniGameScene_2::SystemInit()
 		U"Assets/TestPuzzle1.jpg",
 	};
 
+	// BGMのプリロード
 	if (getData().audio)
 	{
 		getData().audio->PreLoadBGM(U"MiniGame2BGM", U"assets/sound/bgm/No9_3rd.mp3");
+
+		try
+		{
+			// ピースを拾う音
+			const Audio pickSE(U"assets/sound/se/PuzzlePiece_Pick.mp3");
+
+			// ピースを嵌める音
+			const Audio snapSE(U"assets/sound/se/PuzzlePiece_Snap.mp3");
+
+			// PuzzleにSEインスタンスを渡す
+			m_puzzle->SetSE(pickSE, snapSE);
+		}
+		catch (const Error& e)
+		{
+			// SEファイルのロードに失敗した場合の処理
+			// このメッセージはデバッグ時に役立ちます。
+			Print << U"Error loading SE files: " << e.what();
+		}
 	}
 
 	return true;
@@ -55,10 +84,65 @@ void MiniGameScene_2::GameInit()
 	{
 		getData().audio->PlayBGM(U"MiniGame2BGM", true);
 	}
+
+	if (m_animals.size() >= 3)
+	{
+		// 1. 青い鳥 (右へ移動)
+		m_animals[0].position = { -50, 100 }; // 画面左外から開始
+		m_animals[0].velocity = { 80, 0 }; // 右に80px/秒
+		m_animals[0].scale = 0.5;
+		m_animals[0].isMoving = true;
+
+		// 2. 馬 (左へ移動)
+		m_animals[1].position = { Scene::Width() + 50, Scene::Height() - 100 }; // 画面右外から開始
+		m_animals[1].velocity = { -50, 0 }; // 左に50px/秒
+		m_animals[1].scale = 0.8;
+		m_animals[1].isMoving = true;
+
+		// 3. 牛 (斜め下へ移動)
+		m_animals[2].position = { 50, Scene::Height() / 2 };
+		m_animals[2].velocity = { 30, 30 }; // 右下方向に30px/秒
+		m_animals[2].scale = 1.0;
+		m_animals[2].isMoving = true;
+	}
 }
 
 void MiniGameScene_2::update()
 {
+	const double deltaTime = Scene::DeltaTime();
+
+	for (auto& animal : m_animals)
+	{
+		if (!animal.isMoving) continue;
+
+		animal.position += animal.velocity * deltaTime;
+
+		// サイズを計算 (テクスチャがロードされていることを前提)
+		const double halfWidth = animal.texture.width() * animal.scale / 2.0;
+		const double halfHeight = animal.texture.height() * animal.scale / 2.0;
+
+		// 画面の左右端で反対側から出現させる (ワープ処理)
+		if (animal.position.x < -halfWidth)
+		{
+			animal.position.x = Scene::Width() + halfWidth;
+		}
+		else if (animal.position.x > Scene::Width() + halfWidth)
+		{
+			animal.position.x = -halfWidth;
+		}
+
+		// 画面の上下端で反対側から出現させる (ワープ処理)
+		if (animal.position.y < -halfHeight)
+		{
+			animal.position.y = Scene::Height() + halfHeight;
+		}
+		else if (animal.position.y > Scene::Height() + halfHeight)
+		{
+			animal.position.y = -halfHeight;
+		}
+	}
+
+
 	switch (m_state)
 	{
 	case State::Idle:
@@ -77,12 +161,19 @@ void MiniGameScene_2::update()
 		FinishUpdate();
 		break;
 	}
+
+	m_effectManager.Update();
 }
 
 void MiniGameScene_2::draw() const
 {
 	ClearPrint();
-	Scene::SetBackground(ColorF{ 0.8, 0.7, 0.0 }); // 黄色
+
+	// 背景の描画
+	m_background.scaled(1.3).drawAt(Scene::Center());
+
+	// 動物の描画処理を背景の次に実行
+	DrawAnimals();
 
 	switch (m_state)
 	{
@@ -102,7 +193,20 @@ void MiniGameScene_2::draw() const
 		FinishDraw();
 		break;
 	}
+
+	m_effectManager.Draw();
 }
+
+// 動物の描画処理の実装
+void MiniGameScene_2::DrawAnimals() const
+{
+	for (const auto& animal : m_animals)
+	{
+		// texture.scaled(scale).drawAt(position)で描画
+		animal.texture.scaled(animal.scale).drawAt(animal.position, ColorF(1.0, 1.0, 1.0, 1.0));
+	}
+}
+
 
 // 待機状態の更新処理
 void MiniGameScene_2::IdleUpdate()

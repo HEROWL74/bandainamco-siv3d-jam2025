@@ -1,4 +1,5 @@
 ﻿#include "Puzzle.hpp"
+#include "../../../Effect/BubbleEffect.hpp"
 
 Puzzle::Puzzle()
 	:m_helpFont(20)
@@ -12,7 +13,7 @@ void Puzzle::GameInit(const FilePath& path)
 	m_img = Image(path);
 	if (!m_img) return;
 
-	m_gridN = 3;
+	m_gridN = 4;
 	pieces.clear();
 	m_grabbedIndex = -1;
 	m_tileSizeScreen = 200;
@@ -178,6 +179,7 @@ void Puzzle::MouseDown()
 			pieces.emplace_back(pieces[i]);
 			pieces.remove_at(i);
 			m_grabbedIndex = static_cast<int>(pieces.size()) - 1;
+			m_pickSE.playOneShot();
 			break;
 		}
 	}
@@ -192,13 +194,26 @@ void Puzzle::MouseDrag()
 
 void Puzzle::MouseUp()
 {
-	if (m_grabbedIndex >= 0 && m_grabbedIndex < static_cast<int>(pieces.size())) {
-		if (pieces[m_grabbedIndex].IsNear(m_snapRange)) {
-			// はめ込む
-			pieces[m_grabbedIndex].SnapToCorrect();
-			// ここで効果音を鳴らすと気持ちいい（Sound を事前ロードして再生）
+	if (m_grabbedIndex == -1) return;
+
+	// 掴んでいたピースを取得
+	Piece& p = pieces[m_grabbedIndex];
+
+	// スナップ判定（正しい位置の近くか）
+	if (p.IsNear(m_snapRange))
+	{
+		if (p.SnapToCorrect())
+		{
+			PlaySnapSE(); // スナップ音を鳴らす
+
+			if (m_effectManager)
+			{
+				m_effectManager->Add<BubbleEffect>(p.m_correctPos, 1.0, Random(360.0));
+			}
 		}
-		pieces[m_grabbedIndex].StopDrag();
-		m_grabbedIndex = -1;
 	}
+
+	// ドラッグ状態を解除
+	p.StopDrag();
+	m_grabbedIndex = -1;
 }

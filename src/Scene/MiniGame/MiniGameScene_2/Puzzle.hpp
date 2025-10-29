@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <Siv3D.hpp>
 #include "Piece.hpp"
-
+#include "../../../Effect/EffectManager.hpp"
 
 class Puzzle
 {
@@ -18,6 +18,11 @@ public:
 	void ResetPuzzle();
 	const Texture& GetPrevTexture() const { return m_previewTex; }
 
+	void SetSE(const Audio& pick, const Audio& snap) { m_pickSE = pick; m_snapSE = snap; }
+	void PlayPickSE() const { if (m_pickSE) m_pickSE.playOneShot(); }
+	void PlaySnapSE() const { if (m_snapSE) m_snapSE.playOneShot(); }
+
+	void SetEffectManager(EffectManager* em) { m_effectManager = em; }
 private:
 
 	// 操作系の関数
@@ -46,4 +51,9 @@ private:
 	// 入力管理
 	int32 m_grabbedIndex{ -1 };						// 掴んでいるピースのインデックス
 
+	// SE
+	Audio m_pickSE;									// ピースを拾う時のSE
+	Audio m_snapSE;									// ピースがスナップする時のSE
+
+	EffectManager* m_effectManager = nullptr;
 };

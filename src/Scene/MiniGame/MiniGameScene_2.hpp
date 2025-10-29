@@ -12,6 +12,20 @@ enum class State
 	Finish,
 };
 
+struct MovingAnimal
+{
+	Texture texture;   // 描画するテクスチャ
+	Vec2 position;     // 現在の位置
+	Vec2 velocity;     // 速度ベクトル
+	double scale;      // スケール
+	double rotation;   // 回転角度
+	bool isMoving;     // 動いているか
+
+	// コンストラクタ
+	MovingAnimal() = default;
+	MovingAnimal(const Texture& t) : texture(t), position(0, 0), velocity(0, 0), scale(1.0), rotation(0.0), isMoving(false) {}
+};
+
 class MiniGameScene_2 : public App::Scene
 {
 private:
@@ -24,6 +38,12 @@ private:
 
 	Font m_bigFont;									// 描画するフォント
 
+	Texture m_background;
+
+	Array<MovingAnimal> m_animals;
+
+	EffectManager m_effectManager;
+
 	void IdleUpdate();
 	void PlayingUpdate();
 	void ClearUpdate();
@@ -34,6 +54,7 @@ private:
 	void ClearDraw() const;
 	void FinishDraw() const;
 
+	void DrawAnimals() const;
 public:
 	MiniGameScene_2(const InitData& init);
 	~MiniGameScene_2();
