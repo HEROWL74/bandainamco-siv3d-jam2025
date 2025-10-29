@@ -1,0 +1,83 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download OpenSiv3D v0.6.16 (Windows SDK)
+        shell: pwsh
+        run: |
+          $url = "https://siv3d.jp/downloads/Siv3D/manual/0.6.16/OpenSiv3D_SDK_0.6.16.zip"
+          curl -L $url -o siv3d-sdk.zip
+          New-Item -ItemType Directory -Force -Path sdk | Out-Null
+          Expand-Archive -Path siv3d-sdk.zip -DestinationPath sdk -Force
+
+          $sdkRoot = (Resolve-Path 'sdk\OpenSiv3D_SDK_0.6.16').Path
+          "SIV3D_0_6_16=$sdkRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "SIV3D_0_6_16=$sdkRoot"
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Clean old build directories
+        run: |
+          if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
+          if (Test-Path "x64") { Remove-Item -Recurse -Force "x64" }
+
+      - name: Build Release
+        shell: pwsh
+        run: |
+          msbuild "Siv3DGameJam2025Project.sln" `
+            /p:Configuration=Release `
+            /p:Platform=x64 `
+            /m:1 `
+            /t:Clean,Build
+
+      - name: Prepare App Folder for Release
+        shell: pwsh
+        run: |
+          # Appディレクトリを作成
+          New-Item -ItemType Directory -Force -Path App | Out-Null
+
+          # 各フォルダをコピー
+          if (Test-Path "Assets") { Copy-Item -Recurse -Force "Assets" "App/Assets" }
+          if (Test-Path "Data")   { Copy-Item -Recurse -Force "Data"   "App/Data" }
+          if (Test-Path "Map")    { Copy-Item -Recurse -Force "Map"    "App/Map" }
+
+          # リソース系ファイル
+          if (Test-Path "icon.ico")    { Copy-Item -Force "icon.ico" "App/icon.ico" }
+          if (Test-Path "Resource.rc") { Copy-Item -Force "Resource.rc" "App/Resource.rc" }
+
+          # exeをReleaseからAppへコピー
+          $exeFiles = Get-ChildItem -Path "x64/Release" -Filter "*.exe" -Recurse
+          foreach ($exe in $exeFiles) {
+            Copy-Item -Force $exe.FullName "App/${exe.Name}"
+          }
+
+          Write-Host "==== App Folder Structure ===="
+          Get-ChildItem -Recurse -Depth 3 App
+
+      - name: Upload App Folder as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Siv3DGameRelease
+          path: App
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: App/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
