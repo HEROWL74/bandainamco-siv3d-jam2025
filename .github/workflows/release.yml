@@ -46,54 +46,29 @@ jobs:
             /m:1 `
             /t:Clean,Build
 
-      - name: Locate Release Output
+      - name: Copy EXE to App folder
         shell: pwsh
         run: |
-          $releasePaths = Get-ChildItem -Path "Intermediate" -Directory -Recurse | Where-Object { $_.Name -eq "Release" }
-          if ($releasePaths.Count -eq 0) {
-            throw "❌ No Release folder found under Intermediate/"
-          }
+          $exeFiles = Get-ChildItem -Path "Intermediate" -Filter "*.exe" -Recurse
+          if ($exeFiles.Count -eq 0) { throw "❌ No exe found under Intermediate/" }
 
-          $releasePath = $releasePaths[0].FullName
-          "RELEASE_PATH=$releasePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "✅ Found Release build folder: $releasePath"
-
-      - name: Organize ReleaseApp Structure
-        shell: pwsh
-        run: |
-          $releasePath = $env:RELEASE_PATH
-          if (-not (Test-Path $releasePath)) { throw "❌ Release build folder not found: $releasePath" }
-
-          # リリース用ベースディレクトリ
-          New-Item -ItemType Directory -Force -Path ReleaseApp | Out-Null
-          New-Item -ItemType Directory -Force -Path ReleaseApp/App | Out-Null
-          New-Item -ItemType Directory -Force -Path ReleaseApp/Intermediate | Out-Null
-
-          # exeをApp内にコピー
-          $exeFiles = Get-ChildItem -Path $releasePath -Filter "*.exe" -Recurse
-          if ($exeFiles.Count -eq 0) { throw "❌ No exe found in $releasePath" }
           foreach ($exe in $exeFiles) {
-            Copy-Item -Force $exe.FullName "ReleaseApp/App/${exe.Name}"
-            Write-Host "✅ Copied EXE: $($exe.Name)"
+            Copy-Item -Force $exe.FullName "App/${exe.Name}"
+            Write-Host "✅ Copied EXE: $($exe.Name) → App/"
           }
 
-          # Intermediateフォルダの中間ファイルを保持
-          Copy-Item -Recurse -Force "Intermediate/*" "ReleaseApp/Intermediate/"
-
-          # Appフォルダ内のリソースを統合
-          if (Test-Path "App/Assets") { Copy-Item -Recurse -Force "App/Assets" "ReleaseApp/App/Assets" }
-          if (Test-Path "App/Data")   { Copy-Item -Recurse -Force "App/Data"   "ReleaseApp/App/Data" }
-          if (Test-Path "App/Map")    { Copy-Item -Recurse -Force "App/Map"    "ReleaseApp/App/Map" }
-          if (Test-Path "App/icon.ico")    { Copy-Item -Force "App/icon.ico" "ReleaseApp/App/icon.ico" }
-          if (Test-Path "App/Resource.rc") { Copy-Item -Force "App/Resource.rc" "ReleaseApp/App/Resource.rc" }
-
-          Write-Host "==== ✅ Final Folder Structure ===="
+      - name: Prepare ReleaseApp Folder
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path ReleaseApp | Out-Null
+          Copy-Item -Recurse -Force "App" "ReleaseApp/App"
+          Write-Host "✅ App folder copied to ReleaseApp/App"
           Get-ChildItem -Recurse -Depth 3 ReleaseApp
 
       - name: Compress to ReleaseGame.zip
         shell: pwsh
         run: |
-          Compress-Archive -Path "ReleaseApp/*" -DestinationPath "ReleaseGame.zip" -Force
+          Compress-Archive -Path "ReleaseApp/App/*" -DestinationPath "ReleaseGame.zip" -Force
           Write-Host "📦 Created: ReleaseGame.zip"
 
       - name: Upload ZIP Artifact
