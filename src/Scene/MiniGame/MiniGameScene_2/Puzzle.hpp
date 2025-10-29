@@ -9,8 +9,6 @@ public:
 	Puzzle();
 	~Puzzle() = default;
 
-	bool SystemInit();			// 重いリソースの初期化
-	//void GameInit();			// ゲーム開始時の初期化
 	void GameInit(const FilePath& path);
 	void Update();
 	void Draw() const;

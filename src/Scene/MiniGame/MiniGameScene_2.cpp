@@ -23,7 +23,6 @@ bool MiniGameScene_2::SystemInit()
 	m_puzzle = std::make_unique<Puzzle>();
 	if (m_puzzle == nullptr) return false;
 
-	if (!m_puzzle->SystemInit()) return false;
 
 	// 使う画像をロード
 	m_puzzleImages = {
