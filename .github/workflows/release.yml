@@ -46,7 +46,7 @@ jobs:
             /m:1 `
             /t:Clean,Build
 
-      - name: Locate Release Output Folder
+      - name: Locate Release Output
         shell: pwsh
         run: |
           $releasePaths = Get-ChildItem -Path "Intermediate" -Directory -Recurse | Where-Object { $_.Name -eq "Release" }
@@ -54,41 +54,58 @@ jobs:
             throw "❌ No Release folder found under Intermediate/"
           }
 
-          $appPath = $releasePaths[0].FullName
-          "APP_PATH=$appPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "✅ Found Release output: $appPath"
+          $releasePath = $releasePaths[0].FullName
+          "RELEASE_PATH=$releasePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "✅ Found Release build folder: $releasePath"
 
-      - name: Prepare Release Artifact
+      - name: Organize ReleaseApp Structure
         shell: pwsh
         run: |
-          $appPath = $env:APP_PATH
-          if (-not (Test-Path $appPath)) {
-            throw "❌ App path not found: $appPath"
+          $releasePath = $env:RELEASE_PATH
+          if (-not (Test-Path $releasePath)) { throw "❌ Release build folder not found: $releasePath" }
+
+          # リリース用ベースディレクトリ
+          New-Item -ItemType Directory -Force -Path ReleaseApp | Out-Null
+          New-Item -ItemType Directory -Force -Path ReleaseApp/App | Out-Null
+          New-Item -ItemType Directory -Force -Path ReleaseApp/Intermediate | Out-Null
+
+          # exeをApp内にコピー
+          $exeFiles = Get-ChildItem -Path $releasePath -Filter "*.exe" -Recurse
+          if ($exeFiles.Count -eq 0) { throw "❌ No exe found in $releasePath" }
+          foreach ($exe in $exeFiles) {
+            Copy-Item -Force $exe.FullName "ReleaseApp/App/${exe.Name}"
+            Write-Host "✅ Copied EXE: $($exe.Name)"
           }
 
-          New-Item -ItemType Directory -Force -Path ReleaseApp | Out-Null
-          Copy-Item -Recurse -Force "$appPath/*" "ReleaseApp/"
+          # Intermediateフォルダの中間ファイルを保持
+          Copy-Item -Recurse -Force "Intermediate/*" "ReleaseApp/Intermediate/"
 
-          # App配下のリソースを統合
-          if (Test-Path "App/Assets") { Copy-Item -Recurse -Force "App/Assets" "ReleaseApp/Assets" }
-          if (Test-Path "App/Data")   { Copy-Item -Recurse -Force "App/Data"   "ReleaseApp/Data" }
-          if (Test-Path "App/Map")    { Copy-Item -Recurse -Force "App/Map"    "ReleaseApp/Map" }
-          if (Test-Path "App/icon.ico")    { Copy-Item -Force "App/icon.ico" "ReleaseApp/icon.ico" }
-          if (Test-Path "App/Resource.rc") { Copy-Item -Force "App/Resource.rc" "ReleaseApp/Resource.rc" }
+          # Appフォルダ内のリソースを統合
+          if (Test-Path "App/Assets") { Copy-Item -Recurse -Force "App/Assets" "ReleaseApp/App/Assets" }
+          if (Test-Path "App/Data")   { Copy-Item -Recurse -Force "App/Data"   "ReleaseApp/App/Data" }
+          if (Test-Path "App/Map")    { Copy-Item -Recurse -Force "App/Map"    "ReleaseApp/App/Map" }
+          if (Test-Path "App/icon.ico")    { Copy-Item -Force "App/icon.ico" "ReleaseApp/App/icon.ico" }
+          if (Test-Path "App/Resource.rc") { Copy-Item -Force "App/Resource.rc" "ReleaseApp/App/Resource.rc" }
 
-          Write-Host "==== ✅ ReleaseApp Folder Structure ===="
+          Write-Host "==== ✅ Final Folder Structure ===="
           Get-ChildItem -Recurse -Depth 3 ReleaseApp
 
-      - name: Upload Artifact
+      - name: Compress to ReleaseGame.zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "ReleaseApp/*" -DestinationPath "ReleaseGame.zip" -Force
+          Write-Host "📦 Created: ReleaseGame.zip"
+
+      - name: Upload ZIP Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Siv3DGameRelease
-          path: ReleaseApp
+          name: ReleaseGame
+          path: ReleaseGame.zip
 
       - name: Create GitHub Release (Draft)
         uses: softprops/action-gh-release@v2
         with:
-          files: ReleaseApp/**
+          files: ReleaseGame.zip
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
