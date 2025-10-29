@@ -56,12 +56,18 @@ jobs:
       - name: Prepare Release Artifact
         shell: pwsh
         run: |
-          # Appをコピーしてリリース用フォルダを作る
-          New-Item -ItemType Directory -Force -Path ReleaseApp | Out-Null
-          Copy-Item -Recurse -Force "Siv3DGameJam2025Project/App/*" "ReleaseApp/"
+          $appPath = "Siv3DGameJam2025Project/Intermediate/Siv3DGameJam2025Project/Release"
+          if (-not (Test-Path $appPath)) {
+            throw "❌ Expected path not found: $appPath"
+          }
 
-          Write-Host "==== ReleaseApp Folder Structure ===="
-          Get-ChildItem -Recurse -Depth 3 ReleaseApp
+          Write-Host "✅ Found Release build output at $appPath"
+
+          New-Item -ItemType Directory -Force -Path ReleaseApp | Out-Null
+          Copy-Item -Recurse -Force "$appPath/*" "ReleaseApp/"
+
+         Write-Host "📦 Copied Release build to ReleaseApp successfully"
+         Get-ChildItem -Recurse -Depth 3 ReleaseApp
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
