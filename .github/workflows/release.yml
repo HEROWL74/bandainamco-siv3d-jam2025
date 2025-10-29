@@ -3,8 +3,8 @@ name: Release Build
 on:
   push:
     tags:
-      - 'v*'   # v1.0.0などのタグpushで自動実行
-  workflow_dispatch:   # 手動実行（featureブランチでのテストにも使える）
+      - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -32,7 +32,7 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Clean old build directories
+      - name: Clean
         shell: pwsh
         run: |
           if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
@@ -49,14 +49,14 @@ jobs:
       - name: Locate Release Output Folder
         shell: pwsh
         run: |
-          $releasePaths = Get-ChildItem -Path "Siv3DGameJam2025Project/Intermediate" -Directory -Recurse | Where-Object { $_.Name -eq "Release" }
+          $releasePaths = Get-ChildItem -Path "Intermediate" -Directory -Recurse | Where-Object { $_.Name -eq "Release" }
           if ($releasePaths.Count -eq 0) {
             throw "❌ No Release folder found under Intermediate/"
           }
 
           $appPath = $releasePaths[0].FullName
           "APP_PATH=$appPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "✅ Found Release build output at: $appPath"
+          Write-Host "✅ Found Release output: $appPath"
 
       - name: Prepare Release Artifact
         shell: pwsh
@@ -66,17 +66,15 @@ jobs:
             throw "❌ App path not found: $appPath"
           }
 
-          # リリース出力をコピー
           New-Item -ItemType Directory -Force -Path ReleaseApp | Out-Null
           Copy-Item -Recurse -Force "$appPath/*" "ReleaseApp/"
 
-          # 追加リソースをApp配下へ統合
-          if (Test-Path "Siv3DGameJam2025Project/App/Assets") { Copy-Item -Recurse -Force "Siv3DGameJam2025Project/App/Assets" "ReleaseApp/Assets" }
-          if (Test-Path "Siv3DGameJam2025Project/App/Data")   { Copy-Item -Recurse -Force "Siv3DGameJam2025Project/App/Data"   "ReleaseApp/Data" }
-          if (Test-Path "Siv3DGameJam2025Project/App/Map")    { Copy-Item -Recurse -Force "Siv3DGameJam2025Project/App/Map"    "ReleaseApp/Map" }
-
-          if (Test-Path "Siv3DGameJam2025Project/App/icon.ico")    { Copy-Item -Force "Siv3DGameJam2025Project/App/icon.ico" "ReleaseApp/icon.ico" }
-          if (Test-Path "Siv3DGameJam2025Project/App/Resource.rc") { Copy-Item -Force "Siv3DGameJam2025Project/App/Resource.rc" "ReleaseApp/Resource.rc" }
+          # App配下のリソースを統合
+          if (Test-Path "App/Assets") { Copy-Item -Recurse -Force "App/Assets" "ReleaseApp/Assets" }
+          if (Test-Path "App/Data")   { Copy-Item -Recurse -Force "App/Data"   "ReleaseApp/Data" }
+          if (Test-Path "App/Map")    { Copy-Item -Recurse -Force "App/Map"    "ReleaseApp/Map" }
+          if (Test-Path "App/icon.ico")    { Copy-Item -Force "App/icon.ico" "ReleaseApp/icon.ico" }
+          if (Test-Path "App/Resource.rc") { Copy-Item -Force "App/Resource.rc" "ReleaseApp/Resource.rc" }
 
           Write-Host "==== ✅ ReleaseApp Folder Structure ===="
           Get-ChildItem -Recurse -Depth 3 ReleaseApp
