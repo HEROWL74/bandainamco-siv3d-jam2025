@@ -158,7 +158,7 @@ void GameScene::draw() const
 	ColorF backgroundColor;
 
 	// nextMiniGame の値に基づいて背景色を決定
-	switch (data.nextMiniGame)
+	switch (data.nextScene)
 	{
 	case 0: // 例: ミニゲーム0 の時
 		backgroundColor = ColorF{ 1.0, 0.0, 0.0 }; // 赤
@@ -268,7 +268,7 @@ void GameScene::HandleDoorTransition()
 			// 共有データから次に遷移するミニゲーム番号を取得して遷移
 			auto& data = getData();
 
-			switch (data.nextMiniGame)
+			switch (data.nextScene)
 			{
 			case 0:
 				changeScene(SceneState::MINIGAME_0);
@@ -281,6 +281,9 @@ void GameScene::HandleDoorTransition()
 				break;
 			case 3:
 				changeScene(SceneState::MINIGAME_3);
+				break;
+			case 4:
+				changeScene(SceneState::TITLE);
 				break;
 			default:
 				changeScene(SceneState::MINIGAME_0);

@@ -101,7 +101,15 @@ void TitleScene::update()
 
 void TitleScene::draw() const
 {
-	Scene::SetBackground(ColorF{ 0.0, 0.2, 0.8 });
+	const auto& data = getData();
+	if(data.isGameClear)
+	{
+		Scene::SetBackground(Palette::Gold);
+	}
+	else
+	{
+		Scene::SetBackground(Palette::Black);
+	}
 
 	// 設定ボタンの描画	
 	m_optionButton.draw(Palette::Silver);

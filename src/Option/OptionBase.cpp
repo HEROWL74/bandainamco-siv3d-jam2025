@@ -49,7 +49,7 @@ void OptionBase::Update()
 {
 	m_isClosed = false;
 	// 閉じるボタンを左クリックしたらゲーム画面に戻る
-	if (m_optionCloseBtn.leftClicked() || KeyEscape.down())
+	if (m_optionCloseBtn.leftClicked())
 	{
 		m_isClosed = true;
 	}
