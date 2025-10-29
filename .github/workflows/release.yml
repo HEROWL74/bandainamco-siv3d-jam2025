@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -34,7 +35,6 @@ jobs:
       - name: Clean old build directories
         run: |
           if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
-          if (Test-Path "x64") { Remove-Item -Recurse -Force "x64" }
 
       - name: Build Release
         shell: pwsh
@@ -45,39 +45,34 @@ jobs:
             /m:1 `
             /t:Clean,Build
 
-      - name: Prepare App Folder for Release
+      - name: Verify App Folder Exists
         shell: pwsh
         run: |
-          # Appディレクトリを作成
-          New-Item -ItemType Directory -Force -Path App | Out-Null
-
-          # 各フォルダをコピー
-          if (Test-Path "Assets") { Copy-Item -Recurse -Force "Assets" "App/Assets" }
-          if (Test-Path "Data")   { Copy-Item -Recurse -Force "Data"   "App/Data" }
-          if (Test-Path "Map")    { Copy-Item -Recurse -Force "Map"    "App/Map" }
-
-          # リソース系ファイル
-          if (Test-Path "icon.ico")    { Copy-Item -Force "icon.ico" "App/icon.ico" }
-          if (Test-Path "Resource.rc") { Copy-Item -Force "Resource.rc" "App/Resource.rc" }
-
-          # exeをReleaseからAppへコピー
-          $exeFiles = Get-ChildItem -Path "x64/Release" -Filter "*.exe" -Recurse
-          foreach ($exe in $exeFiles) {
-            Copy-Item -Force $exe.FullName "App/${exe.Name}"
+          if (-not (Test-Path "Siv3DGameJam2025Project/App")) {
+            throw "❌ Build did not produce expected App folder: Siv3DGameJam2025Project/App"
           }
+          Write-Host "✅ App folder found"
 
-          Write-Host "==== App Folder Structure ===="
-          Get-ChildItem -Recurse -Depth 3 App
+      - name: Prepare Release Artifact
+        shell: pwsh
+        run: |
+          # Appをコピーしてリリース用フォルダを作る
+          New-Item -ItemType Directory -Force -Path ReleaseApp | Out-Null
+          Copy-Item -Recurse -Force "Siv3DGameJam2025Project/App/*" "ReleaseApp/"
 
-      - name: Upload App Folder as Artifact
+          Write-Host "==== ReleaseApp Folder Structure ===="
+          Get-ChildItem -Recurse -Depth 3 ReleaseApp
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Siv3DGameRelease
-          path: App
+          path: ReleaseApp
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release (Draft)
         uses: softprops/action-gh-release@v2
         with:
-          files: App/**
+          files: ReleaseApp/**
+          draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
