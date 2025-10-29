@@ -13,15 +13,6 @@ MiniGameScene_1::MiniGameScene_1(const InitData& init)
 	, m_timeIcon(U"🕒"_emoji)
 	, m_keyboardTexture(U"assets/Image/Keybord.png")
 	, m_BackgroundTexture(U"assets/Image/Background/DinosaurBackground.jpg")
-	, m_tyrannosaurusTexture(U"assets/Image/Dinosaur/Tyrannosaurus.png")
-	, m_triceratopsTexture(U"assets/Image/Dinosaur/Triceratops.png")
-	, m_tyrannosaurusHairTexture(U"assets/Image/Dinosaur/Tyrannosaurus_hair.png")
-	, m_trexKokkakuTexture(U"assets/Image/Dinosaur/trex_kokkaku.png")
-	, m_pteranodonTexture(U"assets/Image/Dinosaur/Pteranodon.png")
-	, m_pachycephalosaurusTexture(U"assets/Image/Dinosaur/dinosaur_pachycephalosaurus.png")
-	, m_stegosaurusTexture(U"assets/Image/Dinosaur/Stegosaurus.png")
-	, m_brachiosaurusTexture(U"assets/Image/Dinosaur/Brachiosaurus.png")
-	, m_iguanodonTexture(U"assets/Image/Dinosaur/Iguanodon.png")
 {
 	m_laneAudios[0] = Audio{ GMInstrument::TaikoDrum, PianoKey::C3, 0.5s };
 	m_laneAudios[1] = Audio{ GMInstrument::TaikoDrum, PianoKey::D3, 0.5s };
@@ -337,82 +328,59 @@ void MiniGameScene_1::update()
 		{
 			if (m_movingDinosaurs.empty())
 			{
-				MovingDinosaur newDino;
+				MovingDinosaur newDino; // 恐竜の種類をインデックスで決定 (ローテーション)
 
-				// 恐竜の種類をインデックスで決定 (ローテーション)
 				const int typeCount = 9;
-
 				newDino.type = static_cast<DinosaurType>(m_dinosaurOrderIndex);
-
 				m_dinosaurOrderIndex = (m_dinosaurOrderIndex + 1) % typeCount;
-
 				m_nextDinosaurType = static_cast<DinosaurType>(m_dinosaurOrderIndex); // 次の出現予定タイプ
 
 				newDino.movingRight = RandomBool(); // 移動方向
 				newDino.speed = Random(400.0, 500.0);
-				newDino.scale = 2; // デフォルトスケール
+				newDino.scale = 2.0; // デフォルトスケール
 				newDino.spawnTime = Scene::Time();
 
-				// テクスチャ設定
+				// 種類ごとの設定
 				switch (newDino.type)
 				{
 				case DinosaurType::Tyrannosaurus:
-					newDino.texture = m_tyrannosaurusTexture;
-					break;
+					newDino.texture = dinos[0]; break;
 				case DinosaurType::Triceratops:
-					newDino.texture = m_triceratopsTexture;
-					break;
+					newDino.texture = dinos[1]; break;
 				case DinosaurType::Tyrannosaurus_hair:
-					newDino.texture = m_tyrannosaurusHairTexture;
-					break;
+					newDino.texture = dinos[2]; break;
 				case DinosaurType::Trex_kokkaku:
-					newDino.texture = m_trexKokkakuTexture;
-					break;
+					newDino.texture = dinos[3]; break;
 				case DinosaurType::Pteranodon:
-					newDino.texture = m_pteranodonTexture;
-					break;
+					newDino.texture = dinos[4]; break;
 				case DinosaurType::Pachycephalosaurus:
-					newDino.texture = m_pachycephalosaurusTexture;
-					break;
+					newDino.texture = dinos[5]; break;
 				case DinosaurType::Stegosaurus:
-					newDino.texture = m_stegosaurusTexture;
-					newDino.scale = 2.4;
-					break;
+					newDino.texture = dinos[6]; newDino.scale = 2.4; break;
 				case DinosaurType::Brachiosaurus:
-					newDino.texture = m_brachiosaurusTexture;
-					newDino.scale = 1.6;
-					break;
+					newDino.texture = dinos[7]; newDino.scale = 1.6; break;
 				case DinosaurType::Iguanodon:
-					newDino.texture = m_iguanodonTexture;
-					newDino.scale = 2.4;
-					break;
+					newDino.texture = dinos[8]; newDino.scale = 2.4; break;
 				default:
-					newDino.texture = m_tyrannosaurusTexture;
-					break;
+					newDino.texture = dinos[0]; break;
 				}
 
-				if (newDino.movingRight)
-				{
-					// 左端から出現
-					newDino.x = -newDino.texture.width() * newDino.scale;
-				}
-				else
-				{
-					// 右端から出現
-					newDino.x = sceneWidth;
-				}
+				newDino.x = newDino.movingRight
+					? -newDino.texture.width() * newDino.scale   // 左端
+					: sceneWidth;                                // 右端
 
 				m_movingDinosaurs.push_back(newDino);
 
-				// 次の出現時間を設定
+				// 次の出現タイミング
 				m_dinosaurNextSpawnTime = Scene::Time() + m_dinosaurSpawnInterval + Random(-1.0, 3.0);
 			}
 			else
 			{
-				// 画面に恐竜が残っている場合は、次の判定を早めて待機
+				// 恐竜が残ってる場合は少し待つ
 				m_dinosaurNextSpawnTime = Scene::Time() + 0.5;
 			}
 		}
+
 	}
 }
 
