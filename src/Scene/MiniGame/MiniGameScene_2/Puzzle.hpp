@@ -10,13 +10,15 @@ public:
 	~Puzzle() = default;
 
 	bool SystemInit();			// 重いリソースの初期化
-	void GameInit();			// ゲーム開始時の初期化
+	//void GameInit();			// ゲーム開始時の初期化
+	void GameInit(const FilePath& path);
 	void Update();
 	void Draw() const;
 
 	bool IsClear();
 	void ShufflePieces();
 	void ResetPuzzle();
+	const Texture& GetPrevTexture() const { return m_previewTex; }
 
 private:
 
