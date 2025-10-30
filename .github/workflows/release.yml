@@ -34,37 +34,33 @@ jobs:
         shell: pwsh
         run: |
           if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
-          if (Test-Path "ReleaseApp") { Remove-Item -Recurse -Force "ReleaseApp" }
+          if (Test-Path "App") { Remove-Item -Recurse -Force "App" }
           if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
 
-      - name: Build Release
+      - name: Build Release (Output to App)
         shell: pwsh
         run: |
           msbuild "Siv3DGameJam2025Project.sln" `
             /p:Configuration=Release `
             /p:Platform=x64 `
+            /p:OutDir="$(ProjectDir)App\\" `
             /m:1 `
             /t:Clean,Build
 
-      - name: Copy EXE to App folder
+      - name: Prepare Clean Package
         shell: pwsh
         run: |
-          $exeFiles = Get-ChildItem -Path "Intermediate" -Filter "*.exe" -Recurse
-          if ($exeFiles.Count -eq 0) { throw "No exe found under Intermediate/" }
-          foreach ($exe in $exeFiles) {
-            Copy-Item -Force $exe.FullName "App/${exe.Name}"
-          }
-
-      - name: Create package folder
-        shell: pwsh
-        run: |
+          if (Test-Path "package") { Remove-Item -Recurse -Force "package" }
           New-Item -ItemType Directory -Force -Path package | Out-Null
-          Copy-Item -Recurse -Force "App/*" "package/"
+
+          $includeList = @("App/*.exe", "App/Assets", "App/Data", "App/Map", "App/icon.ico", "App/Resource.rc")
+          foreach ($path in $includeList) {
+            if (Test-Path $path) { Copy-Item -Recurse -Force $path package/ }
+          }
 
       - name: Compress to ReleaseGame.zip
         shell: pwsh
         run: |
-          if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
           Compress-Archive -Path "package/*" -DestinationPath "ReleaseGame.zip" -Force
 
       - name: Create GitHub Release
