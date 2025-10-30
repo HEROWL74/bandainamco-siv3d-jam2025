@@ -38,16 +38,32 @@ jobs:
           if (Test-Path "package") { Remove-Item -Recurse -Force "package" }
           if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
 
+      # 🔧 App\Resource.rc をルートにコピー（ビルドでRC1110を防ぐ）
+      - name: Prepare Resource.rc for Build
+        shell: pwsh
+        run: |
+          if (Test-Path "App/Resource.rc") {
+            Copy-Item -Force "App/Resource.rc" "./Resource.rc"
+            Write-Host "✅ Copied App/Resource.rc to project root for build"
+          }
+
       - name: Build Release
         shell: pwsh
         run: |
           msbuild "Siv3DGameJam2025Project.sln" `
             /p:Configuration=Release `
             /p:Platform=x64 `
-            /p:AdditionalIncludeDirectories=App `
-            /p:AdditionalResourceCompileDirectories=App `
             /m:1 `
             /t:Clean,Build
+
+      # 🧹 ビルド後にコピーしたResource.rcを削除（後始末）
+      - name: Cleanup Temporary Resource.rc
+        shell: pwsh
+        run: |
+          if (Test-Path "./Resource.rc") {
+            Remove-Item -Force "./Resource.rc"
+            Write-Host "🧹 Cleaned up temporary Resource.rc"
+          }
 
       - name: Copy EXE to App folder
         shell: pwsh
