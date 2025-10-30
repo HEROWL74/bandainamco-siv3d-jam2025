@@ -64,18 +64,13 @@ jobs:
       - name: Compress to ReleaseGame.zip
         shell: pwsh
         run: |
-          powershell Compress-Archive -Path package\* -DestinationPath ReleaseGame.zip -Force
-
-      - name: Upload ZIP Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ReleaseGame
-          path: ReleaseGame.zip
+          if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
+          Compress-Archive -Path "package/*" -DestinationPath "ReleaseGame.zip" -Force
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: ReleaseGame.zip
-          draft: true
+          draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
