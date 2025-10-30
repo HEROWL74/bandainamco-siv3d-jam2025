@@ -24,10 +24,8 @@ jobs:
           curl -L $url -o siv3d-sdk.zip
           New-Item -ItemType Directory -Force -Path sdk | Out-Null
           Expand-Archive -Path siv3d-sdk.zip -DestinationPath sdk -Force
-
           $sdkRoot = (Resolve-Path 'sdk\OpenSiv3D_SDK_0.6.16').Path
           "SIV3D_0_6_16=$sdkRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "✅ SIV3D SDK path: $sdkRoot"
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
@@ -50,11 +48,9 @@ jobs:
         shell: pwsh
         run: |
           $exeFiles = Get-ChildItem -Path "Intermediate" -Filter "*.exe" -Recurse
-          if ($exeFiles.Count -eq 0) { throw "❌ No exe found under Intermediate/" }
-
+          if ($exeFiles.Count -eq 0) { throw "No exe found under Intermediate/" }
           foreach ($exe in $exeFiles) {
             Copy-Item -Force $exe.FullName "App/${exe.Name}"
-            Write-Host "✅ Copied EXE: $($exe.Name) → App/"
           }
 
       - name: Prepare ReleaseApp Folder
@@ -62,14 +58,13 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path ReleaseApp | Out-Null
           Copy-Item -Recurse -Force "App" "ReleaseApp/App"
-          Write-Host "✅ App folder copied to ReleaseApp/App"
-          Get-ChildItem -Recurse -Depth 3 ReleaseApp
 
       - name: Compress to ReleaseGame.zip
         shell: pwsh
         run: |
-          Compress-Archive -Path "ReleaseApp/App/*" -DestinationPath "ReleaseGame.zip" -Force
-          Write-Host "📦 Created: ReleaseGame.zip"
+          Push-Location "ReleaseApp"
+          Compress-Archive -Path "App/*" -DestinationPath "../ReleaseGame.zip" -Force
+          Pop-Location
 
       - name: Upload ZIP Artifact
         uses: actions/upload-artifact@v4
@@ -77,7 +72,7 @@ jobs:
           name: ReleaseGame
           path: ReleaseGame.zip
 
-      - name: Create GitHub Release (Draft)
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: ReleaseGame.zip
