@@ -30,12 +30,12 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      # ← App を消さない！ 中間物と前回ZIP/Packageだけ掃除する
       - name: Clean old outputs
         shell: pwsh
         run: |
           if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
-          if (Test-Path "App") { Remove-Item -Recurse -Force "App" }
-          if (Test-Path "Package") { Remove-Item -Recurse -Force "Package" }
+          if (Test-Path "Package")     { Remove-Item -Recurse -Force "Package" }
           if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
 
       - name: Build Release
@@ -61,7 +61,6 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path Package | Out-Null
-
           $include = @(
             "App/*.exe",
             "App/Assets",
@@ -70,23 +69,14 @@ jobs:
             "App/icon.ico",
             "App/Resource.rc"
           )
-
           foreach ($path in $include) {
-            if (Test-Path $path) {
-              Copy-Item -Recurse -Force $path Package/
-            }
+            if (Test-Path $path) { Copy-Item -Recurse -Force $path Package/ }
           }
 
       - name: Compress to ReleaseGame.zip
         shell: pwsh
         run: |
           Compress-Archive -Path "Package/*" -DestinationPath "ReleaseGame.zip" -Force
-
-      - name: Upload ZIP Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ReleaseGame
-          path: ReleaseGame.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
