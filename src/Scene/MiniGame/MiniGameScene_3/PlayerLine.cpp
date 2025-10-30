@@ -7,36 +7,45 @@ PlayerLine::PlayerLine()
 
 void PlayerLine::GameInit()
 {
-	m_line.clear();
+	m_lines.clear();
 	m_lastPoint = Cursor::Pos();
+	m_prevPressed = false;
 }
 
 bool PlayerLine::Update(const Point& pos, double minDist)
 {
 	if (!MouseL.pressed()) return false;
 
-	if (m_line.empty())
-	{
-		// 最初の点は、押し始めのフレームで追加
-		if (MouseL.down())
-		{
-			m_line << pos;
-			m_lastPoint = pos;
+	const bool currentPressed = MouseL.pressed();
+	const bool downNow = (currentPressed && !m_prevPressed);
 
-			return true;
-		}
-		return false;
+	if (MouseL.down())
+	{
+		// 新しいストローク開始
+		m_lines << LineString{ pos };
+		m_lastPoint = pos;
+		m_prevPressed = true;
+
+		return true;
 	}
-	else
+
+	if (MouseL.pressed() && !m_lines.isEmpty())
 	{
-		const double dist = m_lastPoint.distanceFrom(pos);
-		if (dist >= minDist)
+		// 押しっぱなしで追加
+		LineString& cur = m_lines.back();
+		if (m_lastPoint.distanceFrom(pos) >= minDist)
 		{
-			m_line << pos;
+			cur << pos;
 			m_lastPoint = pos;
+			m_prevPressed = true;
 
 			return true;
 		}
+	}
+
+	if (MouseL.up())
+	{
+		m_prevPressed = false;
 	}
 
 	return false;
@@ -44,13 +53,40 @@ bool PlayerLine::Update(const Point& pos, double minDist)
 
 void PlayerLine::Draw() const
 {
-	if (!m_line.empty())
+	for (const auto& line : m_lines)
 	{
-		m_line.draw(10, HSV{ 10, 1.0, 0.95 });
+		if (!line.empty())
+		{
+			line.draw(10, HSV{ 10, 1.0, 0.95 });
+		}
 	}
 }
 
 void PlayerLine::LineClear()
 {
-	m_line.clear();
+	m_lines.clear();
+	m_prevPressed = false;
+}
+
+LineString PlayerLine::GetCurrentLine() const
+{
+	if (m_lines.isEmpty())
+	{
+		return LineString();
+	}
+	return m_lines.back();
+}
+
+LineString PlayerLine::GetMergeLine() const
+{
+	LineString merged;
+	merged.reserve(128);
+	for (const auto& ls : m_lines)
+	{
+		for (const auto& p : ls)
+		{
+			merged << p;
+		}
+	}
+	return merged;
 }
