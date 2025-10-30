@@ -19,6 +19,10 @@ bool Application::init()
 	Window::SetTitle(U"Siv3D MiniGame Collection");
 	Window::SetFullscreen(true);
 
+#ifdef NDEBUG
+	System::SetTerminationTriggers(UserAction::CloseButtonClicked);
+#endif
+
 	Graphics::SetVSyncEnabled(true);
 
 	m_settings = std::make_shared<Settings>();

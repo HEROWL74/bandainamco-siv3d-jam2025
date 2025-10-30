@@ -257,7 +257,7 @@ void MiniGameScene_1::updateResult()
 	{
 		// 共有データの更新
 		auto& data = getData();
-		data.nextMiniGame = (data.nextMiniGame % 4) + 1;
+		data.nextScene = (data.nextScene % 5) + 1;
 
 		changeScene(SceneState::GAME);
 		//if (getData().audio)
