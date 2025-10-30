@@ -24,7 +24,7 @@ jobs:
           curl -L $url -o siv3d-sdk.zip
           New-Item -ItemType Directory -Force -Path sdk | Out-Null
           Expand-Archive -Path siv3d-sdk.zip -DestinationPath sdk -Force
-          $sdkRoot = (Resolve-Path 'sdk\OpenSiv3D_SDK_0.6.16').Path
+          $sdkRoot = (Resolve-Path 'sdk\OpenSiv3D_SDK_0.6_16').Path
           "SIV3D_0_6_16=$sdkRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Setup MSBuild
@@ -38,13 +38,16 @@ jobs:
           if (Test-Path "package") { Remove-Item -Recurse -Force "package" }
           if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
 
-      # 🔧 App\Resource.rc をルートにコピー（ビルドでRC1110を防ぐ）
-      - name: Prepare Resource.rc for Build
+      # ← ここがキモ：rc.exe が見るカレント(Intermediate/.../Release)に App/Resource.rc を用意しておく
+      - name: RC path workaround (mirror App into Intermediate)
         shell: pwsh
         run: |
-          if (Test-Path "App/Resource.rc") {
-            Copy-Item -Force "App/Resource.rc" "./Resource.rc"
-            Write-Host "✅ Copied App/Resource.rc to project root for build"
+          $rcSrc = "App/Resource.rc"
+          if (Test-Path $rcSrc) {
+            $mirror = "Intermediate/Siv3DGameJam2025Project/Release/App"
+            New-Item -ItemType Directory -Force -Path $mirror | Out-Null
+            Copy-Item -Force $rcSrc "$mirror/Resource.rc"
+            if (Test-Path "App/icon.ico") { Copy-Item -Force "App/icon.ico" "$mirror/icon.ico" }
           }
 
       - name: Build Release
@@ -55,15 +58,6 @@ jobs:
             /p:Platform=x64 `
             /m:1 `
             /t:Clean,Build
-
-      # 🧹 ビルド後にコピーしたResource.rcを削除（後始末）
-      - name: Cleanup Temporary Resource.rc
-        shell: pwsh
-        run: |
-          if (Test-Path "./Resource.rc") {
-            Remove-Item -Force "./Resource.rc"
-            Write-Host "🧹 Cleaned up temporary Resource.rc"
-          }
 
       - name: Copy EXE to App folder
         shell: pwsh
