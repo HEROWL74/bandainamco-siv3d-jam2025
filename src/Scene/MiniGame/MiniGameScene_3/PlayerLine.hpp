@@ -4,8 +4,9 @@
 class PlayerLine
 {
 private:
-	LineString m_line;
+	Array<LineString> m_lines;
 	Point m_lastPoint;
+	bool m_prevPressed;
 
 public:
 	PlayerLine();
@@ -16,5 +17,7 @@ public:
 	void Draw() const;
 
 	void LineClear();
-	const LineString& GetLine() const { return m_line; }
+	const Array<LineString>& GetLine() const { return m_lines; }
+	LineString GetCurrentLine() const;
+	LineString GetMergeLine() const;
 };
