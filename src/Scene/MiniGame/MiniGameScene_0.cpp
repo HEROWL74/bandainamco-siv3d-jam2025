@@ -108,13 +108,6 @@ void MiniGameScene_0::updateCountdown()
 
 	if (elapsed >= countdownDuration)
 	{
-		// BGM再生開始
-		if (getData().audio)
-		{
-			// MiniGame0BGMを再生開始
-			getData().audio->PlayBGM(U"MiniGame0BGM", true, 1s);
-		}
-
 		// ゲーム本編開始
 		m_gameStartTime = Scene::Time(); // ゲーム開始時刻を再設定
 		m_status = GameStatus::Playing; // Playing に遷移
