@@ -63,7 +63,7 @@ jobs:
         shell: pwsh
         run: |
           Push-Location "ReleaseApp/App"
-          Compress-Archive -Path "*" -DestinationPath "../../ReleaseGame.zip" -Force
+          Compress-Archive -Path "App/*" -DestinationPath "ReleaseGame.zip" -Force
           Pop-Location
 
       - name: Upload ZIP Artifact
