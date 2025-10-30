@@ -3,8 +3,8 @@
 
 OptionBase::OptionBase(std::shared_ptr<Settings> settings, std::shared_ptr<AudioManager> audio)
 	:m_settings(settings)
-	,m_audio(audio)
-	,m_isClosed(false)
+	, m_audio(audio)
+	, m_isClosed(false)
 {
 	SystemInit();
 	GameInit();
@@ -25,7 +25,7 @@ void OptionBase::GameInit()
 
 	// オプション画面のウィンドウの位置とサイズ設定
 	m_optionWindowSize = { Scene::Width() * 8.0 / 10.0 , Scene::Height() * 8.0 / 10.0 };										// 縦幅と横幅
-	m_optionWindowPos = {(Scene::Width() - m_optionWindowSize.x) / 2.0, (Scene::Height() - m_optionWindowSize.y) / 2.0};		// 左上の座標
+	m_optionWindowPos = { (Scene::Width() - m_optionWindowSize.x) / 2.0, (Scene::Height() - m_optionWindowSize.y) / 2.0 };		// 左上の座標
 	const double round{ 6.0 };																									// 角の丸み
 	m_optionWindow = RoundRect{ m_optionWindowPos, m_optionWindowSize, round };													// ウィンドウ（四角形）の定義
 
@@ -47,9 +47,12 @@ void OptionBase::GameInit()
 
 void OptionBase::Update()
 {
+	m_isClosed = false;
 	// 閉じるボタンを左クリックしたらゲーム画面に戻る
 	if (m_optionCloseBtn.leftClicked())
+	{
 		m_isClosed = true;
+	}
 }
 
 void OptionBase::Draw() const
@@ -85,7 +88,7 @@ void OptionBase::Draw() const
 	{
 		m_audio->SetBusVolume(Bus::BGM, m_settings->bgmVolume);
 	}
-	if (SimpleGUI::Slider(U"SE Volume", m_settings->seVolume, Vec2{ sliderX, sliderY + sliderGap * 2.0}, sliderLabelW, sliderW))
+	if (SimpleGUI::Slider(U"SE Volume", m_settings->seVolume, Vec2{ sliderX, sliderY + sliderGap * 2.0 }, sliderLabelW, sliderW))
 	{
 		m_audio->SetBusVolume(Bus::SE, m_settings->seVolume);
 	}
