@@ -1,34 +1,43 @@
 ﻿#include "MiniGameScene_1.hpp"
 #include "../../Core/Application.hpp" // getData()を使うため追加
+#include "../../Effect/BubbleEffect.hpp"
 
 // コンストラクタ
 MiniGameScene_1::MiniGameScene_1(const InitData& init)
 	:IScene(init)
-	// メンバー変数初期化リストでフォントを一度だけ作成
+	// フォント初期化
 	, m_font20(20)
 	, m_font30(30)
 	, m_font24(24)
-	, m_font40(40, Typeface::Bold) // コンボ用に太字フォントを追加
+	, m_font40(40, Typeface::Bold)
+	, m_timeIcon(U"🕒"_emoji)
+	, m_keyboardTexture(U"assets/Image/Keybord.png")
+	, m_BackgroundTexture(U"assets/Image/Background/DinosaurBackground.jpg")
 {
+	m_laneAudios[0] = Audio{ GMInstrument::TaikoDrum, PianoKey::C3, 0.5s };
+	m_laneAudios[1] = Audio{ GMInstrument::TaikoDrum, PianoKey::D3, 0.5s };
+	m_laneAudios[2] = Audio{ GMInstrument::TaikoDrum, PianoKey::E3, 0.5s };
+	m_laneAudios[3] = Audio{ GMInstrument::TaikoDrum, PianoKey::G3, 0.5s };
+
+	m_missAudio = Audio{ GMInstrument::Piano1, PianoKey::C2, 0.3s };
+
 	loadBGMAndNotes();
+	m_dinosaurNextSpawnTime = Scene::Time() + m_dinosaurSpawnInterval;
 }
 
 // デストラクタ
 MiniGameScene_1::~MiniGameScene_1()
 {
-	// BGMはAudioManagerに任せる
 }
 
 void MiniGameScene_1::loadBGMAndNotes()
 {
 	if (getData().audio)
 	{
-		// 新しいBGMをロード (必要に応じて変更)
-		getData().audio->PreLoadBGM(U"MiniGame1BGM", U"assets/sound/bgm/Beethoven-Symphony-No9-2nd-2023.mp3");
+		getData().audio->PreLoadBGM(U"MiniGame1BGM", U"assets/sound/bgm/No9_2nd.mp3");
 	}
 
-	// 4レーン用の簡単な譜面
-	// MiniGameScene_0 の Note 構造体を使っているため、3つ目の引数は 'pitch' ではなく 'lane' の意味で使います
+	// 4レーン用の簡単な譜面データをロード
 	m_notes.push_back({ 1.0, 0.0, 0 }); // レーン0 単発
 	m_notes.push_back({ 1.5, 0.0, 1 }); // レーン1 単発
 	m_notes.push_back({ 2.0, 0.0, 2 }); // レーン2 単発
@@ -42,92 +51,134 @@ void MiniGameScene_1::loadBGMAndNotes()
 	m_notes.push_back({ 8.0, 0.0, 2 }); // レーン2 単発
 	m_notes.push_back({ 8.5, 0.0, 3 }); // レーン3 単発
 	m_notes.push_back({ 9.0, 1.5, 0 }); // レーン0 長押し
-	m_notes.push_back({ 11.0, 0.0, 1 }); // レーン1 単発
+	m_notes.push_back({ 11.5, 0.0, 1 }); // レーン1 単発
 
 	m_status = GameStatus::Ready;
 }
 
 void MiniGameScene_1::updateReady()
 {
-	if (MouseL.down())
+	if (KeySpace.down())
 	{
-		if (getData().audio)
-		{
-			// MiniGame1BGMを再生開始
-			getData().audio->PlayBGM(U"MiniGame1BGM", true);
-		}
-
 		m_gameStartTime = Scene::Time();
-		m_status = GameStatus::Playing;
+		m_status = GameStatus::Countdown;
 		m_currentNoteIndex = 0;
 		m_score = 0;
 		m_combo = 0;
 		m_activeNotes.clear();
+		m_isFullCombo = true; // フルコンボフラグをリセット
+	}
+}
+
+void MiniGameScene_1::updateCountdown()
+{
+	const double countdownDuration = 2.0; // 待機時間 2秒
+	const double elapsed = Scene::Time() - m_gameStartTime;
+
+	if (elapsed >= countdownDuration)
+	{
+		if (getData().audio)
+		{
+			// BGMの再生開始
+			getData().audio->PlayBGM(U"MiniGame1BGM", true);
+		}
+
+		// ゲーム本編開始
+		m_gameStartTime = Scene::Time(); // ゲーム開始時刻を再設定
+		m_status = GameStatus::Playing; // Playing に遷移
 	}
 }
 
 void MiniGameScene_1::updatePlaying()
 {
 	const double currentTime = Scene::Time() - m_gameStartTime; // ゲーム開始からの経過時間
+	const double sceneWidth = Scene::Width();
+	const double gameAreaOffsetX = (sceneWidth - GameAreaWidth) / 2.0;
 
-	// 判定処理
+	const double perfectWindow = 0.1; // Perfect判定の境界線
+	const double totalWindow = 0.5; // Miss判定の境界線
+
+	// ノーツの判定処理
 	for (int i = 0; i < m_notes.size(); ++i)
 	{
 		auto& note = m_notes[i];
-		// 判定が確定したノーツは、これ以上の判定処理をスキップ
+		// 判定が確定したノーツはスキップ
 		if (note.state == Note::State::Hit || note.state == Note::State::Miss) continue;
 
 		const double arrivalTime = note.startTime;
 		const double noteEndTime = note.startTime + note.duration;
-
 		const int lane = note.pitch;
 
-		// 判定開始時間（単発ノーツ用: 判定ライン到達前後100ms）
-		const double judgmentWindow = 0.1;
-		const double judgmentStart = arrivalTime - judgmentWindow;
-		const double judgmentEnd = arrivalTime + judgmentWindow;
+		const double perfectStart = arrivalTime - perfectWindow / 2.0;
+		const double totalEnd = arrivalTime + totalWindow / 2.0;
 
 		// 単発ノーツの判定
 		if (note.duration == 0.0)
 		{
-			// ノーツが判定エリアに到達
-			if (currentTime >= judgmentStart && currentTime <= judgmentEnd)
+			// ノーツが判定可能エリア内にある場合
+			if (currentTime >= perfectStart && currentTime <= totalEnd)
 			{
+				// 判定可能エリアに入ったらActive_Perfectに遷移
 				if (note.state == Note::State::None)
 				{
-					note.state = Note::State::Active; // 演出用だが、単発なので通常は即時Hit/Miss
+					note.state = Note::State::Active_Perfect;
 				}
 
+				// Active_Perfectの状態でキーが押されたらHit
 				if (m_judgmentKeys[lane].down())
 				{
-					// 成功判定
+					// 判定成功 (Perfectとして扱う)
 					note.state = Note::State::Hit;
-					m_score += 100;
 					m_combo++;
+					m_score += 300; // 一律高得点
+
+					// サウンド再生
+					m_laneAudios[lane].playOneShot(2.0);
+
+					// エフェクト生成
+					const double laneCenterX = (m_laneRelativeXPositions[lane] + m_laneRelativeXPositions[lane + 1]) / 2.0 + gameAreaOffsetX;
+					const Vec2 effectPos = { laneCenterX, m_judgmentLineY };
+					m_effectManager.Add<BubbleEffect>(effectPos, 0.3, Random(180.0, 300.0));
 				}
+			}
+			// ノーツが判定時間を過ぎた場合のMiss判定
+			else if (currentTime > totalEnd && note.state != Note::State::Hit && note.state != Note::State::Miss)
+			{
+				note.state = Note::State::Miss;
+				m_combo = 0;
+				m_isFullCombo = false;
+				m_missAudio.playOneShot(1.0);
 			}
 		}
 		// 長押しノーツの開始判定
 		else // note.duration > 0.0
 		{
-			// ノーツ開始時間 (arrivalTime) 以降、終了時間 (noteEndTime) まで、キーの down() を監視する
-			if (currentTime >= arrivalTime - judgmentWindow && currentTime < noteEndTime)
+			// ノーツ開始判定時間内
+			if (currentTime >= perfectStart && currentTime < noteEndTime)
 			{
 				if (m_judgmentKeys[lane].down())
 				{
-					// Activeに遷移し、継続判定を開始する
+					// Active_Perfectに遷移し、継続判定を開始
 					if (note.state == Note::State::None)
 					{
-						note.state = Note::State::Active;
-						m_activeNotes.push_back(i); // アクティブなノーツのインデックスを保持
+						note.state = Note::State::Active_Perfect;
+						m_activeNotes.push_back(i);
 					}
 				}
+			}
+			// 終了時間を過ぎても押されなかった場合のMiss判定
+			else if (currentTime > noteEndTime && note.state == Note::State::None)
+			{
+				note.state = Note::State::Miss;
+				m_combo = 0;
+				m_isFullCombo = false;
+				m_missAudio.playOneShot(1.0);
 			}
 		}
 
 
-		// --- 2. 長押しノーツの継続/終了判定 ---
-		if (note.duration > 0.0 && note.state == Note::State::Active)
+		// 長押しノーツの継続判定
+		if (note.duration > 0.0 && note.state == Note::State::Active_Perfect)
 		{
 			if (currentTime < noteEndTime)
 			{
@@ -135,12 +186,27 @@ void MiniGameScene_1::updatePlaying()
 				{
 					// 継続して押されている場合、スコア加算（フレーム毎）
 					m_score += 10;
+
+					const double gameTime = Scene::Time();
+					if (gameTime - m_lastHoldEffectTime >= m_holdEffectInterval)
+					{
+						m_laneAudios[lane].playOneShot(1.5);
+
+						const double laneCenterX = (m_laneRelativeXPositions[lane] + m_laneRelativeXPositions[lane + 1]) / 2.0 + gameAreaOffsetX;
+						const Vec2 effectPos = { laneCenterX, m_judgmentLineY };
+						m_effectManager.Add<BubbleEffect>(effectPos, 0.3, Random(180.0, 300.0));
+
+						// 最後に発生した時間を更新
+						m_lastHoldEffectTime = gameTime;
+					}
 				}
 				else
 				{
-					// 継続中にキーを離したらMiss確定
-					note.state = Note::State::Miss;
+					// 継続中にキーを離したらコンボを切ってActive_Missに遷移
+					note.state = Note::State::Active_Miss;
 					m_combo = 0;
+
+					m_missAudio.playOneShot(1.0);
 				}
 			}
 			else // ノーツ終了時間 (noteEndTime) 到達
@@ -149,9 +215,7 @@ void MiniGameScene_1::updatePlaying()
 				{
 					// 終了時間まで押し続けたらHit
 					note.state = Note::State::Hit;
-					m_score += 200
-
-						; // 終了ボーナス
+					m_score += 200; // 終了ボーナス
 					m_combo++;
 				}
 				else
@@ -162,41 +226,20 @@ void MiniGameScene_1::updatePlaying()
 				}
 			}
 		}
-
-		// --- 3. Miss判定（単発ノーツ、および長押しノーツの最終的なMiss判定）---
-
-		if (note.state == Note::State::None)
+		// 長押しノーツのActive_Miss中の判定
+		else if (note.duration > 0.0 && note.state == Note::State::Active_Miss)
 		{
-			// 単発ノーツのMiss判定: 判定時間を過ぎた場合
-			if (note.duration == 0.0 && currentTime > judgmentEnd)
+			// Active_Missに遷移したら、キーを押し直してもMissのまま。
+			if (currentTime > noteEndTime)
 			{
 				note.state = Note::State::Miss;
-				m_combo = 0;
-			}
-			// 長押しノーツのMiss判定: 終了時間を過ぎても押されなかった場合
-			else if (note.duration > 0.0 && currentTime > noteEndTime)
-			{
-				note.state = Note::State::Miss;
-				m_combo = 0;
 			}
 		}
 	}
 
-	// アクティブリストのクリーンアップ (今回は簡略化のためスキップ。完全な実装では必要)
-
-	// 全ノーツが終了し、BGMも終了したらリザルトへ
-	bool allNotesJudged = true;
-	for (const auto& note : m_notes)
-	{
-		if (note.state == Note::State::None || note.state == Note::State::Active)
-		{
-			allNotesJudged = false;
-			break;
-		}
-	}
-
+	// 全ノーツが終了し、指定時間経過でリザルトへ
 	const double lastNoteEnd = m_notes.back().startTime + m_notes.back().duration;
-	if (currentTime > lastNoteEnd + 1.0) // 最後のノーツの2秒後に遷移
+	if (currentTime > lastNoteEnd + 1.0) // 最後のノーツの1秒後に遷移
 	{
 		if (getData().audio)
 		{
@@ -212,27 +255,30 @@ void MiniGameScene_1::updateResult()
 	// クリックでゲームへ戻る
 	if (MouseL.down())
 	{
-		// 共有データの取得
+		// 共有データの更新
 		auto& data = getData();
-		data.nextMiniGame = (data.nextMiniGame % 4) + 1; // 次のミニゲームへ (0->1->2->3->0...)
+		data.nextMiniGame = (data.nextMiniGame % 4) + 1;
 
 		changeScene(SceneState::GAME);
-		if (getData().audio)
-		{
-			getData().audio->PlayBGM(U"GameBGM", true); // ゲームシーンのBGMを再生
-		}
+		//if (getData().audio)
+		//{
+		//	//getData().audio->PlayBGM(U"GameBGM", true); // ゲームシーンのBGMを再生
+		//}
 	}
 }
 
 void MiniGameScene_1::update()
 {
-	// MiniGameScene_0を参考に、カーソルを非表示に
+	// カーソル非表示
 	Cursor::RequestStyle(CursorStyle::Hidden);
 
 	switch (m_status)
 	{
 	case GameStatus::Ready:
 		updateReady();
+		break;
+	case GameStatus::Countdown:
+		updateCountdown();
 		break;
 	case GameStatus::Playing:
 		updatePlaying();
@@ -241,11 +287,141 @@ void MiniGameScene_1::update()
 		updateResult();
 		break;
 	}
+
+	m_effectManager.Update();
+
+	const double deltaTime = Scene::DeltaTime();
+	const double sceneWidth = Scene::Width();
+
+	if (m_status == GameStatus::Playing)
+	{
+		// 恐竜の移動更新
+		for (auto& dino : m_movingDinosaurs)
+		{
+			if (dino.movingRight)
+			{
+				dino.x += dino.speed * deltaTime;
+			}
+			else
+			{
+				dino.x -= dino.speed * deltaTime;
+			}
+		}
+
+		// 画面外に出た恐竜の削除
+		m_movingDinosaurs.remove_if([sceneWidth](const MovingDinosaur& dino)
+		{
+			// 移動方向に応じて画面外判定
+			if (dino.movingRight)
+			{
+				// 右移動: 右端を完全に超えたら削除
+				return dino.x > sceneWidth;
+			}
+			else
+			{
+				// 左移動: 左端を完全に超えたら削除
+				return dino.x < -dino.texture.width() * dino.scale;
+			}
+		});
+
+		if (Scene::Time() >= m_dinosaurNextSpawnTime)
+		{
+			if (m_movingDinosaurs.empty())
+			{
+				MovingDinosaur newDino; // 恐竜の種類をインデックスで決定 (ローテーション)
+
+				const int typeCount = 9;
+				newDino.type = static_cast<DinosaurType>(m_dinosaurOrderIndex);
+				m_dinosaurOrderIndex = (m_dinosaurOrderIndex + 1) % typeCount;
+				m_nextDinosaurType = static_cast<DinosaurType>(m_dinosaurOrderIndex); // 次の出現予定タイプ
+
+				newDino.movingRight = RandomBool(); // 移動方向
+				newDino.speed = Random(400.0, 500.0);
+				newDino.scale = 2.0; // デフォルトスケール
+				newDino.spawnTime = Scene::Time();
+
+				// 種類ごとの設定
+				switch (newDino.type)
+				{
+				case DinosaurType::Tyrannosaurus:
+					newDino.texture = dinos[0]; break;
+				case DinosaurType::Triceratops:
+					newDino.texture = dinos[1]; break;
+				case DinosaurType::Tyrannosaurus_hair:
+					newDino.texture = dinos[2]; break;
+				case DinosaurType::Trex_kokkaku:
+					newDino.texture = dinos[3]; break;
+				case DinosaurType::Pteranodon:
+					newDino.texture = dinos[4]; break;
+				case DinosaurType::Pachycephalosaurus:
+					newDino.texture = dinos[5]; break;
+				case DinosaurType::Stegosaurus:
+					newDino.texture = dinos[6]; newDino.scale = 2.4; break;
+				case DinosaurType::Brachiosaurus:
+					newDino.texture = dinos[7]; newDino.scale = 1.6; break;
+				case DinosaurType::Iguanodon:
+					newDino.texture = dinos[8]; newDino.scale = 2.4; break;
+				default:
+					newDino.texture = dinos[0]; break;
+				}
+
+				newDino.x = newDino.movingRight
+					? -newDino.texture.width() * newDino.scale   // 左端
+					: sceneWidth;                                // 右端
+
+				m_movingDinosaurs.push_back(newDino);
+
+				// 次の出現タイミング
+				m_dinosaurNextSpawnTime = Scene::Time() + m_dinosaurSpawnInterval + Random(-1.0, 3.0);
+			}
+			else
+			{
+				// 恐竜が残ってる場合は少し待つ
+				m_dinosaurNextSpawnTime = Scene::Time() + 0.5;
+			}
+		}
+
+	}
+}
+
+// レーンの描画
+void MiniGameScene_1::drawLanes() const
+{
+	const double sceneWidth = Scene::Width();
+	const double gameAreaOffsetX = (sceneWidth - GameAreaWidth) / 2.0;
+
+	// レーンの上端Y座標
+	const double laneTopY = 0.0;
+	const double nearY = m_judgmentLineY; // 判定ラインY座標
+
+	// 各レーンの描画
+	for (int i = 0; i < NumLanes; ++i)
+	{
+		const double laneX1 = m_laneRelativeXPositions[i] + gameAreaOffsetX;
+		const double laneX2 = m_laneRelativeXPositions[i + 1] + gameAreaOffsetX;
+		const double laneWidth = laneX2 - laneX1;
+
+		// レーンの矩形
+		const RectF laneRect(laneX1, laneTopY, laneWidth, nearY - laneTopY);
+
+		// レーンの背景 (グラデーション)
+		laneRect.draw(Arg::top = ColorF{ 0.05, 0.0, 0.1, 0.8 },
+					  Arg::bottom = ColorF{ 0.15, 0.05, 0.2, 0.9 });
+
+		// 左側の境界線
+		Line{ laneX1, laneTopY, laneX1, nearY }.draw(4, ColorF(0.0, 1.0, 0.7, 0.3));
+
+		if (i == NumLanes - 1)
+		{
+			// 右端の境界線
+			Line{ laneX2, laneTopY, laneX2, nearY }.draw(4, ColorF(0.0, 1.0, 0.7, 0.3));
+		}
+	}
 }
 
 RectF MiniGameScene_1::getLaneRect(int lane, double timeToArrival, double duration) const
 {
-	// 画面上端Y座標と判定ラインY座標 (垂直降下型に変更)
+	// 画面上端Y座標と判定ラインY座標
 	const double topY = 0.0;
 	const double nearY = m_judgmentLineY;
 
@@ -256,7 +432,7 @@ RectF MiniGameScene_1::getLaneRect(int lane, double timeToArrival, double durati
 	const double noteStartY = Math::Lerp(nearY, topY, t);
 
 	// レーンのX座標と幅
-	const double gameAreaOffsetX = (Scene::Width() - GameAreaWidth) / 2.0; // MiniGameScene_1.hppで定義した定数を使用
+	const double gameAreaOffsetX = (Scene::Width() - GameAreaWidth) / 2.0;
 
 	const double laneXStart = m_laneRelativeXPositions[lane] + gameAreaOffsetX;
 	const double laneXEnd = m_laneRelativeXPositions[lane + 1] + gameAreaOffsetX;
@@ -290,80 +466,100 @@ RectF MiniGameScene_1::getLaneRect(int lane, double timeToArrival, double durati
 // ノーツの描画
 void MiniGameScene_1::drawNote(const Note& note, double timeToArrival) const
 {
-	// 修正: note.lane は存在しないため、note.pitch を使用します。
 	const int lane = note.pitch;
-
-	// 補間率 t (0.0: 判定ライン, 1.0: 画面上端)
 	double t = Clamp(timeToArrival / m_approachTime, 0.0, 1.0);
-
-	// 画面上端Y座標と判定ラインY座標 (farY=100.0 から topY=0.0 に変更)
 	const double topY = 0.0;
 	const double nearY = m_judgmentLineY;
-
 	const double gameAreaOffsetX = (Scene::Width() - GameAreaWidth) / 2.0;
-
-	// レーンのX座標と幅 (パース計算を削除)
-	// const double laneXStart = m_laneXPositions[lane]; // ← 削除 (または置き換え)
-	// const double laneXEnd = m_laneXPositions[lane + 1]; // ← 削除 (または置き換え)
 	const double laneXStart = m_laneRelativeXPositions[lane] + gameAreaOffsetX;
 	const double laneXEnd = m_laneRelativeXPositions[lane + 1] + gameAreaOffsetX;
-
 	const double currentWidth = laneXEnd - laneXStart;
-
-	// ノーツの先端（下端）のY座標 (線形補間)
 	const double noteStartY = Math::Lerp(nearY, topY, t);
 
-	// ノーツの矩形
 	RectF noteRect;
 	noteRect.w = currentWidth;
-	noteRect.x = laneXStart; // レーンの開始X座標
+	noteRect.x = laneXStart;
 
-	// 長押しノーツ
-	if (note.duration > 0.0)
+	// ノーツの状態に応じた色を設定
+	ColorF noteColor;
+	if (note.duration > 0.0) // 長押しノーツの場合
+	{
+		switch (note.state)
+		{
+		case Note::State::None:
+			noteColor = ColorF{ 1.0, 0.8, 0.2, 1.0 }; // 通常色: オレンジ
+			break;
+		case Note::State::Active_Perfect:
+			noteColor = ColorF{ 1.0, 1.0, 0.2, 1.0 }; // 黄色
+			break;
+		case Note::State::Active_Miss:
+			noteColor = ColorF{ 0.8, 0.3, 0.8, 1.0 }; // 赤紫
+			break;
+		case Note::State::Hit:
+			noteColor = ColorF{ 0.3, 1.0, 0.3, 1.0 }; // 緑
+			break;
+		case Note::State::Miss:
+			noteColor = ColorF{ 1.0, 0.2, 0.2, 1.0 }; // 赤
+			break;
+		}
+	}
+	else // 単発ノーツの場合
+	{
+		switch (note.state)
+		{
+		case Note::State::None:
+			noteColor = ColorF{ 0.2, 0.6, 1.0, 1.0 }; // 通常色: 青
+			break;
+		case Note::State::Active_Perfect:
+			noteColor = ColorF{ 1.0, 1.0, 0.2, 1.0 }; // 黄色
+			break;
+		case Note::State::Active_Miss:
+			noteColor = ColorF{ 0.8, 0.3, 0.8, 1.0 }; // 赤紫
+			break;
+		case Note::State::Hit:
+			noteColor = ColorF{ 0.3, 1.0, 0.3, 1.0 }; // 緑
+			break;
+		case Note::State::Miss:
+			noteColor = ColorF{ 1.0, 0.2, 0.2, 1.0 }; // 赤
+			break;
+		}
+	}
+
+	const double cornerRadius = 10.0; // 角丸の半径
+
+	if (note.duration > 0.0) // 長押しノーツ
 	{
 		const double noteEndRelativeTime = timeToArrival + note.duration;
-		// ノーツの奥側（上側）のY座標 (線形補間)
 		const double noteEndY = Math::Lerp(nearY, topY, Clamp(noteEndRelativeTime / m_approachTime, 0.0, 1.0));
 
-		noteRect.y = noteEndY; // 矩形の上端
-		noteRect.h = noteStartY - noteEndY; // 矩形の高さ
+		noteRect.y = noteEndY;
+		noteRect.h = noteStartY - noteEndY;
 
-		// 判定ラインを過ぎたら長さを0にする
-		if (noteRect.h < 0) noteRect.h = 0;
+		if (noteRect.h > 0)
+		{
+			// 本体を角丸矩形で描画 (透明度 50%)
+			RoundRect(noteRect, cornerRadius).draw(noteColor * 0.5);
+
+			// 枠線
+			RoundRect(noteRect, cornerRadius).drawFrame(2, 0, noteColor);
+
+			// 先端（下端）の強調 (角丸矩形)
+			RoundRect(laneXStart, noteStartY - 10, currentWidth, 10, cornerRadius)
+				.draw(noteColor);
+		}
 	}
 	else // 単発ノーツ
 	{
-		const double noteHeight = 30.0; // 単発ノーツの固定の高さ
+		const double noteHeight = 80.0; // ノーツの高さ
 		noteRect.h = noteHeight;
-		noteRect.y = noteStartY - noteHeight; // ノーツの下端が noteStartY になるように調整
-	}
+		noteRect.y = noteStartY - noteHeight;
 
+		// 本体を角丸矩形で描画
+		RoundRect(noteRect, cornerRadius).draw(noteColor);
 
-	// ノーツの状態に応じた色 (変更なし)
-	ColorF noteColor;
-	switch (note.state)
-	{
-	case Note::State::None:
-		noteColor = ColorF{ 0.3, 0.7, 1.0, 0.8 }; // 青
-		break;
-	case Note::State::Active:
-		noteColor = ColorF{ 1.0, 1.0, 0.3, 0.9 }; // 黄色（より鮮やかに）
-		break;
-	case Note::State::Hit:
-		noteColor = ColorF{ 0.3, 1.0, 0.3, 0.9 }; // 緑（より鮮やかに）
-		break;
-	case Note::State::Miss:
-		noteColor = ColorF{ 1.0, 0.3, 0.3, 0.9 }; // 赤（より鮮やかに）
-		break;
-	}
-
-	// 描画 
-	noteRect.draw(noteColor);
-
-	// 判定ラインに近いノーツは少し明るくするなどの演出も可能
-	if (t < 0.2)
-	{
-		noteRect.drawFrame(1, ColorF(1.0, 1.0, 1.0, 1.0 - t * 5.0));
+		// 枠線 (判定ラインに近いノーツは白く光る)
+		RoundRect(noteRect, cornerRadius)
+			.drawFrame(1, 0, ColorF(1.0, 1.0, 1.0, 1.0 - t * 3.0));
 	}
 }
 
@@ -371,89 +567,165 @@ void MiniGameScene_1::drawNote(const Note& note, double timeToArrival) const
 void MiniGameScene_1::draw() const
 {
 	ClearPrint();
-	Scene::SetBackground(ColorF{ 0.1, 0.1, 0.2 }); // 暗い背景
+	if (m_BackgroundTexture)
+	{
+		m_BackgroundTexture.scaled(Scene::Width() / m_BackgroundTexture.width()).draw();
+	}
 
 	const double currentTime = Scene::Time() - m_gameStartTime;
 	const double sceneWidth = Scene::Width();
 	const double sceneHeight = Scene::Height();
 
-	const double gameAreaOffsetX = (sceneWidth - GameAreaWidth) / 2.0; // 800.0 は MiniGameScene_1.hpp で定義した GameAreaWidth
+	const double gameAreaOffsetX = (sceneWidth - GameAreaWidth) / 2.0;
 
-	// 演奏レーンの描画 (垂直型に修正)
-	// レーンの上端Y座標
-	const double laneTopY = 0.0; // 画面上端
-	const double nearY = m_judgmentLineY; // 判定ラインY座標
-
-	// 各レーンの描画
-	for (int i = 0; i < NumLanes; ++i)
+	// レーン、判定ライン、鍵盤UIの描画
+	if (m_status == GameStatus::Playing || m_status == GameStatus::Countdown)
 	{
-		const double laneX1 = m_laneRelativeXPositions[i] + gameAreaOffsetX;
-		const double laneX2 = m_laneRelativeXPositions[i + 1] + gameAreaOffsetX;
-		const double laneWidth = laneX2 - laneX1;
-
-		// レーンの矩形
-		const RectF laneRect(laneX1, laneTopY, laneWidth, nearY - laneTopY);
-
-		// レーンの背景
-		laneRect.draw(ColorF{ 0.05, 0.05, 0.1, 0.7 }); // 濃い青
-
-		// レーンの境界線（手前と奥の線）を白く描画
-		// 左側の境界線
-		Line{ laneX1, laneTopY, laneX1, nearY }.draw(2, ColorF(0.5, 0.5, 0.5, 1.0));
-
-		if (i == NumLanes - 1)
+		if (m_status == GameStatus::Playing)
 		{
-			// 右端の境界線
-			Line{ laneX2, laneTopY, laneX2, nearY }.draw(2, ColorF(0.5, 0.5, 0.5, 1.0));
-		}
-	}
-
-	if (m_status == GameStatus::Playing)
-	{
-		// ノーツの描画
-		for (int i = m_notes.size() - 1; i >= 0; --i)
-		{
-			const auto& note = m_notes[i];
-			const double timeToArrival = note.startTime - currentTime;
-
-			// Hit または Miss 状態のノーツは、判定ラインを一定時間過ぎたら描画をスキップ
-			if (note.state == Note::State::Hit || note.state == Note::State::Miss)
+			// 恐竜の描画と移動アニメーション
+			for (const auto& dino : m_movingDinosaurs)
 			{
-				const double noteEndRelativeTime = timeToArrival - note.duration;
-				if (noteEndRelativeTime < -0.2)
+				// 恐竜の上下移動の計算
+				const double elapsedTime = Scene::Time() - dino.spawnTime;
+				const double frequency = 5.0;
+				const double amplitude = 10.0 * dino.scale; // 振幅
+				const double sinValue = std::sin(elapsedTime * frequency);
+				const double yOffset = sinValue * amplitude;
+
+				// 回転角度の計算
+				const double maxAngle = 2.5_deg * dino.scale;
+				double rotationAngle = sinValue * maxAngle;
+
+				const Vec2 textureSize = dino.texture.size() * dino.scale;
+
+				double drawY;
+
+				if (dino.type == DinosaurType::Pteranodon)
 				{
-					continue;
+					// 画面上部を基準に描画
+					const double flyHeightBase = Scene::Height() * 0.2;
+					const double flyAmplitude = Scene::Height() * 0.05;
+
+					drawY = flyHeightBase + sinValue * flyAmplitude;
+
+					// 飛行感を強調するための回転
+					rotationAngle = sinValue * 8.0_deg * dino.scale;
+				}
+				else
+				{
+					// 地上を歩く恐竜のY座標 (画面下端に合わせる)
+					const double groundY = sceneHeight - dino.texture.height() * dino.scale;
+					drawY = groundY + yOffset;
+				}
+
+				const Vec2 center =
+				{
+					dino.x + textureSize.x / 2.0,
+					// 描画中心座標の調整
+					(dino.type == DinosaurType::Pteranodon) ? (drawY + textureSize.y - 420) : (drawY + textureSize.y - 350)
+				};
+
+				// 移動方向に応じて回転角度を反転
+				if (dino.movingRight)
+				{
+					rotationAngle = -rotationAngle;
+				}
+
+				if (dino.movingRight)
+				{
+					dino.texture.scaled(dino.scale).rotated(rotationAngle).drawAt(center);
+				}
+				else
+				{
+					dino.texture.scaled(dino.scale).mirrored().rotated(rotationAngle).drawAt(center);
 				}
 			}
-
-			// 画面外のノーツは描画しない（判定ラインより遠い位置を対象）
-			if (timeToArrival > m_approachTime + 0.5 || timeToArrival < -note.duration - 0.5) continue;
-
-			drawNote(note, timeToArrival);
 		}
 
+		// 各レーンの描画
+		drawLanes();
+
+		if (m_status == GameStatus::Playing)
+		{
+			// ノーツの描画
+			for (int i = m_notes.size() - 1; i >= 0; --i)
+			{
+				const auto& note = m_notes[i];
+				const double timeToArrival = note.startTime - currentTime;
+
+				// 判定確定ノーツの描画スキップ判定
+				if (note.state == Note::State::Hit || note.state == Note::State::Miss)
+				{
+					const double noteEndRelativeTime = timeToArrival - note.duration;
+					if (noteEndRelativeTime < -0.2)
+					{
+						continue;
+					}
+				}
+
+				// 画面外のノーツは描画しない
+				if (timeToArrival > m_approachTime + 0.5 || timeToArrival < -note.duration - 0.5) continue;
+
+				drawNote(note, timeToArrival);
+			}
+		}
+
+		// 判定ラインの描画
 		const double lineXStart = m_laneRelativeXPositions.front() + gameAreaOffsetX;
 		const double lineXEnd = m_laneRelativeXPositions.back() + gameAreaOffsetX;
 		Line{ lineXStart, m_judgmentLineY, lineXEnd, m_judgmentLineY }.draw(4, Palette::Red);
 
-		// 判定キーの表示と強調
+
+		// 鍵盤UIの描画
+
+		const double KeyHeight = 70.0;
+		const double KeyY = m_judgmentLineY + 10.0;
+		const double KeyFrameThickness = 2.0;
+
+
+		// 判定キーの表示と鍵盤の描画
 		for (int i = 0; i < NumLanes; ++i)
 		{
 			const String keyName = m_judgmentKeys[i].name();
-			// === 変更点: オフセットを加えて中心 X 座標を計算 ===
-			const double x = (m_laneRelativeXPositions[i] + m_laneRelativeXPositions[i + 1]) / 2.0 + gameAreaOffsetX;
+			const double xCenter = (m_laneRelativeXPositions[i] + m_laneRelativeXPositions[i + 1]) / 2.0 + gameAreaOffsetX;
+			const double laneXStart = m_laneRelativeXPositions[i] + gameAreaOffsetX;
 
-			// キーが押されているレーンの強調表示
-			if (m_judgmentKeys[i].pressed())
+			const bool isPressed = m_judgmentKeys[i].pressed();
+
+
+			// 1. レーン強調表示 (判定ライン上)
+			if (isPressed)
 			{
-				// 判定ライン付近を白く強調（より鮮明に）
-				// === 変更点: 強調表示の X 座標にオフセットを適用 ===
-				RectF(m_laneRelativeXPositions[i] + gameAreaOffsetX, m_judgmentLineY - 10, LaneWidth, 20)
-					.draw(ColorF{ 1.0, 1.0, 1.0, 0.6 });
+				const double laneTopY = 0.0;
+				const double highlightHeight = m_judgmentLineY;
+
+				RectF(laneXStart, laneTopY, LaneWidth, highlightHeight)
+					// 上端: 暗く, 下端: 明るく
+					.draw(Arg::top = ColorF{ 1.0, 1.0, 1.0, 0.1 },
+						  Arg::bottom = ColorF{ 1.0, 1.0, 1.0, 0.7 });
 			}
 
-			// 判定キーの文字
-			m_font20(keyName).drawAt(x, m_judgmentLineY + 35, Palette::White);
+			// 2. 鍵盤（白鍵）の描画
+			const ColorF keyColor = isPressed ? Palette::Pink : Palette::White;
+			const ColorF textColor = isPressed ? Palette::Black : Palette::Gray;
+
+			// 鍵盤本体
+			RectF(laneXStart, KeyY, LaneWidth, KeyHeight)
+				.draw(keyColor);
+
+			// 鍵盤の枠線
+			RectF(laneXStart, KeyY, LaneWidth, KeyHeight)
+				.drawFrame(KeyFrameThickness, 0, Palette::Black);
+
+			// 鍵盤上のキー名
+			m_font40(keyName).drawAt(xCenter, KeyY + KeyHeight / 2.0, textColor);
+		}
+
+		// エフェクトの描画
+		if (m_status == GameStatus::Playing)
+		{
+			m_effectManager.Draw();
 		}
 	}
 
@@ -463,38 +735,103 @@ void MiniGameScene_1::draw() const
 	{
 		// 画面中央のX座標
 		const double centerX = sceneWidth / 2.0;
+
 		// 黒い半透明な背景パネル
 		RectF(0, sceneHeight * 0.3, sceneWidth, sceneHeight * 0.4).draw(ColorF(0.0, 0.0, 0.0, 0.5));
+		m_keyboardTexture.scaled(0.5).drawAt({ centerX, sceneHeight * 0.3 });
 
-		// タイトル
-		// 修正: drawAt の第一引数に {x, y} の形式で Vec2 を渡す
-		m_font30(U"MiniGame Scene 1 (Rhythm Game)").drawAt({ centerX, sceneHeight * 0.4 }, Palette::White);
-		// 操作説明
-		m_font20(U"Keys: {}"_fmt(m_judgmentKeys[0].name(), m_judgmentKeys[1].name(), m_judgmentKeys[2].name(), m_judgmentKeys[3].name())).drawAt({ centerX, sceneHeight * 0.5 }, Palette::White);
 		// 開始メッセージ
-		m_font30(U"Click to Start!").drawAt({ centerX, sceneHeight * 0.6 }, Palette::Yellow);
+		m_font30(U"スペースキーを押すと始まるよ！").drawAt({ centerX, sceneHeight * 0.6 }, Palette::Yellow);
 	}
+	// カウントダウン表示
+	else if (m_status == GameStatus::Countdown)
+	{
+		const double elapsed = Scene::Time() - m_gameStartTime;
+		const double countdownDuration = 2.0;
+		const int count = (int)Ceil(countdownDuration - elapsed);
+
+		const double centerX = sceneWidth * 0.5;
+		const double centerY = m_judgmentLineY - 150;
+
+		// カウントダウン表示 (3, 2, 1, GO!)
+		if (count >= 1)
+		{
+			m_font40(count).drawAt({ centerX, centerY }, Palette::Yellow);
+		}
+		else if (count == 0)
+		{
+			m_font40(U"GO!").drawAt({ centerX, centerY }, Palette::Orange);
+		}
+	}
+
 	else if (m_status == GameStatus::Playing)
 	{
-		// スコアとコンボを画面上端の中央付近にまとめて配置
+		// スコア表示
+		const double scoreBaseY = 30.0;
+		const double centerX = sceneWidth * 0.5;
 
-		// スコアパネル
-		RectF(sceneWidth * 0.3, 0, sceneWidth * 0.4, 100).draw(ColorF(0.0, 0.0, 0.0, 0.7));
+		// 画面中央上部にパネルを描画
+		RectF(sceneWidth * 0.3, 0, sceneWidth * 0.4, 120).draw(ColorF(0.0, 0.0, 0.0, 0.6));
 
-		// SCORE
-		const double scoreCenterX = sceneWidth * 0.5;
-		m_font24(U"SCORE").drawAt({ scoreCenterX, 25 }, Palette::Lightgray);
-		m_font30(U"{} "_fmt(m_score)).drawAt({ scoreCenterX, 60 }, Palette::White);
+		// SCORE ラベル
+		m_font24(U"スコア").drawAt({ centerX, scoreBaseY + 10 }, Palette::Lightgray);
 
-		// COMBO (画面下部、レーン判定ラインの少し上に表示)
+		// スコア本体
+		m_font40(U"{} "_fmt(m_score)).draw(Arg::center = Vec2(centerX, scoreBaseY + 55), ColorF(1.0, 0.7, 0.1));
+
+		// COMBO 表示 (画面下部)
 		if (m_combo > 0)
 		{
-			const double comboY = m_judgmentLineY - 50;
-			m_font40(U"COMBO: {}"_fmt(m_combo)).drawAt({ sceneWidth / 2.0, comboY }, Palette::Yellow);
+			const double comboY = m_judgmentLineY + 120;
+
+			const String comboText = U"コンボ : {}"_fmt(m_combo);
+
+			// テキストのサイズを取得
+			const double textWidth = m_font40(comboText).region().w;
+			const double textHeight = m_font40(comboText).region().h;
+
+			const double padding = 20.0; // パネルの余白
+
+			// パネルの矩形を計算
+			const double panelWidth = textWidth + padding * 2;
+			const double panelHeight = textHeight + padding;
+			const double panelX = sceneWidth / 2.0 - panelWidth / 2.0;
+			const double panelY = comboY - panelHeight / 2.0;
+
+			// パネル（黒い半透明な角丸矩形）を描画
+			RoundRect(panelX, panelY, panelWidth, panelHeight, 10.0)
+				.draw(ColorF(0.0, 0.0, 0.0, 0.6))
+				.drawFrame(2, 0, ColorF(0.5, 1.0, 1.0));
+
+			// コンボテキスト本体
+			m_font40(comboText).drawAt({ sceneWidth / 2.0, comboY }, Palette::Yellow);
 		}
 
-		// 経過時間（左上に小さく）
-		// m_font20(U"Time: {:.2f}"_fmt(currentTime)).draw(10, 10, Palette::White); // draw() を使用しているため問題なし
+		// TimeBar の描画
+		const double lastNoteEnd = m_notes.back().startTime + m_notes.back().duration;
+		const double TotalGameDuration = lastNoteEnd + 1.0;
+
+		const double progress = Clamp(currentTime / TotalGameDuration, 0.0, 1.0); // 進行度
+		const double barHeight = 50.0;
+		const double barY = 50.0;
+		const double barX = 80.0;
+		const double barWidth = 400.0;
+		const double emojiSize = 70.0;
+		const double emojiPadding = 5.0;
+
+		m_timeIcon
+			.scaled(emojiSize / m_timeIcon.height())
+			.draw(
+				barX - emojiSize - emojiPadding,
+				barY + barHeight / 2.0 - emojiSize / 2.0
+			);
+
+		// バーの背景と進捗部分の描画
+		RoundRect(barX, barY, barWidth, barHeight, 5.0).draw(ColorF(0.1, 0.1, 0.1, 0.8));
+		RoundRect(barX, barY, barWidth * progress, barHeight, 5.0).draw(ColorF(0.0, 1.0, 0.5));
+
+		const double timeTextCenterX = barX + barWidth / 2.0;
+		const double drawY = barY + barHeight + 12;
 	}
 	else if (m_status == GameStatus::Result)
 	{
@@ -504,9 +841,16 @@ void MiniGameScene_1::draw() const
 		RectF(0, sceneHeight * 0.3, sceneWidth, sceneHeight * 0.4).draw(ColorF(0.0, 0.0, 0.0, 0.5));
 
 		// 結果
-		m_font30(U"Result!").drawAt({ centerX, sceneHeight * 0.4 }, Palette::Lightgray);
-		m_font40(U"Final Score: {}"_fmt(m_score)).drawAt({ centerX, sceneHeight * 0.5 }, Palette::Yellow);
+		m_font30(U"結果発表!").drawAt({ centerX, sceneHeight * 0.4 }, Palette::Lightgray);
+		m_font40(U"スコア : {}"_fmt(m_score)).drawAt({ centerX, sceneHeight * 0.5 }, Palette::Yellow);
+
+		// フルコンボ表示
+		if (m_isFullCombo)
+		{
+			m_font40(U"フルコンボ！").drawAt({ centerX, sceneHeight * 0.45 }, Palette::Orange);
+		}
+
 		// 終了メッセージ
-		m_font20(U"Click to return to Game Scene").drawAt({ centerX, sceneHeight * 0.6 }, Palette::White);
+		m_font20(U"マウスを左クリックすると戻れるよ！").drawAt({ centerX, sceneHeight * 0.6 }, Palette::White);
 	}
 }

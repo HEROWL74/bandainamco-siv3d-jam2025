@@ -407,6 +407,10 @@
     <ClCompile Include="src\Character\Player.cpp" />
     <ClCompile Include="src\Core\Application.cpp" />
     <ClCompile Include="src\Core\Collision.cpp" />
+    <ClCompile Include="src\Effect\BubbleEffect.cpp" />
+    <ClCompile Include="src\Effect\EffectBase.cpp" />
+    <ClCompile Include="src\Effect\EffectManager.cpp" />
+    <ClCompile Include="src\Effect\StarDustEffect.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Map\Door\Door.cpp" />
     <ClCompile Include="src\Option\AudioManager.cpp" />
@@ -439,6 +443,10 @@
     <ClInclude Include="src\Character\MainCamera.hpp" />
     <ClInclude Include="src\Character\Player.hpp" />
     <ClInclude Include="src\Core\Application.hpp" />
+    <ClInclude Include="src\Effect\BubbleEffect.hpp" />
+    <ClInclude Include="src\Effect\EffectManager.hpp" />
+    <ClInclude Include="src\Effect\EffectBase.hpp" />
+    <ClInclude Include="src\Effect\StarDustEffect.hpp" />
     <ClInclude Include="src\Map\Door\Door.hpp" />
     <ClInclude Include="src\Option\AudioManager.hpp" />
     <ClInclude Include="src\Core\Collision.hpp" />

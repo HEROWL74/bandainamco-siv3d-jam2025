@@ -27,7 +27,7 @@ public:
 	bool PreLoadSE(const String& id, const FilePath& path);
 
 	// 再生（bus指定）
-	void PlayBGM(const String& id, bool loop = true);
+	void PlayBGM(const String& id, bool loop = true, Seconds startTime=0s);
 	void StopBGM(Seconds fade = 0s);
 	void PlaySE(const String& id);
 	void PlaySEPan(const String& id, const Vec2& sourcePos, const Vec2& listenerPos);		// 位置によってパンを変更する関数

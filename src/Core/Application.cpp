@@ -16,6 +16,9 @@ Application::~Application()
 bool Application::init()
 {
 	Window::Resize(WINDOW_WIDTH, WINDOW_HEIGHT);
+	Window::SetTitle(U"Siv3D MiniGame Collection");
+	Window::SetFullscreen(true);
+
 	Graphics::SetVSyncEnabled(true);
 
 	m_settings = std::make_shared<Settings>();

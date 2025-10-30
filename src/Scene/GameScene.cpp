@@ -1,11 +1,12 @@
 ﻿#include "GameScene.hpp"
 #include "../Core/Application.hpp"
 #include "../Map/MapLoader.hpp"	
+#include "../Effect/BubbleEffect.hpp"
 
 // コンストラクタ
 GameScene::GameScene(const InitData& init)
 	:IScene(init)
-	, m_playerTexture(U"assets/player_spritesheet.png")
+	, m_playerTexture(U"assets/player_spritesheet_test.png")
 	, m_player(m_playerTexture)
 	, m_gameOption(nullptr)
 {
@@ -29,7 +30,7 @@ bool GameScene::SystemInit()
 	// gameBGMのロード
 	if (data.audio)
 	{
-		data.audio->PreLoadBGM(U"GameBGM", U"example/test.mp3");
+		data.audio->PreLoadBGM(U"GameBGM", U"assets/sound/bgm/No5_1st.mp3");
 	}
 
 	m_optionIcon = Texture{ U"⚙️"_emoji };
@@ -47,7 +48,7 @@ void GameScene::GameInit()
 	}
 
 	// プレイヤー初期化
-	m_player.SetPosition(Vec2{0,0});
+	m_player.SetPosition(Vec2{0,400});
 	m_player.Init();
 
 	// カメラ初期化
@@ -57,8 +58,8 @@ void GameScene::GameInit()
 	m_mapCollisions = MapLoader::LoadCollisions(U"map_01");
 
 	const Vec2 drawCenter = { 0, -150.0 };
-	const Vec2 hitBoxCenter = { 0.0, 80.0 };
-	const Vec2 hitBoxSize = { 150.0, 150.0 };
+	const Vec2 hitBoxCenter = { 0.0, 200.0 };
+	const Vec2 hitBoxSize = { 300.0, 150.0 };
 	const FilePath doorPath = U"assets/props/door_test.png";
 	m_door = std::make_unique<Door>(drawCenter, hitBoxCenter, hitBoxSize, doorPath);
 
@@ -126,6 +127,29 @@ void GameScene::update()
 	m_MainCamera.Update();
 
 	HandleDoorTransition();
+
+	m_effectManager.Update();
+
+	// ★ 2. BubbleEffectを定期的に生成するロジック (例: 0.2秒ごと)
+	static double lastEffectTime = 0.0;
+	const double spawnInterval = 0.2; // 0.2秒ごとにエフェクトを発生
+
+	if (Scene::Time() > lastEffectTime + spawnInterval)
+	{
+		// Doorの位置 (ワールド座標) にエフェクトを生成
+		// GameInit() で定義された Door の描画中心座標 {0, -150.0} を使用します。
+		const Vec2 doorCenterPos = { 0, 0 };
+
+		// エフェクト生成位置を調整 (Doorの中心 {0, -150.0} の周囲 20px 以内にランダムに生成)
+		const Vec2 effectSpawnPos = doorCenterPos + s3d::RandomVec2(s3d::Circle{ 500 });
+
+		const double baseHue = s3d::Random(0.0, 360.0); // 色相をランダムに
+
+		// EffectManager::Add<Type>(Args...) で生成
+		m_effectManager.Add<BubbleEffect>(effectSpawnPos, 0.3, baseHue);
+
+		lastEffectTime = Scene::Time();
+	}
 }
 
 void GameScene::draw() const
@@ -186,6 +210,12 @@ void GameScene::draw() const
 	{
 		ScopedSpotlight target{ m_spotlight, ColorF{ 0.05, 0.05, 0.1 } };
 		m_player.DrawLight(m_MainCamera);
+
+		{
+			// エフェクトを光らせるため、加算合成(Additive Blend)を適用
+			//const s3d::ScopedRenderStates2D additiveBlend{ s3d::BlendState::Additive };
+			//m_effectManager.Draw(m_MainCamera); // Doorの位置（ワールド座標）に描画
+		}
 	}
 
 	m_spotlight.draw();
@@ -196,7 +226,7 @@ void GameScene::draw() const
 	}
 
 	//描画処理
-	Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
+	//Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
 
 	// 設定ボタンの描画	
 	m_optionButton.draw(Palette::Silver);
