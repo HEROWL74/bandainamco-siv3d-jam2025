@@ -34,6 +34,8 @@ jobs:
         shell: pwsh
         run: |
           if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
+          if (Test-Path "ReleaseApp") { Remove-Item -Recurse -Force "ReleaseApp" }
+          if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
 
       - name: Build Release
         shell: pwsh
@@ -62,8 +64,10 @@ jobs:
       - name: Compress to ReleaseGame.zip
         shell: pwsh
         run: |
+          if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
           Push-Location "ReleaseApp/App"
-          Compress-Archive -Path "*" -DestinationPath "../../ReleaseGame.zip" -Force
+          $files = Get-ChildItem -Recurse | Where-Object { $_.Name -ne "ReleaseGame.zip" }
+          $files | Compress-Archive -DestinationPath "../../ReleaseGame.zip" -Force
           Pop-Location
 
       - name: Upload ZIP Artifact
