@@ -19,7 +19,7 @@ bool MiniGameScene_3::SystemInit()
 	m_playerLine = std::make_unique<PlayerLine>();
 	m_shapeManager = std::make_unique<ShapeManager>();
 
-	m_state = State::Idle;
+	m_state = PlayerState::Idle;
 
 	m_font = Font{ FontMethod::MSDF, 24, Typeface::Heavy };
 
@@ -53,19 +53,19 @@ void MiniGameScene_3::update()
 {
 	switch (m_state)
 	{
-	case State::Idle:
+	case PlayerState::Idle:
 		IdleUpdate();
 		break;
 
-	case State::Playing:
+	case PlayerState::Playing:
 		PlayingUpdate();
 		break;
 
-	case State::Clear:
+	case PlayerState::Clear:
 		ClearUpdate();
 		break;
 
-	case State::Finish:
+	case PlayerState::Finish:
 		FinishUpdate();
 		break;	
 	}
@@ -79,19 +79,19 @@ void MiniGameScene_3::draw() const
 
 	switch (m_state)
 	{
-	case State::Idle:
+	case PlayerState::Idle:
 		IdleDraw();
 		break;
 
-	case State::Playing:
+	case PlayerState::Playing:
 		PlayingDraw();
 		break;
 
-	case State::Clear:
+	case PlayerState::Clear:
 		ClearDraw();
 		break;
 
-	case State::Finish:
+	case PlayerState::Finish:
 		FinishDraw();
 		break;
 	}
@@ -170,12 +170,12 @@ void MiniGameScene_3::PlayingUpdate()
 			getData().audio->SetBGMPitch(U"MiniGame3BGM", 0.0);				// ピッチを元に戻す
 			if (m_shapeIndex >= m_shapeManager->Count())
 			{
-				m_state = State::Finish;
+				m_state = PlayerState::Finish;
 				return;
 			}
 			else
 			{
-				m_state = State::Clear;
+				m_state = PlayerState::Clear;
 			}
 		}
 		else
@@ -198,7 +198,7 @@ void MiniGameScene_3::ClearUpdate()
 		m_currentHausdorff = Math::Inf;
 		m_needRecalc = false;
 		StartTimer();
-		m_state = State::Playing;
+		m_state = PlayerState::Playing;
 	}
 }
 
@@ -258,7 +258,7 @@ void MiniGameScene_3::StartGame()
 	m_playerLine->LineClear();
 	m_currentHausdorff = Math::Inf;
 	m_needRecalc = false;
-	m_state = State::Playing;
+	m_state = PlayerState::Playing;
 	StartTimer();
 }
 

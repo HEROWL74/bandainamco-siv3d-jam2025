@@ -6,7 +6,7 @@
 #include "../MiniGame/MiniGameScene_3/ShapeManager.hpp"
 
 
-enum class State
+enum class PlayerState
 {
 	Idle,
 	Playing,
@@ -17,7 +17,7 @@ enum class State
 class MiniGameScene_3 : public App::Scene
 {
 private:
-	State m_state;
+	PlayerState m_state;
 	std::unique_ptr<class PlayerLine> m_playerLine;
 	std::unique_ptr<class ShapeManager> m_shapeManager;
 
