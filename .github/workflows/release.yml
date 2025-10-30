@@ -30,7 +30,7 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      # ← App を消さない！ 中間物と前回ZIP/Packageだけ掃除する
+      # Appフォルダは消さない（Resource.rcなどが入っているため）
       - name: Clean old outputs
         shell: pwsh
         run: |
@@ -57,26 +57,30 @@ jobs:
             Copy-Item -Force $exe.FullName "App/${exe.Name}"
           }
 
+      # ✅ Appフォルダの中身を丸ごとコピー（Assets, Data, Map, icon.ico, Resource.rc含む）
       - name: Prepare clean package
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path Package | Out-Null
-          $include = @(
-            "App/*.exe",
-            "App/Assets",
-            "App/Data",
-            "App/Map",
-            "App/icon.ico",
-            "App/Resource.rc"
-          )
-          foreach ($path in $include) {
-            if (Test-Path $path) { Copy-Item -Recurse -Force $path Package/ }
-          }
+          Copy-Item -Recurse -Force "App/*" "Package/"
 
+      # 圧縮は1段階のみ（zip二重防止）
       - name: Compress to ReleaseGame.zip
         shell: pwsh
         run: |
           Compress-Archive -Path "Package/*" -DestinationPath "ReleaseGame.zip" -Force
+
+      # 確認ステップ（ログで中身を見られる）
+      - name: Verify packaged contents
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse Package | ForEach-Object { Write-Host $_.FullName }
+
+      - name: Upload ZIP Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReleaseGame
+          path: ReleaseGame.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
