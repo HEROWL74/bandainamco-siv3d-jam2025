@@ -1,0 +1,91 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download OpenSiv3D v0.6.16 (Windows SDK)
+        shell: pwsh
+        run: |
+          $url = "https://siv3d.jp/downloads/Siv3D/manual/0.6.16/OpenSiv3D_SDK_0.6.16.zip"
+          curl -L $url -o siv3d-sdk.zip
+          New-Item -ItemType Directory -Force -Path sdk | Out-Null
+          Expand-Archive -Path siv3d-sdk.zip -DestinationPath sdk -Force
+          $sdkRoot = (Resolve-Path 'sdk\OpenSiv3D_SDK_0.6.16').Path
+          "SIV3D_0_6_16=$sdkRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      # Appフォルダは消さない（Resource.rcなどが入っているため）
+      - name: Clean old outputs
+        shell: pwsh
+        run: |
+          if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
+          if (Test-Path "Package")     { Remove-Item -Recurse -Force "Package" }
+          if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
+
+      - name: Build Release
+        shell: pwsh
+        run: |
+          msbuild "Siv3DGameJam2025Project.sln" `
+            /p:Configuration=Release `
+            /p:Platform=x64 `
+            /m:1 `
+            /t:Clean,Build
+
+      - name: Copy EXE to App folder
+        shell: pwsh
+        run: |
+          $exeFiles = Get-ChildItem -Path "Intermediate/Siv3DGameJam2025Project/Release" -Filter "*.exe" -Recurse
+          if ($exeFiles.Count -eq 0) { throw "No exe found under Intermediate/Siv3DGameJam2025Project/Release" }
+          New-Item -ItemType Directory -Force -Path "App" | Out-Null
+          foreach ($exe in $exeFiles) {
+            Copy-Item -Force $exe.FullName "App/${exe.Name}"
+          }
+
+      # ✅ Appフォルダの中身を丸ごとコピー（Assets, Data, Map, icon.ico, Resource.rc含む）
+      - name: Prepare clean package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path Package | Out-Null
+          Copy-Item -Recurse -Force "App/*" "Package/"
+
+      # 圧縮は1段階のみ（zip二重防止）
+      - name: Compress to ReleaseGame.zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "Package/*" -DestinationPath "ReleaseGame.zip" -Force
+
+      # 確認ステップ（ログで中身を見られる）
+      - name: Verify packaged contents
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse Package | ForEach-Object { Write-Host $_.FullName }
+
+      - name: Upload ZIP Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReleaseGame
+          path: ReleaseGame.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ReleaseGame.zip
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

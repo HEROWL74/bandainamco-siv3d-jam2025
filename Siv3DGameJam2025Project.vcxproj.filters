@@ -307,10 +307,11 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="App\Resource.rc">
+    <ResourceCompile Include="$(ProjectDir)App\Resource.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+
   <ItemGroup>
     <Text Include="App\dll\soundtouch\COPYING.TXT">
       <Filter>Resource Files\dll\soundtouch</Filter>
