@@ -16,8 +16,14 @@ class TitleScene : public App::Scene
 {
 private:
 	Texture m_optionIcon;
-	RoundRect m_optionButton;
+	Texture m_normalBeethoven;
+	Texture m_smileBeethoven;
 
+	Font m_font128;
+
+	RoundRect m_startButton;
+	RoundRect m_exitButton;
+	RoundRect m_optionButton;
 	RoundRect m_musicButton;
 	Texture m_musicIcon;
 

@@ -261,10 +261,6 @@ void MiniGameScene_1::updateResult()
 		data.nextScene = (data.nextScene % 5) + 1;
 
 		changeScene(SceneState::GAME);
-		//if (getData().audio)
-		//{
-		//	//getData().audio->PlayBGM(U"GameBGM", true); // ゲームシーンのBGMを再生
-		//}
 	}
 }
 
