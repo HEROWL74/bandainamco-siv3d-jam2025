@@ -42,6 +42,9 @@ public:
 	void SetBGMPitch(const String& id, double pitch);
 	double GetBGMPitch(const String& id) const;
 
+	//再生するBGMゲッター
+	const HashTable<String, Audio>& GetBGMMap() const { return m_bgmMap; }
+
 	// 状態チェック
 	bool IsLoaded(const String& id) const;
 
