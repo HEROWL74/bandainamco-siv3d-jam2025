@@ -33,11 +33,12 @@ jobs:
       - name: Clean
         shell: pwsh
         run: |
-          if (Test-Path "x64") { Remove-Item -Recurse -Force "x64" }
-          if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
+          if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
+          if (Test-Path "App") { Remove-Item -Recurse -Force "App" }
           if (Test-Path "package") { Remove-Item -Recurse -Force "package" }
+          if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
 
-      - name: Build Release (standard output path)
+      - name: Build Release
         shell: pwsh
         run: |
           msbuild "Siv3DGameJam2025Project.sln" `
@@ -46,16 +47,12 @@ jobs:
             /m:1 `
             /t:Clean,Build
 
-      - name: Copy EXE and resources to App folder
+      - name: Copy EXE to App folder
         shell: pwsh
         run: |
-          $exeFiles = Get-ChildItem -Path "x64/Release" -Filter "*.exe" -Recurse
-          if ($exeFiles.Count -eq 0) { throw "❌ No .exe found in x64/Release" }
-
-          # Appフォルダ作成
+          $exeFiles = Get-ChildItem -Path "Intermediate/Siv3DGameJam2025Project/Release" -Filter "*.exe" -Recurse
+          if ($exeFiles.Count -eq 0) { throw "No exe found under Intermediate/Siv3DGameJam2025Project/Release" }
           New-Item -ItemType Directory -Force -Path "App" | Out-Null
-
-          # exeコピー
           foreach ($exe in $exeFiles) {
             Copy-Item -Force $exe.FullName "App/${exe.Name}"
           }
