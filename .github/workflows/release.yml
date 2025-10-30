@@ -35,6 +35,7 @@ jobs:
         run: |
           if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
           if (Test-Path "App") { Remove-Item -Recurse -Force "App" }
+          if (Test-Path "package") { Remove-Item -Recurse -Force "package" }
           if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
 
       - name: Build Release (Output to App)
@@ -43,16 +44,19 @@ jobs:
           msbuild "Siv3DGameJam2025Project.sln" `
             /p:Configuration=Release `
             /p:Platform=x64 `
-            /p:OutDir="$(ProjectDir)App\\" `
+            '/p:OutDir=App\\' `
             /m:1 `
             /t:Clean,Build
+
+      - name: Clean Debug Files
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path "App" -Include *.pdb,*.obj,*.tlog,*.iobj,*.exp,*.idb -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
 
       - name: Prepare Clean Package
         shell: pwsh
         run: |
-          if (Test-Path "package") { Remove-Item -Recurse -Force "package" }
           New-Item -ItemType Directory -Force -Path package | Out-Null
-
           $includeList = @("App/*.exe", "App/Assets", "App/Data", "App/Map", "App/icon.ico", "App/Resource.rc")
           foreach ($path in $includeList) {
             if (Test-Path $path) { Copy-Item -Recurse -Force $path package/ }
