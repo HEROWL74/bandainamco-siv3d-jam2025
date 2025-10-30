@@ -24,7 +24,7 @@ jobs:
           curl -L $url -o siv3d-sdk.zip
           New-Item -ItemType Directory -Force -Path sdk | Out-Null
           Expand-Archive -Path siv3d-sdk.zip -DestinationPath sdk -Force
-          $sdkRoot = (Resolve-Path 'sdk\OpenSiv3D_SDK_0.6_16').Path
+          $sdkRoot = (Resolve-Path 'sdk\OpenSiv3D_SDK_0.6.16').Path
           "SIV3D_0_6_16=$sdkRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Setup MSBuild
@@ -38,7 +38,7 @@ jobs:
           if (Test-Path "package") { Remove-Item -Recurse -Force "package" }
           if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
 
-      # ← ここがキモ：rc.exe が見るカレント(Intermediate/.../Release)に App/Resource.rc を用意しておく
+      # rc.exeがIntermediateでApp\Resource.rcを探すため、事前にそこへコピー
       - name: RC path workaround (mirror App into Intermediate)
         shell: pwsh
         run: |
