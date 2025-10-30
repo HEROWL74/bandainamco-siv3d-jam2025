@@ -295,7 +295,7 @@ int TitleScene::DrawMusicPanel() const
 			// 再生 / 停止ボタン
 			if (SimpleGUI::Button(U"▶", Vec2{ 750, 600 }))
 			{
-				audio->PlayBGM(id, true, 0s); // ← 再生は常に最初から
+				current.play(); // ← 途中位置からでも再生再開
 			}
 			if (SimpleGUI::Button(U"⏹", Vec2{ 850, 600 }))
 			{
@@ -303,12 +303,10 @@ int TitleScene::DrawMusicPanel() const
 			}
 
 			// シークバー
-			SimpleGUI::Slider(U"再生位置", pos, 0.0, len, Vec2{ 550, 800 }, 500);
-
-			// 手動シーク反映（再生中のみ）
-			if (MouseL.up() && len > 0)
+			if (SimpleGUI::Slider(U"再生位置", pos, 0.0, len, Vec2{ 550, 750 }, 500))
 			{
-				map.at(id).seekTime(pos);
+				// スライダーを動かした瞬間に反映（再生中でもOK）
+				current.seekTime(pos);
 			}
 
 			FontAsset(U"Menu")(U"Now Playing: " + id).draw(550, 710, Palette::White);
