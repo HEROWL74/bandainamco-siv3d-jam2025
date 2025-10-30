@@ -7,17 +7,11 @@ Puzzle::Puzzle()
 
 }
 
-bool Puzzle::SystemInit()
+void Puzzle::GameInit(const FilePath& path)
 {
-	// 画像読み込み
-	m_img = Image(U"Assets/Beethoven.jpg");
-	if (!m_img) return false;
+	m_img = Image(path);
+	if (!m_img) return;
 
-	return true;
-}
-
-void Puzzle::GameInit()
-{
 	m_gridN = 3;
 	pieces.clear();
 	m_grabbedIndex = -1;
