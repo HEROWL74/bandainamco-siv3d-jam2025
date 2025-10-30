@@ -8,6 +8,7 @@ enum class TitleState
 {
 	Title,
 	Option,
+	Music,
 	Exit,
 };
 
@@ -17,10 +18,19 @@ private:
 	Texture m_optionIcon;
 	RoundRect m_optionButton;
 
+	RoundRect m_musicButton;
+	Texture m_musicIcon;
+
 	TitleState m_titleState;
 
 	std::unique_ptr<TitleOption> m_titleOption;
+	mutable bool m_showMusicPanel = false;
 
+	Array<String> m_playlist;
+	mutable int m_currentTrackIndex = -1;
+	mutable int m_nextTrackIndex = -1; // -1は何も再生していない
+
+	int DrawMusicPanel() const;
 public:
 	TitleScene(const InitData& init);
 	~TitleScene();

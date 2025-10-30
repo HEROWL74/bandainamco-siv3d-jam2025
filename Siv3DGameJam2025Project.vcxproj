@@ -139,7 +139,7 @@
     <Image Include="App\icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="App\Resource.rc" />
+    <ResourceCompile Include="$(ProjectDir)App\Resource.rc" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="App\dll\soundtouch\COPYING.TXT" />
