@@ -44,6 +44,8 @@ jobs:
           msbuild "Siv3DGameJam2025Project.sln" `
             /p:Configuration=Release `
             /p:Platform=x64 `
+            /p:AdditionalIncludeDirectories=App `
+            /p:AdditionalResourceCompileDirectories=App `
             /m:1 `
             /t:Clean,Build
 
