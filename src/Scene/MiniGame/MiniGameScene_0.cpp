@@ -11,7 +11,8 @@ MiniGameScene_0::MiniGameScene_0(const InitData& init)
 	, m_timeIcon(U"🕒"_emoji)
 	, m_font20(20)
 	, m_font24(24)
-	, m_font30(64)
+	, m_font64(64)
+	, m_mouseImage(U"assets/image/mouse.png")
 {
 	loadBGMAndNotes();
 
@@ -78,6 +79,7 @@ void MiniGameScene_0::loadBGMAndNotes()
 
 void MiniGameScene_0::updateReady()
 {
+	m_playerSlideY = Cursor::Pos().y;
 	// クリックでゲーム開始
 	if (MouseL.down())
 	{
@@ -89,11 +91,33 @@ void MiniGameScene_0::updateReady()
 		}
 
 		m_gameStartTime = Scene::Time();
-		m_status = GameStatus::Playing;
+		m_status = GameStatus::Countdown;
 		m_currentNoteIndex = 0;
 		m_score = 0;
 		m_combo = 0;
 		m_lastHoldEffectTime = m_gameStartTime;
+	}
+}
+
+void MiniGameScene_0::updateCountdown()
+{
+	m_playerSlideY = Cursor::Pos().y;
+
+	const double countdownDuration = 2.0; // 待機時間 2秒
+	const double elapsed = Scene::Time() - m_gameStartTime; // Readyから経過した時間
+
+	if (elapsed >= countdownDuration)
+	{
+		// BGM再生開始
+		if (getData().audio)
+		{
+			// MiniGame0BGMを再生開始
+			getData().audio->PlayBGM(U"MiniGame0BGM", true, 1s);
+		}
+
+		// ゲーム本編開始
+		m_gameStartTime = Scene::Time(); // ゲーム開始時刻を再設定
+		m_status = GameStatus::Playing; // Playing に遷移
 	}
 }
 
@@ -265,6 +289,9 @@ void MiniGameScene_0::update()
 	case GameStatus::Ready:
 		updateReady();
 		break;
+	case GameStatus::Countdown:
+		updateCountdown();
+		break;
 	case GameStatus::Playing:
 		updatePlaying();
 		break;
@@ -282,7 +309,8 @@ void MiniGameScene_0::draw() const
 
 	const double currentTime = Scene::Time() - m_gameStartTime;
 
-	// 星の描画（パララックス効果）
+	// 【移動】星の描画（パララックス効果）
+	// ステータスに関わらず常に描画
 	const double baseOffsetX = currentTime * 50.0; // 時間経過で右から左へ動くベースのオフセット（速度50.0）
 	for (const auto& star : m_stars)
 	{
@@ -305,7 +333,8 @@ void MiniGameScene_0::draw() const
 		.draw(ColorF{ 1.0, 1.0, 1.0, 0.1 + star.speedRatio * 0.7 }); // 透明度と明るさを調整
 	}
 
-	if (m_status == GameStatus::Playing)
+	// ゲームステータスに応じた描画
+	if (m_status == GameStatus::Playing || m_status == GameStatus::Ready || m_status == GameStatus::Countdown) // Ready状態を追加
 	{
 		// 判定ラインを光の柱（ゴールド）に変更
 		Line{ 200, 0, 200, Scene::Height() }.draw(4, ColorF{ 1.0, 0.9, 0.6 });
@@ -317,7 +346,7 @@ void MiniGameScene_0::draw() const
 		// プレイヤーの位置
 		const Vec2 playerPos = { 200, m_playerSlideY };
 
-		// ピッチが合っている時、光のオーラを描画
+		// ピッチが合っている時、光のオーラを描画 (Ready時はm_isPitchPerfectはfalseなので描画されない)
 		if (m_isPitchPerfect)
 		{
 			// 淡い水色で光るオーラ
@@ -329,102 +358,105 @@ void MiniGameScene_0::draw() const
 		const double rotationAngle = Scene::Time() * 30_deg; // 30度/秒で回転
 		m_earthIcon.scaled(iconScale).rotated(rotationAngle).drawAt(playerPos);
 
-		// ノーツの描画
-		for (const auto& note : m_notes)
+		if (m_status == GameStatus::Playing) // Playing状態でのみノーツ、エフェクト、スコアパネル、プログレスバーを描画
 		{
-			// 判定ライン到達までの時間（負の値だと既に過ぎたノーツ）
-			const double timeToArrival = note.startTime - currentTime;
-
-			const double x = 200.0 + (timeToArrival / m_approachTime) * (Scene::Width() - 200.0); // ノーツのX座標（時間に基づく）			
-			const double lengthX = (note.duration / m_approachTime) * (Scene::Width() - 200.0); // ノーツの長さに基づく幅			
-			const double y = note.pitch; // ノーツのY座標（ピッチに基づく）
-
-			if (x + lengthX < 0) continue;// 画面外のノーツは描画しない
-
-			// ノーツの状態に応じて色を変更（宇宙テーマに合わせた色）
-			ColorF noteColor;
-			switch (note.state)
+			// ノーツの描画
+			for (const auto& note : m_notes)
 			{
-			case Note::State::None: // 未判定
-				noteColor = ColorF{ 0.4, 0.8, 1.0, 0.6 }; // 明るい青
-				break;
-			case Note::State::Active_Perfect: // 判定ライン到達済、または長押し中
-				noteColor = ColorF{ 0.5, 0.7, 0.3, 0.8 }; // 黄緑
-				break;
-			case Note::State::Active_Miss: // 長押し中に離した時
-				noteColor = ColorF{ 0.8, 0.3, 0.8, 0.8 }; // 赤紫
-				break;
-			case Note::State::Hit: // 成功
-				noteColor = ColorF{ 0.3, 1.0, 0.3, 0.8 }; // 緑
-				break;
-			case Note::State::Miss: // ミス
-				noteColor = ColorF{ 1.0, 0.3, 0.3, 0.8 }; // 赤
-				break;
+				// 判定ライン到達までの時間（負の値だと既に過ぎたノーツ）
+				const double timeToArrival = note.startTime - currentTime;
+
+				const double x = 200.0 + (timeToArrival / m_approachTime) * (Scene::Width() - 200.0); // ノーツのX座標（時間に基づく）			
+				const double lengthX = (note.duration / m_approachTime) * (Scene::Width() - 200.0); // ノーツの長さに基づく幅			
+				const double y = note.pitch; // ノーツのY座標（ピッチに基づく）
+
+				if (x + lengthX < 0) continue;// 画面外のノーツは描画しない
+
+				// ノーツの状態に応じて色を変更（宇宙テーマに合わせた色）
+				ColorF noteColor;
+				switch (note.state)
+				{
+				case Note::State::None: // 未判定
+					noteColor = ColorF{ 0.4, 0.8, 1.0, 0.6 }; // 明るい青
+					break;
+				case Note::State::Active_Perfect: // 判定ライン到達済、または長押し中
+					noteColor = ColorF{ 0.5, 0.7, 0.3, 0.8 }; // 黄緑
+					break;
+				case Note::State::Active_Miss: // 長押し中に離した時
+					noteColor = ColorF{ 0.8, 0.3, 0.8, 0.8 }; // 赤紫
+					break;
+				case Note::State::Hit: // 成功
+					noteColor = ColorF{ 0.3, 1.0, 0.3, 0.8 }; // 緑
+					break;
+				case Note::State::Miss: // ミス
+					noteColor = ColorF{ 1.0, 0.3, 0.3, 0.8 }; // 赤
+					break;
+				}
+
+				RoundRect(x, y - 25, lengthX, 50, 20).draw(noteColor); // ノーツ本体	
+
+				// ノーツの先端を星の絵文字に変更
+				const double starScale = 0.8; // サイズ調整
+				const Vec2 starPos = { x + 15, y };
+				const double starRotation = Scene::Time() * 60_deg; // 60度/秒で回転
+
+				// 星のテクスチャを描画
+				m_starIcon.scaled(starScale).rotated(starRotation).drawAt(starPos);
+
+				m_effectManager.Draw();
 			}
+			// 最後のノーツの終了時刻 + 1.0秒 をゲームの総時間とする
+			const double totalGameTime = m_notes.back().startTime + m_notes.back().duration + 1.0;
 
-			RoundRect(x, y - 25, lengthX, 50, 20).draw(noteColor); // ノーツ本体	
+			// 進行度 (0.0 から 1.0 へ)
+			const double progress = Min(1.0, currentTime / totalGameTime);
 
-			// ノーツの先端を星の絵文字に変更
-			const double starScale = 0.8; // サイズ調整
-			const Vec2 starPos = { x + 15, y };
-			const double starRotation = Scene::Time() * 60_deg; // 60度/秒で回転
+			// 描画設定
+			const double barWidth = 800.0;
+			const double barHeight = 50.0;
+			const Vec2 barPos = { (Scene::Width() - barWidth) / 2.0, Scene::Height() - barHeight - 60 }; // 画面下端、中央
 
-			// 星のテクスチャを描画
-			m_starIcon.scaled(starScale).rotated(starRotation).drawAt(starPos);
+			// バーの背景 (ゲーム総時間)
+			RectF{ barPos.x, barPos.y, barWidth, barHeight }
+			.draw(ColorF{ 0.1, 0.1, 0.1, 0.8 }); // 暗い背景
 
-			m_effectManager.Draw();
+			// プログレスバー本体 (現在の経過時間)
+			const double currentBarWidth = barWidth * progress;
+			RectF{ barPos.x, barPos.y, currentBarWidth, barHeight }
+				// 経過に応じて色が暖色から寒色に変化するように (0.0=青 -> 1.0=赤)
+			.draw(HSV{ 220 - (100 * progress), 0.8, 1.0 });
+
+			// バーのフレーム
+			RectF{ barPos.x, barPos.y, barWidth, barHeight }
+			.drawFrame(1.0, ColorF{ 0.8, 0.8, 0.8 });
+
+			const double timeIconScale = 1.2; // 地球アイコンと同じスケールを使用
+
+			m_timeIcon.scaled(timeIconScale).drawAt(barPos.x - 40, barPos.y + barHeight / 2.0, Palette::White);
+
+			const double sceneWidth = Scene::Width();
+			const double scorePanelWidth = 500.0;
+			const double scorePanelHeight = 150.0;
+			// 画面上部中央、Y=10px の位置にパネルを配置
+			const Vec2 scorePanelPos = { (sceneWidth - scorePanelWidth), 10.0 };
+
+			// スコアパネルの背景（半透明な濃い青/紫）
+			RoundRect(scorePanelPos.x, scorePanelPos.y, scorePanelWidth, scorePanelHeight, 10)
+				.draw(ColorF(0.1, 0.1, 0.3, 0.8));
+
+			// スコアパネルのフレーム（宇宙の輝きをイメージした淡い光）
+			RoundRect(scorePanelPos.x, scorePanelPos.y, scorePanelWidth, scorePanelHeight, 10)
+				.drawFrame(2.0, ColorF{ 0.7, 0.9, 1.0, 0.9 });
+
+
+			const double scoreCenterX = scorePanelPos.x + scorePanelWidth / 2.0;
+
+			// "スコア" ラベル表示
+			m_font64(U"スコア").drawAt({ scoreCenterX, scorePanelPos.y + 30 }, Palette::Lightgray);
+
+			// スコア表示
+			m_font64(U"{:08}"_fmt(m_score)).drawAt({ scoreCenterX, scorePanelPos.y + 100 }, ColorF{ 1.0, 0.8, 0.0 });
 		}
-		// 最後のノーツの終了時刻 + 1.0秒 をゲームの総時間とする
-		const double totalGameTime = m_notes.back().startTime + m_notes.back().duration + 1.0;
-
-		// 進行度 (0.0 から 1.0 へ)
-		const double progress = Min(1.0, currentTime / totalGameTime);
-
-		// 描画設定
-		const double barWidth = 800.0;
-		const double barHeight = 50.0;
-		const Vec2 barPos = { (Scene::Width() - barWidth) / 2.0, Scene::Height() - barHeight - 60 }; // 画面下端、中央
-
-		// バーの背景 (ゲーム総時間)
-		RectF{ barPos.x, barPos.y, barWidth, barHeight }
-		.draw(ColorF{ 0.1, 0.1, 0.1, 0.8 }); // 暗い背景
-
-		// プログレスバー本体 (現在の経過時間)
-		const double currentBarWidth = barWidth * progress;
-		RectF{ barPos.x, barPos.y, currentBarWidth, barHeight }
-			// 経過に応じて色が暖色から寒色に変化するように (0.0=青 -> 1.0=赤)
-		.draw(HSV{ 220 - (100 * progress), 0.8, 1.0 });
-
-		// バーのフレーム
-		RectF{ barPos.x, barPos.y, barWidth, barHeight }
-		.drawFrame(1.0, ColorF{ 0.8, 0.8, 0.8 });
-
-		const double timeIconScale = 1.2; // 地球アイコンと同じスケールを使用
-
-		m_timeIcon.scaled(timeIconScale).drawAt(barPos.x - 40, barPos.y + barHeight / 2.0, Palette::White);
-
-		const double sceneWidth = Scene::Width();
-		const double scorePanelWidth = 500.0;
-		const double scorePanelHeight = 150.0;
-		// 画面上部中央、Y=10px の位置にパネルを配置
-		const Vec2 scorePanelPos = { (sceneWidth - scorePanelWidth), 10.0 };
-
-		// スコアパネルの背景（半透明な濃い青/紫）
-		RoundRect(scorePanelPos.x, scorePanelPos.y, scorePanelWidth, scorePanelHeight, 10)
-			.draw(ColorF(0.1, 0.1, 0.3, 0.8));
-
-		// スコアパネルのフレーム（宇宙の輝きをイメージした淡い光）
-		RoundRect(scorePanelPos.x, scorePanelPos.y, scorePanelWidth, scorePanelHeight, 10)
-			.drawFrame(2.0, ColorF{ 0.7, 0.9, 1.0, 0.9 });
-
-
-		const double scoreCenterX = scorePanelPos.x + scorePanelWidth / 2.0;
-
-		// "スコア" ラベル表示
-		m_font30(U"スコア").drawAt(60,{ scoreCenterX, scorePanelPos.y + 30 }, Palette::Lightgray);
-
-		// スコア表示
-		m_font30(U"{:08}"_fmt(m_score)).drawAt(70,{ scoreCenterX, scorePanelPos.y +100}, ColorF{ 1.0, 0.8, 0.0 });
 	}
 
 
@@ -432,8 +464,22 @@ void MiniGameScene_0::draw() const
 	// ステータス表示
 	if (m_status == GameStatus::Ready)
 	{
+		const double centerX = Scene::Width() / 2.0;
+		const double centerY = Scene::Height() / 2.0;
+
 		Print << U"MiniGame Scene 0";
 		Print << U"Click to Start!";
+		// ゲーム説明
+		m_font24(U"マウスを上下に動かして、地球のピッチを合わせよう！")
+			.drawAt(40, { centerX + 200, centerY - 100 }, ColorF{ 0.7, 0.9, 1.0 });
+
+		m_font24(U"ノーツが判定ラインに来たら、同じ高さでキープ！")
+			.drawAt(40, { centerX + 200, centerY - 50 }, ColorF{ 0.7, 0.9, 1.0 });
+
+		// 開始指示 (目立つように)
+		m_font64(U"マウスを左クリックでゲーム開始！")
+			.drawAt(60, { centerX + 200, centerY + 150 }, ColorF{ 1.0, 0.8, 0.0 }); // オレンジ色で強調
+		m_mouseImage.drawAt(Scene::Width() / 4.0, Scene::Height() / 2.0);
 	}
 	else if (m_status == GameStatus::Playing)
 	{
@@ -445,5 +491,24 @@ void MiniGameScene_0::draw() const
 	{
 		Print << U"Result! Score: " << m_score;
 		Print << U"Click to return to Game Scene";
+	}
+	else if (m_status == GameStatus::Countdown)
+	{
+		const double elapsed = Scene::Time() - m_gameStartTime;
+		const double countdownDuration = 2.0;
+		const int count = (int)Ceil(countdownDuration - elapsed);
+
+		const double centerX = Scene::Width() * 0.5;
+		const double centerY = Scene::Height() * 0.5;
+
+		// カウントダウン表示 (3, 2, 1, GO! - 2秒なので 2, 1, GO!)
+		if (count >= 1)
+		{
+			m_font64(count).drawAt({ centerX, centerY }, Palette::Yellow);
+		}
+		else if (count == 0)
+		{
+			m_font64(U"GO!").drawAt({ centerX, centerY }, Palette::Orange);
+		}
 	}
 }
