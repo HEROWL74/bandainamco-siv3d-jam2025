@@ -30,25 +30,13 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Clean
+      - name: Clean old outputs
         shell: pwsh
         run: |
           if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
           if (Test-Path "App") { Remove-Item -Recurse -Force "App" }
-          if (Test-Path "package") { Remove-Item -Recurse -Force "package" }
+          if (Test-Path "Package") { Remove-Item -Recurse -Force "Package" }
           if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
-
-      # rc.exeがIntermediateでApp\Resource.rcを探すため、事前にそこへコピー
-      - name: RC path workaround (mirror App into Intermediate)
-        shell: pwsh
-        run: |
-          $rcSrc = "App/Resource.rc"
-          if (Test-Path $rcSrc) {
-            $mirror = "Intermediate/Siv3DGameJam2025Project/Release/App"
-            New-Item -ItemType Directory -Force -Path $mirror | Out-Null
-            Copy-Item -Force $rcSrc "$mirror/Resource.rc"
-            if (Test-Path "App/icon.ico") { Copy-Item -Force "App/icon.ico" "$mirror/icon.ico" }
-          }
 
       - name: Build Release
         shell: pwsh
@@ -69,19 +57,36 @@ jobs:
             Copy-Item -Force $exe.FullName "App/${exe.Name}"
           }
 
-      - name: Prepare Clean Package
+      - name: Prepare clean package
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path package | Out-Null
-          $includeList = @("App/*.exe", "App/Assets", "App/Data", "App/Map", "App/icon.ico", "App/Resource.rc")
-          foreach ($path in $includeList) {
-            if (Test-Path $path) { Copy-Item -Recurse -Force $path package/ }
+          New-Item -ItemType Directory -Force -Path Package | Out-Null
+
+          $include = @(
+            "App/*.exe",
+            "App/Assets",
+            "App/Data",
+            "App/Map",
+            "App/icon.ico",
+            "App/Resource.rc"
+          )
+
+          foreach ($path in $include) {
+            if (Test-Path $path) {
+              Copy-Item -Recurse -Force $path Package/
+            }
           }
 
       - name: Compress to ReleaseGame.zip
         shell: pwsh
         run: |
-          Compress-Archive -Path "package/*" -DestinationPath "ReleaseGame.zip" -Force
+          Compress-Archive -Path "Package/*" -DestinationPath "ReleaseGame.zip" -Force
+
+      - name: Upload ZIP Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReleaseGame
+          path: ReleaseGame.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
