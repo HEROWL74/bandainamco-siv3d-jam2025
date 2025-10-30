@@ -55,20 +55,16 @@ jobs:
             Copy-Item -Force $exe.FullName "App/${exe.Name}"
           }
 
-      - name: Prepare ReleaseApp Folder
+      - name: Create package folder
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path ReleaseApp | Out-Null
-          Copy-Item -Recurse -Force "App" "ReleaseApp/App"
+          New-Item -ItemType Directory -Force -Path package | Out-Null
+          Copy-Item -Recurse -Force "App/*" "package/"
 
       - name: Compress to ReleaseGame.zip
         shell: pwsh
         run: |
-          if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
-          Push-Location "ReleaseApp/App"
-          $files = Get-ChildItem -Recurse | Where-Object { $_.Name -ne "ReleaseGame.zip" }
-          $files | Compress-Archive -DestinationPath "../../ReleaseGame.zip" -Force
-          Pop-Location
+          powershell Compress-Archive -Path package\* -DestinationPath ReleaseGame.zip -Force
 
       - name: Upload ZIP Artifact
         uses: actions/upload-artifact@v4
