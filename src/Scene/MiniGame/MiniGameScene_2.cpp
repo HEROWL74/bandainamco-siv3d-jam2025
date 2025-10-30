@@ -1,4 +1,5 @@
 ﻿#include "MiniGameScene_2.hpp"
+#include "../../Effect/GameClearEffect.hpp"
 
 // コンストラクタ
 MiniGameScene_2::MiniGameScene_2(const InitData& init)
@@ -14,9 +15,9 @@ MiniGameScene_2::MiniGameScene_2(const InitData& init)
 	const FilePath animal2Path = U"assets/Image/Animal/eto_uma_furikaeri.png";
 	const FilePath animal3Path = U"assets/Image/Animal/eto_remake_ushi.png";
 
-	m_animals.emplace_back(Texture(animal1Path));
-	m_animals.emplace_back(Texture(animal2Path));
-	m_animals.emplace_back(Texture(animal3Path));
+	m_animals.emplace_back(Texture(animal1Path), AnimalBoundary::UpperHalf, AnimalBoundary::FullWidth, 60.0);
+	m_animals.emplace_back(Texture(animal2Path), AnimalBoundary::LowerHalf, AnimalBoundary::LeftHalf, 60.0);
+	m_animals.emplace_back(Texture(animal3Path), AnimalBoundary::LowerHalf, AnimalBoundary::RightHalf, 60.0);
 
 	SystemInit();
 	GameInit();
@@ -34,12 +35,14 @@ bool MiniGameScene_2::SystemInit()
 
 	m_puzzle->SetEffectManager(&m_effectManager);
 
-	// 使う画像をロード
+	// 使う画像をロード(歴史順)
 	m_puzzleImages = {
-		U"Assets/Beethoven.jpg",
-		U"Assets/TestPuzzle.jpeg",
-		U"Assets/TestPuzzle1.jpg",
+		U"Assets/Image/Portrait/bach.jpg",
+		U"Assets/Image/Portrait/Mozart.jpg",
+		U"Assets/Image/Portrait/Beethoven.jpg",
 	};
+
+	m_mouseImage = Texture(U"assets/Image/Mouse_LightClick.png");
 
 	// BGMのプリロード
 	if (getData().audio)
@@ -54,13 +57,14 @@ bool MiniGameScene_2::SystemInit()
 			// ピースを嵌める音
 			const Audio snapSE(U"assets/sound/se/PuzzlePiece_Snap.mp3");
 
+			// パズルクリア音
+			m_clearSE = Audio(U"assets/sound/se/PuzzlePiace_Clear.mp3");
+
 			// PuzzleにSEインスタンスを渡す
 			m_puzzle->SetSE(pickSE, snapSE);
 		}
 		catch (const Error& e)
 		{
-			// SEファイルのロードに失敗した場合の処理
-			// このメッセージはデバッグ時に役立ちます。
 			Print << U"Error loading SE files: " << e.what();
 		}
 	}
@@ -85,25 +89,22 @@ void MiniGameScene_2::GameInit()
 		getData().audio->PlayBGM(U"MiniGame2BGM", true);
 	}
 
+	const double halfScreenX = Scene::Width() / 2.0;
+	const double halfScreenY = Scene::Height() / 2.0;
+
 	if (m_animals.size() >= 3)
 	{
-		// 1. 青い鳥 (右へ移動)
-		m_animals[0].position = { -50, 100 }; // 画面左外から開始
-		m_animals[0].velocity = { 80, 0 }; // 右に80px/秒
-		m_animals[0].scale = 0.5;
-		m_animals[0].isMoving = true;
+		// 鳥
+		m_animals[0].position() = { Random(100.0, Scene::Width() - 100.0), Random(100.0, halfScreenY - 100.0) };
+		m_animals[0].setScale(0.5);
 
-		// 2. 馬 (左へ移動)
-		m_animals[1].position = { Scene::Width() + 50, Scene::Height() - 100 }; // 画面右外から開始
-		m_animals[1].velocity = { -50, 0 }; // 左に50px/秒
-		m_animals[1].scale = 0.8;
-		m_animals[1].isMoving = true;
+		// 馬
+		m_animals[1].position() = { Random(100.0, halfScreenX - 100.0), Random(halfScreenY + 100.0, Scene::Height() - 100.0) };
+		m_animals[1].setScale(0.8);
 
-		// 3. 牛 (斜め下へ移動)
-		m_animals[2].position = { 50, Scene::Height() / 2 };
-		m_animals[2].velocity = { 30, 30 }; // 右下方向に30px/秒
-		m_animals[2].scale = 1.0;
-		m_animals[2].isMoving = true;
+		//牛
+		m_animals[2].position() = { Random(halfScreenX + 100.0, Scene::Width() - 100.0), Random(halfScreenY + 100.0, Scene::Height() - 100.0) };
+		m_animals[2].setScale(1.0);
 	}
 }
 
@@ -113,35 +114,8 @@ void MiniGameScene_2::update()
 
 	for (auto& animal : m_animals)
 	{
-		if (!animal.isMoving) continue;
-
-		animal.position += animal.velocity * deltaTime;
-
-		// サイズを計算 (テクスチャがロードされていることを前提)
-		const double halfWidth = animal.texture.width() * animal.scale / 2.0;
-		const double halfHeight = animal.texture.height() * animal.scale / 2.0;
-
-		// 画面の左右端で反対側から出現させる (ワープ処理)
-		if (animal.position.x < -halfWidth)
-		{
-			animal.position.x = Scene::Width() + halfWidth;
-		}
-		else if (animal.position.x > Scene::Width() + halfWidth)
-		{
-			animal.position.x = -halfWidth;
-		}
-
-		// 画面の上下端で反対側から出現させる (ワープ処理)
-		if (animal.position.y < -halfHeight)
-		{
-			animal.position.y = Scene::Height() + halfHeight;
-		}
-		else if (animal.position.y > Scene::Height() + halfHeight)
-		{
-			animal.position.y = -halfHeight;
-		}
+		animal.update(deltaTime);
 	}
-
 
 	switch (m_state)
 	{
@@ -200,10 +174,11 @@ void MiniGameScene_2::draw() const
 // 動物の描画処理の実装
 void MiniGameScene_2::DrawAnimals() const
 {
+	const double elapsedTime = Scene::Time(); // 現在のシーン経過時間
+
 	for (const auto& animal : m_animals)
 	{
-		// texture.scaled(scale).drawAt(position)で描画
-		animal.texture.scaled(animal.scale).drawAt(animal.position, ColorF(1.0, 1.0, 1.0, 1.0));
+		animal.draw(elapsedTime);
 	}
 }
 
@@ -211,9 +186,10 @@ void MiniGameScene_2::DrawAnimals() const
 // 待機状態の更新処理
 void MiniGameScene_2::IdleUpdate()
 {
-	if (KeyS.down())
+	if (MouseL.down())
 	{
 		m_state = State::Playing;
+		m_stopwatch.restart();
 	}
 }
 
@@ -225,6 +201,14 @@ void MiniGameScene_2::PlayingUpdate()
 	// 絵が完成したら状態を遷移
 	if (m_puzzle->IsClear())
 	{
+		// パズル完成SEの再生
+		if (m_clearSE)
+		{
+			m_clearSE.playOneShot(0.8);
+		}
+
+		m_effectManager.Add<GameClearEffect>(Scene::Center(), 1.5);
+
 		m_state = State::Clear;
 		m_timer = 0.0;
 	}
@@ -237,17 +221,22 @@ void MiniGameScene_2::ClearUpdate()
 
 	if (m_timer > 0.5 && MouseL.down())
 	{
+		// 180秒以上経過しているか判定
+		const bool isTimeOver = (m_stopwatch.s() >= 180); // 180秒以上経過しているか
+
 		++m_puzzleIndex;
 
-		// まだ画像が残っている場合
-		if (m_puzzleIndex < static_cast<int32>(m_puzzleImages.size()))
+		// まだ画像が残っている場合、かつ2分経過していない場合
+		if (m_puzzleIndex < static_cast<int32>(m_puzzleImages.size()) && !isTimeOver)
 		{
 			m_puzzle->GameInit(m_puzzleImages[m_puzzleIndex]);
 			m_state = State::Playing;
 		}
-		// 画像が残ってない場合
+		// 画像が残ってない、または2分以上経過している場合
 		else
 		{
+			// 2分経過していたら、強制的にゲームクリア状態 (Finish) へ
+			// 2分経過していなくても、最後のパズルをクリアしたら Finish へ
 			m_state = State::Finish;
 		}
 	}
@@ -271,7 +260,16 @@ void MiniGameScene_2::FinishUpdate()
 // 待機状態の描画処理
 void MiniGameScene_2::IdleDraw() const
 {
+		const Vec2 center = Scene::Center();
 
+		m_bigFont(U"マウスを左クリックしてパズルのピースをつかむよ！").drawAt(60,center.movedBy(0, -300), Palette::Black);
+
+		if (m_mouseImage)
+		{
+			m_mouseImage.scaled(0.8).drawAt(center);
+		}
+
+		m_bigFont(U"左クリックでスタート").drawAt(center.movedBy(0, 300), Palette::Red);
 }
 
 // プレイ状態の描画処理
@@ -285,16 +283,16 @@ void MiniGameScene_2::ClearDraw() const
 {
 	const Texture& preview = m_puzzle->GetPrevTexture();
 	const Vec2 center = Scene::Center();
-	preview.scaled(0.6).draw(center, ColorF{ 1.0, 1.0, 1.0, 0.9 });
+	preview.scaled(1.2).drawAt(center, ColorF{ 1.0, 1.0, 1.0, 0.9 });
 
-	m_bigFont(U"クリア！クリックで次へ").drawAt(center.movedBy(0, 250), ColorF{ Palette::White });
+	m_bigFont(U"クリア！クリックで次へ").drawAt(center.movedBy(0, 0), ColorF{ Palette::Red });
 }
 
 // ゲームクリアした状態の更描画処理
 void MiniGameScene_2::FinishDraw() const
 {
-	Print << U"MiniGame Scene 2: Click to return to Game Scene";
-
 	const Vec2 fontPos = { Scene::Width() / 8.0, Scene::Height() / 4.0 };
-	m_bigFont(U"ゲームクリア！").drawAt(fontPos, Palette::White);
+	const Vec2 center = Scene::Center();
+	m_bigFont(U"ゲームクリア！").drawAt(center, Palette::Red);
+	m_bigFont(U"左クリックで戻ろう！").drawAt(center.movedBy(0, 250), Palette::Red);
 }
