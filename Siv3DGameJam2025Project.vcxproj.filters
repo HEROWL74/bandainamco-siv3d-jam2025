@@ -222,6 +222,12 @@
     <ClCompile Include="src\Scene\MiniGame\MiniGameScene_2\Puzzle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_3\ShapeManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_3\PlayerLine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\Effect\StarDustEffect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -972,6 +978,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\MiniGame\MiniGameScene_2\Puzzle.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShapeManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_3\ShapeManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_3\PlayerLine.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Effect\StarDustEffect.hpp">

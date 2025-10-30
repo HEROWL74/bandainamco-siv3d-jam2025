@@ -65,15 +65,18 @@ private:
 	Texture m_timeIcon;
 	Texture m_BackgroundTexture;
 
-	Texture m_tyrannosaurusTexture; // ティラノサウルスのテクスチャ
-	Texture m_triceratopsTexture;   // トリケラトプスのテクスチャ
-	Texture m_tyrannosaurusHairTexture;
-	Texture m_trexKokkakuTexture;
-	Texture m_pteranodonTexture;
-	Texture m_pachycephalosaurusTexture;
-	Texture m_stegosaurusTexture;
-	Texture m_brachiosaurusTexture;
-	Texture m_iguanodonTexture;
+	Array<Texture> dinos =
+	{
+		Texture(U"assets/Image/Dinosaur/Tyrannosaurus.png"),
+		Texture(U"assets/Image/Dinosaur/Triceratops.png"),
+		Texture(U"assets/Image/Dinosaur/Tyrannosaurus_hair.png"),
+		Texture(U"assets/Image/Dinosaur/trex_kokkaku.png"),
+		Texture(U"assets/Image/Dinosaur/Pteranodon.png"),
+		Texture(U"assets/Image/Dinosaur/dinosaur_pachycephalosaurus.png"),
+		Texture(U"assets/Image/Dinosaur/Stegosaurus.png"),
+		Texture(U"assets/Image/Dinosaur/Brachiosaurus.png"),
+		Texture(U"assets/Image/Dinosaur/Iguanodon.png"),
+	};
 	Texture m_keyboardTexture; // キーボード操作の説明用テクスチャ
 
 	Array<MovingDinosaur> m_movingDinosaurs; // 現在画面上にいる恐竜の配列

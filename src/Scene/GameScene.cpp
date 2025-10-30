@@ -93,15 +93,25 @@ void GameScene::update()
 
 	case GameState::Option:												// オプション画面
 		m_gameOption->Update();
+
+		//オプション画面の閉じるボタンを押したとき 
 		if (m_gameOption->IsClosed())
 		{
 			m_gameState = GameState::Game;
 			m_gameOption->GameInit();
 		}
+
+		// オプション画面のタイトルに戻るボタンを押したとき
+		if (m_gameOption->IsTitle())
+		{
+			changeScene(SceneState::TITLE);
+			getData().audio->StopBGM(1s);
+			m_gameOption->GameInit();
+		}
 		break;
 	}
 
-	if (m_optionButton.leftClicked())
+	if (m_optionButton.leftClicked() || KeyO.down())
 	{
 		m_gameState = GameState::Option;
 	}
@@ -148,7 +158,7 @@ void GameScene::draw() const
 	ColorF backgroundColor;
 
 	// nextMiniGame の値に基づいて背景色を決定
-	switch (data.nextMiniGame)
+	switch (data.nextScene)
 	{
 	case 0: // 例: ミニゲーム0 の時
 		backgroundColor = ColorF{ 1.0, 0.0, 0.0 }; // 赤
@@ -258,7 +268,7 @@ void GameScene::HandleDoorTransition()
 			// 共有データから次に遷移するミニゲーム番号を取得して遷移
 			auto& data = getData();
 
-			switch (data.nextMiniGame)
+			switch (data.nextScene)
 			{
 			case 0:
 				changeScene(SceneState::MINIGAME_0);
@@ -271,6 +281,9 @@ void GameScene::HandleDoorTransition()
 				break;
 			case 3:
 				changeScene(SceneState::MINIGAME_3);
+				break;
+			case 4:
+				changeScene(SceneState::TITLE);
 				break;
 			default:
 				changeScene(SceneState::MINIGAME_0);

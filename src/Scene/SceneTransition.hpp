@@ -21,8 +21,8 @@ struct SharedData
 {
 	std::shared_ptr<Settings> settings;
 	std::shared_ptr<AudioManager> audio;
-
-	uint8 nextMiniGame = 0;	// 次に遷移するミニゲームの番号 (0~3)
+	uint8 nextScene = 0;	// 次に遷移するミニゲームの番号 (0~4)
+	bool isGameClear = false; // ゲームクリアしたかどうか(ミニゲーム3をクリアしたらtrueにする予定)
 };
 
 using App = SceneManager<SceneState, SharedData>;

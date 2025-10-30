@@ -68,7 +68,7 @@ void TitleScene::update()
 		}
 
 		// オプションボタンが押されたらオプション画面へ
-		if (m_optionButton.leftClicked())
+		if (m_optionButton.leftClicked() || KeyO.down())
 		{
 			m_titleState = TitleState::Option;
 		}
@@ -84,6 +84,12 @@ void TitleScene::update()
 			m_titleOption->GameInit();
 		}
 
+		// オプション画面のゲームをやめるボタンを押したとき
+		if (m_titleOption->IsExit())
+		{
+			System::Exit();
+		}
+
 		break;
 
 	case TitleState::Exit:
@@ -95,7 +101,15 @@ void TitleScene::update()
 
 void TitleScene::draw() const
 {
-	Scene::SetBackground(ColorF{ 0.0, 0.2, 0.8 });
+	const auto& data = getData();
+	if(data.isGameClear)
+	{
+		Scene::SetBackground(Palette::Gold);
+	}
+	else
+	{
+		Scene::SetBackground(Palette::Black);
+	}
 
 	// 設定ボタンの描画	
 	m_optionButton.draw(Palette::Silver);

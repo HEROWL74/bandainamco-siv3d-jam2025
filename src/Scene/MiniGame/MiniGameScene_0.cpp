@@ -266,7 +266,7 @@ void MiniGameScene_0::updateResult()
 	{
 		// 共有データの取得
 		auto& data = getData();
-		data.nextMiniGame = (data.nextMiniGame % 4) + 1; // 次のミニゲームへ (0->1->2->3->0...)
+		data.nextScene = (data.nextScene % 5) + 1; // 次のミニゲームへ (0->1->2->3->0...)
 
 		changeScene(SceneState::GAME);
 	}
