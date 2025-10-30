@@ -33,25 +33,32 @@ jobs:
       - name: Clean
         shell: pwsh
         run: |
-          if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
-          if (Test-Path "App") { Remove-Item -Recurse -Force "App" }
-          if (Test-Path "package") { Remove-Item -Recurse -Force "package" }
+          if (Test-Path "x64") { Remove-Item -Recurse -Force "x64" }
           if (Test-Path "ReleaseGame.zip") { Remove-Item -Force "ReleaseGame.zip" }
+          if (Test-Path "package") { Remove-Item -Recurse -Force "package" }
 
-      - name: Build Release (Output to App)
+      - name: Build Release (standard output path)
         shell: pwsh
         run: |
           msbuild "Siv3DGameJam2025Project.sln" `
             /p:Configuration=Release `
             /p:Platform=x64 `
-            '/p:OutDir=App\\' `
             /m:1 `
             /t:Clean,Build
 
-      - name: Clean Debug Files
+      - name: Copy EXE and resources to App folder
         shell: pwsh
         run: |
-          Get-ChildItem -Path "App" -Include *.pdb,*.obj,*.tlog,*.iobj,*.exp,*.idb -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
+          $exeFiles = Get-ChildItem -Path "x64/Release" -Filter "*.exe" -Recurse
+          if ($exeFiles.Count -eq 0) { throw "❌ No .exe found in x64/Release" }
+
+          # Appフォルダ作成
+          New-Item -ItemType Directory -Force -Path "App" | Out-Null
+
+          # exeコピー
+          foreach ($exe in $exeFiles) {
+            Copy-Item -Force $exe.FullName "App/${exe.Name}"
+          }
 
       - name: Prepare Clean Package
         shell: pwsh
