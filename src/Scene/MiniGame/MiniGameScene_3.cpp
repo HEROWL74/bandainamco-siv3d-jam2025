@@ -9,6 +9,22 @@ MiniGameScene_3::MiniGameScene_3(const InitData& init)
 	, m_currentHausdorff(Math::Inf)
 	, m_needRecalc(false)
 {
+	for (int i = 0; i < 300; ++i) // 300個の星を作成
+	{
+		const double H = Random(0.0, 360.0);
+		const double S = Random(0.7, 1.0);
+		const double V = Random(0.6, 1.0);
+
+		ColorF starColor = HSV(H, S, V);
+
+		m_stars.push_back({
+			{ Random(0.0, (double)Scene::Width()), Random(0.0, (double)Scene::Height()) }, // 全画面にランダム配置
+			Random(0.0, 0.1), // 遠景の星はゆっくり動かす (0.0:遠い - 1.0:近い)
+			Random(2.0, 4.0), // 星のサイズ
+			starColor // HSVで生成したカラフルな色を設定
+		});
+	}
+
 	SystemInit();
 	GameInit();
 }
@@ -45,6 +61,8 @@ void MiniGameScene_3::GameInit()
 	m_needRecalc = false;
 	m_time = m_timeLimit;
 
+	m_gameStartTime = Scene::Time();
+
 	// BGM再生
 	getData().audio->PlayBGM(U"MiniGame3BGM", true);
 }
@@ -74,7 +92,32 @@ void MiniGameScene_3::update()
 void MiniGameScene_3::draw() const
 {
 	ClearPrint();
-	Scene::SetBackground(ColorF{ 0.0, 0.7, 0.6 }); // シアン色
+	Scene::SetBackground(ColorF{ 0.05, 0.05, 0.15 });
+
+	const double currentTime = Scene::Time() - m_gameStartTime; // 星の動きに使う時間
+
+	// 星の描画（パララックス効果）
+	const double baseOffsetX = currentTime * 50.0; // 時間経過で右から左へ動くベースのオフセット（速度50.0）
+	for (const auto& star : m_stars)
+	{
+		// speedRatioに応じて移動速度を調整
+		double parallaxOffsetX = baseOffsetX * star.speedRatio;
+
+		// 星の現在のX座標
+		double starX = star.pos.x - parallaxOffsetX;
+
+		// X座標が画面外に出たら、右端から再出現させる
+		if (starX < 0) {
+			starX += Scene::Width();
+		}
+		else if (starX > Scene::Width()) {
+			starX -= Scene::Width();
+		}
+
+		// 星を描画 (遠い星は暗く小さく、近い星は明るく大きく)
+		Circle{ starX, star.pos.y, star.size }
+		.draw(ColorF{ star.color.r, star.color.g, star.color.b, 0.1 + star.speedRatio * 0.7 });
+	}
 	Print << U"MiniGame Scene 3: Click to return to Game Scene";
 
 	switch (m_state)

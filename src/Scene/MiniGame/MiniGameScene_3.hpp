@@ -35,6 +35,16 @@ private:
 	double m_currentHausdorff;
 	bool m_needRecalc;
 
+	struct Star {
+		Vec2 pos;
+		double speedRatio; // 0.0:遠い(静止) - 1.0:近い(速い)
+		double size;
+		ColorF color;
+	};
+	Array<Star> m_stars; // 星のリスト
+
+	double m_gameStartTime = 0.0;
+
 	//各状態時の更新処理関数
 	void IdleUpdate();
 	void PlayingUpdate();
