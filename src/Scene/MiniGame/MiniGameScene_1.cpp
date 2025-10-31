@@ -9,7 +9,7 @@ MiniGameScene_1::MiniGameScene_1(const InitData& init)
 	, m_font20(20)
 	, m_font30(30)
 	, m_font24(24)
-	, m_font40(40, Typeface::Bold)
+	, m_font64(64, Typeface::Bold)
 	, m_timeIcon(U"🕒"_emoji)
 	, m_keyboardTexture(U"assets/Image/Keybord.png")
 	, m_BackgroundTexture(U"assets/Image/Background/DinosaurBackground.jpg")
@@ -58,6 +58,7 @@ void MiniGameScene_1::loadBGMAndNotes()
 
 void MiniGameScene_1::updateReady()
 {
+
 	if (KeySpace.down())
 	{
 		m_gameStartTime = Scene::Time();
@@ -260,10 +261,6 @@ void MiniGameScene_1::updateResult()
 		data.nextScene = (data.nextScene % 5) + 1;
 
 		changeScene(SceneState::GAME);
-		//if (getData().audio)
-		//{
-		//	//getData().audio->PlayBGM(U"GameBGM", true); // ゲームシーンのBGMを再生
-		//}
 	}
 }
 
@@ -719,7 +716,7 @@ void MiniGameScene_1::draw() const
 				.drawFrame(KeyFrameThickness, 0, Palette::Black);
 
 			// 鍵盤上のキー名
-			m_font40(keyName).drawAt(xCenter, KeyY + KeyHeight / 2.0, textColor);
+			m_font64(keyName).drawAt(xCenter, KeyY + KeyHeight / 2.0, textColor);
 		}
 
 		// エフェクトの描画
@@ -741,7 +738,7 @@ void MiniGameScene_1::draw() const
 		m_keyboardTexture.scaled(0.5).drawAt({ centerX, sceneHeight * 0.3 });
 
 		// 開始メッセージ
-		m_font30(U"スペースキーを押すと始まるよ！").drawAt({ centerX, sceneHeight * 0.6 }, Palette::Yellow);
+		m_font64(U"スペースキーを押すと始まるよ！").drawAt({ centerX, sceneHeight * 0.62 }, Palette::Yellow);
 	}
 	// カウントダウン表示
 	else if (m_status == GameStatus::Countdown)
@@ -756,11 +753,11 @@ void MiniGameScene_1::draw() const
 		// カウントダウン表示 (3, 2, 1, GO!)
 		if (count >= 1)
 		{
-			m_font40(count).drawAt({ centerX, centerY }, Palette::Yellow);
+			m_font64(count).drawAt({ centerX, centerY }, Palette::Yellow);
 		}
 		else if (count == 0)
 		{
-			m_font40(U"GO!").drawAt({ centerX, centerY }, Palette::Orange);
+			m_font64(U"GO!").drawAt({ centerX, centerY }, Palette::Orange);
 		}
 	}
 
@@ -777,7 +774,7 @@ void MiniGameScene_1::draw() const
 		m_font24(U"スコア").drawAt({ centerX, scoreBaseY + 10 }, Palette::Lightgray);
 
 		// スコア本体
-		m_font40(U"{} "_fmt(m_score)).draw(Arg::center = Vec2(centerX, scoreBaseY + 55), ColorF(1.0, 0.7, 0.1));
+		m_font64(U"{} "_fmt(m_score)).draw(Arg::center = Vec2(centerX, scoreBaseY + 55), ColorF(1.0, 0.7, 0.1));
 
 		// COMBO 表示 (画面下部)
 		if (m_combo > 0)
@@ -787,8 +784,8 @@ void MiniGameScene_1::draw() const
 			const String comboText = U"コンボ : {}"_fmt(m_combo);
 
 			// テキストのサイズを取得
-			const double textWidth = m_font40(comboText).region().w;
-			const double textHeight = m_font40(comboText).region().h;
+			const double textWidth = m_font64(comboText).region().w;
+			const double textHeight = m_font64(comboText).region().h;
 
 			const double padding = 20.0; // パネルの余白
 
@@ -804,7 +801,7 @@ void MiniGameScene_1::draw() const
 				.drawFrame(2, 0, ColorF(0.5, 1.0, 1.0));
 
 			// コンボテキスト本体
-			m_font40(comboText).drawAt({ sceneWidth / 2.0, comboY }, Palette::Yellow);
+			m_font64(comboText).drawAt({ sceneWidth / 2.0, comboY }, Palette::Yellow);
 		}
 
 		// TimeBar の描画
@@ -842,12 +839,12 @@ void MiniGameScene_1::draw() const
 
 		// 結果
 		m_font30(U"結果発表!").drawAt({ centerX, sceneHeight * 0.4 }, Palette::Lightgray);
-		m_font40(U"スコア : {}"_fmt(m_score)).drawAt({ centerX, sceneHeight * 0.5 }, Palette::Yellow);
+		m_font64(U"スコア : {}"_fmt(m_score)).drawAt({ centerX, sceneHeight * 0.5 }, Palette::Yellow);
 
 		// フルコンボ表示
 		if (m_isFullCombo)
 		{
-			m_font40(U"フルコンボ！").drawAt({ centerX, sceneHeight * 0.45 }, Palette::Orange);
+			m_font64(U"フルコンボ！").drawAt({ centerX, sceneHeight * 0.45 }, Palette::Orange);
 		}
 
 		// 終了メッセージ

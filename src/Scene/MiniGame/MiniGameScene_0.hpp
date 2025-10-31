@@ -42,7 +42,9 @@ public:
 private:
 	Font m_font20;
 	Font m_font24;
-	Font m_font30;
+	Font m_font64;
+
+	Texture m_mouseImage; // マウス画像 操作方法説明に使用
 
 	struct Star {
 		Vec2 pos;
@@ -88,6 +90,7 @@ private:
 	// プライベート関数
 	void loadBGMAndNotes();
 	void updateReady();
+	void updateCountdown();
 	void updatePlaying();
 	void updateResult();
 };

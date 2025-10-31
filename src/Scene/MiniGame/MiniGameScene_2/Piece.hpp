@@ -10,7 +10,7 @@ public:
 	void StartDrag(const Vec2& mousePos);
 	void DragTo(const Vec2& mousePos);
 	void StopDrag();
-	void SnapToCorrect();
+	bool SnapToCorrect();
 	bool IsNear(double range) const { return (m_pos - m_correctPos).length() <= range; }
 
 	Texture m_tex;

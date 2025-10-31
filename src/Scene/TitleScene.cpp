@@ -4,7 +4,10 @@
 // コンストラクタ
 TitleScene::TitleScene(const InitData& init)
 	:IScene(init)
-	,m_titleOption(nullptr)
+	, m_titleOption(nullptr)
+	, m_normalBeethoven(U"assets/Image/Portrait/Beethoven.jpg")
+	, m_smileBeethoven(U"assets/Image/Portrait/Beethoven_Smile.jpg")
+	, m_font128(128, Typeface::Bold)
 {
 	SystemInit();
 	GameInit();
@@ -57,11 +60,22 @@ void TitleScene::GameInit()
 		data.audio->PlayBGM(U"TitleBGM", true);
 	}
 
+	const double ronded = 6;
+	// スタートボタンの座標
+	const double startButtonW = 300;
+	const double startButtonH = 80;
+	const double startButtonY = Scene::Height() * 0.75; // 画面下部寄り
+	m_startButton = RectF{ Arg::center(Scene::Center().x, startButtonY), startButtonW, startButtonH }.rounded(ronded);
+	// 終了ボタンの座標
+	const double exitY = Scene::Height() * 0.90;
+	const double exitW = 300;
+	const double exitH = 80;
+	m_exitButton = RectF{ Arg::center(Scene::Center().x, exitY), exitW, exitH }.rounded(ronded);
+
 	// オプションボタンの座標
 	const double buttonX = 1600.0;
 	const double buttonY = 950.0;
 	const double buttonW = 40;
-	const double ronded = 6;
 
 	m_optionButton = RectF{ Arg::center(buttonX, buttonY), buttonW, buttonW }.rounded(ronded);
 
@@ -79,11 +93,17 @@ void TitleScene::update()
 	switch (m_titleState)
 	{
 	case TitleState::Title:
-
-		if (KeyEnter.down())
+		// スタートボタン
+		if (KeyEnter.down() || m_startButton.leftClicked())
 		{
 			changeScene(SceneState::GAME);
 			getData().audio->StopBGM(1s);
+		}
+
+		// 終了ボタン
+		if (m_exitButton.leftClicked())
+		{
+			System::Exit();
 		}
 
 		// Musicボタン
@@ -166,14 +186,29 @@ void TitleScene::update()
 void TitleScene::draw()const
 {
 	const auto& data = getData();
-	if(data.isGameClear)
+	if (data.isGameClear)
 	{
 		Scene::SetBackground(Palette::Gold);
+		m_smileBeethoven.scaled(1.0).drawAt(Scene::Center());		
 	}
 	else
 	{
+		
 		Scene::SetBackground(Palette::Black);
+		m_normalBeethoven.scaled(1.0).drawAt(Scene::Center());
 	}
+	m_font128(U"ベートヴェンの心").drawAt(128,Scene::Width() / 2.0, 100.0, Palette::Purple);
+	m_font128(U"「第九の呪い」").drawAt(80, Scene::Width() / 2.0, 250.0, Palette::Purple);
+
+	const ColorF startButtonColor = m_startButton.mouseOver() ? ColorF{ 0.2, 0.6, 1.0 } : ColorF{ 0.0, 0.4, 0.8 };
+	m_startButton.draw(startButtonColor);
+
+	// ボタン内のテキスト描画 (FontAsset("Menu")を使用)
+	m_font128(U"スタート").drawAt(70,m_startButton.center(), Palette::White);
+
+	const ColorF exitButtonColor = m_exitButton.mouseOver() ? Palette::Orange : Palette::Red;
+	m_exitButton.draw(exitButtonColor);
+	m_font128(U"おわる").drawAt(70, m_exitButton.center(), Palette::White);
 
 	// 設定ボタンの描画	
 	m_optionButton.draw(Palette::Silver);
