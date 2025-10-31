@@ -37,10 +37,19 @@ void Piece::StopDrag()
 	m_isDragging = false;
 }
 
-void Piece::SnapToCorrect()
+bool Piece::SnapToCorrect()
 {
+	// 既に配置済みなら何もしない
+	if (m_isPlaced)
+	{
+		return false;
+	}
+
 	m_pos = m_correctPos;
 	m_isPlaced = true;
 	m_isDragging = false;
+
+	// スナップ成功を返す
+	return true;
 }
 

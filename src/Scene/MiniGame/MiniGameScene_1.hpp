@@ -60,7 +60,7 @@ private:
 	Font m_font20;
 	Font m_font30;
 	Font m_font24;
-	Font m_font40;
+	Font m_font64;
 
 	Texture m_timeIcon;
 	Texture m_BackgroundTexture;
