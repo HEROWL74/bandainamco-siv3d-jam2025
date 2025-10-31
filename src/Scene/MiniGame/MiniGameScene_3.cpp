@@ -143,21 +143,21 @@ void MiniGameScene_3::PlayingUpdate()
 	if (m_needRecalc && !m_playerLine->GetLine().empty())
 	{
 		const LineString& base = m_shapeManager->GetDensifiedBase(m_shapeIndex);
-		m_currentHausdorff = Geometry2D::HausdorffDistance(base, m_playerLine->GetLine());
+		m_currentHausdorff = Geometry2D::HausdorffDistance(base, m_playerLine->GetMergeLine());
 		m_needRecalc = false;
 	}
 
 	// しきい値以下なら次の図形へ
-	const auto& userLine = m_playerLine->GetLine();
+	const auto& userLine = m_playerLine->GetMergeLine();
 	if (userLine.size() >= static_cast<size_t>(m_minDist) && MouseL.up())
 	{
-		// 判定用に閉じたラインを作る（必要なら）
+		// 判定用に閉じたラインを作る
 		LineString closedUser = userLine;
 		closedUser << closedUser.front();
 
 		const LineString& base = m_shapeManager->GetDensifiedBase(m_shapeIndex);
 
-		// 1) 従来の hausdorff も保持しておく（任意）
+		// 1) 従来の hausdorff も保持しておく
 		m_currentHausdorff = Geometry2D::HausdorffDistance(base, closedUser);
 
 		// 2) 新しい厳密判定（カバー＋連続性）
@@ -177,13 +177,6 @@ void MiniGameScene_3::PlayingUpdate()
 			{
 				m_state = PlayerState::Clear;
 			}
-		}
-		else
-		{
-			// 失敗
-			m_playerLine->LineClear();
-			m_currentHausdorff = Math::Inf;
-			m_needRecalc = false;
 		}
 	}
 }
