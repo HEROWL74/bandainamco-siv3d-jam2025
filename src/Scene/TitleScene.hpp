@@ -33,8 +33,19 @@ private:
 	mutable bool m_showMusicPanel = false;
 
 	Array<String> m_playlist;
+	const std::map<String, String> m_trackTitles =
+	{
+		{ U"No14_1st", U"月光ソナタ 第1楽章" },
+		{ U"No5_1st", U"運命 第1楽章" },
+		{ U"No9_1st", U"第九 第1楽章" },
+		{ U"No9_2nd", U"第九 第2楽章" },
+		{ U"No9_3rd", U"第九 第3楽章" },
+		{ U"No9_4th", U"第九 第4楽章" },
+	};
 	mutable int m_currentTrackIndex = -1;
 	mutable int m_nextTrackIndex = -1; // -1は何も再生していない
+
+	double m_clearTransitionStartTime = 0.0;
 
 	int DrawMusicPanel() const;
 public:

@@ -31,6 +31,7 @@ bool GameScene::SystemInit()
 	if (data.audio)
 	{
 		data.audio->PreLoadBGM(U"GameBGM", U"assets/sound/bgm/No5_1st.mp3");
+		data.audio->PreLoadSE(U"DoorOpenSE", U"assets/sound/se/Door_Open.mp3");
 	}
 
 	m_optionIcon = Texture{ U"⚙️"_emoji };
@@ -48,7 +49,7 @@ void GameScene::GameInit()
 	}
 
 	// プレイヤー初期化
-	m_player.SetPosition(Vec2{0,400});
+	m_player.SetPosition(Vec2{ 0,400 });
 	m_player.Init();
 
 	// カメラ初期化
@@ -59,7 +60,7 @@ void GameScene::GameInit()
 
 	const Vec2 drawCenter = { 0, -150.0 };
 	const Vec2 hitBoxCenter = { 0.0, 200.0 };
-	const Vec2 hitBoxSize = { 300.0, 150.0 };
+	const Vec2 hitBoxSize = { 400.0, 70.0 };
 	const FilePath doorPath = U"assets/props/door_test.png";
 	m_door = std::make_unique<Door>(drawCenter, hitBoxCenter, hitBoxSize, doorPath);
 
@@ -71,7 +72,7 @@ void GameScene::GameInit()
 	// オプションボタンの座標
 	const double buttonX = 1600.0;
 	const double buttonY = 950.0;
-	const double buttonW = 40;
+	const double buttonW = 150;
 	const double ronded = 6;
 
 	m_optionButton = RectF{ Arg::center(buttonX, buttonY), buttonW, buttonW }.rounded(ronded);
@@ -82,13 +83,6 @@ void GameScene::update()
 	switch (m_gameState)
 	{
 	case GameState::Game:	// ゲーム画面
-		// エンターキーでシーンをresultへ
-		if (KeyEnter.down())
-		{
-			changeScene(SceneState::RESULT);
-			getData().audio->StopBGM(1s);
-		}
-
 		break;
 
 	case GameState::Option:												// オプション画面
@@ -130,7 +124,6 @@ void GameScene::update()
 
 	m_effectManager.Update();
 
-	// ★ 2. BubbleEffectを定期的に生成するロジック (例: 0.2秒ごと)
 	static double lastEffectTime = 0.0;
 	const double spawnInterval = 0.2; // 0.2秒ごとにエフェクトを発生
 
@@ -160,17 +153,20 @@ void GameScene::draw() const
 	// nextMiniGame の値に基づいて背景色を決定
 	switch (data.nextScene)
 	{
-	case 0: // 例: ミニゲーム0 の時
-		backgroundColor = ColorF{ 1.0, 0.0, 0.0 }; // 赤
+	case 0: // タイトルからゲームシーンへの遷移時
+		backgroundColor = ColorF{ 1.0, 0.0, 0.0 };
 		break;
-	case 1: // 例: ミニゲーム1 の時
-		backgroundColor = ColorF{ 0.0, 0.0, 1.0 }; // 青
+	case 1: // 例: ミニゲーム0クリア時
+		backgroundColor = ColorF{ 0.0, 0.05, 0.2 }; // 濃い青
 		break;
-	case 2: // 例: ミニゲーム2 の時
-		backgroundColor = ColorF{ 0.0, 1.0, 0.0 }; // 緑
+	case 2: // 例: ミニゲーム1クリア時
+		backgroundColor = ColorF{ 0.2, 0.15, 0.05 }; // 茶色
 		break;
-	case 3: // 例: ミニゲーム3 の時
-		backgroundColor = ColorF{ 1.0, 1.0, 0.6 }; // 薄いマゼンタ
+	case 3: // 例: ミニゲーム2クリア時
+		backgroundColor = ColorF{ 0.4, 0.8, 0.3 }; // 黄緑
+		break;
+	case 4: // 例: ミニゲーム3クリア時
+		backgroundColor = ColorF{ 0.7, 0.85, 1.0 }; // シアン
 		break;
 	default:
 		backgroundColor = ColorF{ 1.0, 1.0, 1.0 }; // デフォルト（白）
@@ -199,7 +195,7 @@ void GameScene::draw() const
 		// コリジョンを赤枠で描画
 		for (const auto& mapCol : m_mapCollisions)
 		{
-			mapCol.drawFrame((3,3),ColorF{ 1.0, 0.0, 0.0 });
+			mapCol.drawFrame((3, 3), ColorF{ 1.0, 0.0, 0.0 });
 		}
 		// 緑枠でプレイヤー用の円形コリジョンを描画
 		m_player.GetCollision().getWorldShape(m_player.GetPosition())
@@ -210,12 +206,6 @@ void GameScene::draw() const
 	{
 		ScopedSpotlight target{ m_spotlight, ColorF{ 0.05, 0.05, 0.1 } };
 		m_player.DrawLight(m_MainCamera);
-
-		{
-			// エフェクトを光らせるため、加算合成(Additive Blend)を適用
-			//const s3d::ScopedRenderStates2D additiveBlend{ s3d::BlendState::Additive };
-			//m_effectManager.Draw(m_MainCamera); // Doorの位置（ワールド座標）に描画
-		}
 	}
 
 	m_spotlight.draw();
@@ -239,7 +229,7 @@ void GameScene::draw() const
 	// 歯車マーク
 	const double iconX = 1600.0;
 	const double iconY = 950.0;
-	m_optionIcon.scaled(0.3).drawAt(iconX, iconY);
+	m_optionIcon.scaled(0.8).drawAt(iconX, iconY);
 
 	// オプション画面の描画
 	if (m_gameState == GameState::Option)
@@ -263,34 +253,36 @@ void GameScene::HandleDoorTransition()
 
 	if (m_door->isNear(playerCol))
 	{
-		if (KeySpace.down())
+		// SE再生
+		auto& data = getData();
+		if (data.audio)
 		{
-			// 共有データから次に遷移するミニゲーム番号を取得して遷移
-			auto& data = getData();
-
-			switch (data.nextScene)
-			{
-			case 0:
-				changeScene(SceneState::MINIGAME_0);
-				break;
-			case 1:
-				changeScene(SceneState::MINIGAME_1);
-				break;
-			case 2:
-				changeScene(SceneState::MINIGAME_2);
-				break;
-			case 3:
-				changeScene(SceneState::MINIGAME_3);
-				break;
-			case 4:
-				changeScene(SceneState::TITLE);
-				break;
-			default:
-				changeScene(SceneState::MINIGAME_0);
-				break;
-			}
-
-			if (data.audio) data.audio->StopBGM(1s);
+			data.audio->PlaySE(U"DoorOpenSE");
 		}
+		// 共有データから次に遷移するミニゲーム番号を取得して遷移
+
+		switch (data.nextScene)
+		{
+		case 0:
+			changeScene(SceneState::MINIGAME_0);
+			break;
+		case 1:
+			changeScene(SceneState::MINIGAME_1);
+			break;
+		case 2:
+			changeScene(SceneState::MINIGAME_2);
+			break;
+		case 3:
+			changeScene(SceneState::MINIGAME_3);
+			break;
+		case 4:
+			changeScene(SceneState::TITLE);
+			break;
+		default:
+			changeScene(SceneState::MINIGAME_0);
+			break;
+		}
+
+		if (data.audio) data.audio->StopBGM(1s);
 	}
 }

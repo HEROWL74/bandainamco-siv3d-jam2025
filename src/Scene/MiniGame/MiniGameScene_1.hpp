@@ -5,6 +5,7 @@
 #include "../../Option/AudioManager.hpp"
 #include "MiniGameScene_0.hpp"
 #include "../../Effect/EffectManager.hpp"
+#include "../../Effect/GameClearEffect.hpp"
 
 enum class DinosaurType
 {	
@@ -85,6 +86,9 @@ private:
 	double m_dinosaurNextSpawnTime = 0.0; // 次の出現時間
 	DinosaurType m_nextDinosaurType = DinosaurType::Tyrannosaurus;
 	int m_dinosaurOrderIndex = 0;
+
+	Audio m_clearSE; // クリアSEを再生するためのAudioオブジェクト
+	bool m_clearEffectPlayed = false; // エフェクトがすでに再生されたか
 
 	void drawLanes() const;
 	void loadBGMAndNotes();

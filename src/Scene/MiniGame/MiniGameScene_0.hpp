@@ -4,6 +4,7 @@
 #include "../SceneTransition.hpp"
 #include "../../Option/AudioManager.hpp"
 #include "../../Effect/EffectManager.hpp"
+#include "../../Effect/GameClearEffect.hpp"
 
 // ノーツのデータ構造
 struct Note
@@ -62,6 +63,9 @@ private:
 
 	// 音楽
 	Audio m_bgm;
+
+	Audio m_clearSE; // クリアSEを再生するためのAudioオブジェクト
+	bool m_clearEffectPlayed = false; // エフェクトがすでに再生されたか
 
 	// プレイヤーのスライド位置（マウスのY座標に対応させる）
 	double m_playerSlideY = 0.0;

@@ -294,8 +294,17 @@ void MiniGameScene_2::ClearDraw() const
 // ゲームクリアした状態の更描画処理
 void MiniGameScene_2::FinishDraw() const
 {
-	const Vec2 fontPos = { Scene::Width() / 8.0, Scene::Height() / 4.0 };
-	const Vec2 center = Scene::Center();
-	m_bigFont(U"ゲームクリア！").drawAt(center, Palette::Red);
-	m_bigFont(U"左クリックで戻ろう！").drawAt(center.movedBy(0, 250), Palette::Red);
+	const double sceneWidth = Scene::Width();
+	const double sceneHeight = Scene::Height();
+	// 画面中央のX座標
+	const double centerX = sceneWidth / 2.0;
+
+	// 黒い半透明な背景パネル
+	RectF(0, sceneHeight * 0.3, sceneWidth, sceneHeight * 0.4).draw(ColorF(0.0, 0.0, 0.0, 0.5));
+
+	// 結果
+	m_bigFont(U"ゲームクリア！").drawAt({ centerX, sceneHeight * 0.5 }, Palette::Yellow);
+
+	// 終了メッセージ
+	m_bigFont(U"マウスを左クリックすると戻れるよ！").drawAt(32,{ centerX, sceneHeight * 0.6 }, Palette::White);
 }

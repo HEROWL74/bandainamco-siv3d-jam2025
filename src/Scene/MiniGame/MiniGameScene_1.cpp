@@ -37,21 +37,127 @@ void MiniGameScene_1::loadBGMAndNotes()
 		getData().audio->PreLoadBGM(U"MiniGame1BGM", U"assets/sound/bgm/No9_2nd.mp3");
 	}
 
-	// 4レーン用の簡単な譜面データをロード
-	m_notes.push_back({ 1.0, 0.0, 0 }); // レーン0 単発
-	m_notes.push_back({ 1.5, 0.0, 1 }); // レーン1 単発
-	m_notes.push_back({ 2.0, 0.0, 2 }); // レーン2 単発
-	m_notes.push_back({ 2.5, 0.0, 3 }); // レーン3 単発
-	m_notes.push_back({ 3.0, 1.0, 1 }); // レーン1 長押し
-	m_notes.push_back({ 4.5, 0.0, 0 }); // レーン0 単発
-	m_notes.push_back({ 5.0, 0.0, 3 }); // レーン3 単発
-	m_notes.push_back({ 5.5, 0.5, 2 }); // レーン2 長押し
-	m_notes.push_back({ 6.5, 0.0, 1 }); // レーン1 単発
-	m_notes.push_back({ 7.0, 0.0, 0 }); // レーン0 単発
-	m_notes.push_back({ 8.0, 0.0, 2 }); // レーン2 単発
-	m_notes.push_back({ 8.5, 0.0, 3 }); // レーン3 単発
-	m_notes.push_back({ 9.0, 1.5, 0 }); // レーン0 長押し
-	m_notes.push_back({ 11.5, 0.0, 1 }); // レーン1 単発
+	// 第二楽章 ピアノ譜面（約180秒・静かで穏やかなテンポ）
+	m_notes.clear();
+
+	// --- 0〜30秒：静かな導入 ---
+	m_notes.push_back({ 2.0, 0.0, 1 });
+	m_notes.push_back({ 4.0, 1.0, 2 });
+	m_notes.push_back({ 7.0, 0.0, 0 });
+	m_notes.push_back({ 9.5, 0.0, 3 });
+	m_notes.push_back({ 12.0, 0.5, 1 });
+	m_notes.push_back({ 15.0, 1.0, 2 });
+	m_notes.push_back({ 18.0, 0.0, 0 });
+	m_notes.push_back({ 21.0, 0.0, 1 });
+	m_notes.push_back({ 24.0, 1.5, 2 });
+	m_notes.push_back({ 28.0, 0.0, 3 });
+
+	// --- 30〜90秒：中盤、少し動きが出る ---
+	m_notes.push_back({ 31.0, 0.0, 0 });
+	m_notes.push_back({ 31.5, 0.0, 2 });
+	m_notes.push_back({ 32.0, 1.0, 1 });
+	m_notes.push_back({ 34.0, 0.0, 3 });
+	m_notes.push_back({ 35.0, 0.0, 2 });
+	m_notes.push_back({ 36.0, 0.8, 1 });
+	m_notes.push_back({ 38.0, 0.0, 0 });
+	m_notes.push_back({ 38.5, 0.0, 3 });
+	m_notes.push_back({ 39.0, 1.0, 2 });
+	m_notes.push_back({ 41.5, 0.0, 1 });
+	m_notes.push_back({ 42.0, 0.0, 3 });
+	m_notes.push_back({ 43.0, 0.5, 0 });
+	m_notes.push_back({ 45.0, 0.0, 1 });
+	m_notes.push_back({ 46.0, 1.0, 2 });
+	m_notes.push_back({ 48.0, 0.0, 3 });
+	m_notes.push_back({ 49.0, 0.0, 1 });
+	m_notes.push_back({ 50.0, 1.0, 0 });
+	m_notes.push_back({ 52.0, 0.0, 2 });
+	m_notes.push_back({ 53.0, 0.0, 3 });
+	m_notes.push_back({ 54.0, 0.8, 1 });
+	m_notes.push_back({ 56.0, 0.0, 0 });
+	m_notes.push_back({ 56.5, 0.0, 2 });
+	m_notes.push_back({ 57.0, 0.5, 3 });
+	m_notes.push_back({ 59.0, 0.0, 1 });
+	m_notes.push_back({ 60.0, 1.0, 0 });
+	m_notes.push_back({ 62.0, 0.0, 2 });
+	m_notes.push_back({ 63.0, 0.0, 3 });
+	m_notes.push_back({ 64.0, 1.0, 1 });
+	m_notes.push_back({ 66.0, 0.0, 0 });
+	m_notes.push_back({ 67.0, 0.0, 2 });
+	m_notes.push_back({ 68.0, 0.8, 3 });
+	m_notes.push_back({ 70.0, 0.0, 1 });
+	m_notes.push_back({ 71.0, 0.0, 0 });
+	m_notes.push_back({ 72.0, 1.0, 2 });
+	m_notes.push_back({ 74.0, 0.0, 3 });
+	m_notes.push_back({ 75.0, 0.0, 1 });
+	m_notes.push_back({ 76.0, 0.5, 0 });
+	m_notes.push_back({ 78.0, 0.0, 2 });
+	m_notes.push_back({ 79.0, 1.0, 3 });
+	m_notes.push_back({ 81.0, 0.0, 1 });
+	m_notes.push_back({ 82.0, 0.0, 0 });
+	m_notes.push_back({ 83.0, 0.5, 2 });
+	m_notes.push_back({ 85.0, 1.0, 3 });
+	m_notes.push_back({ 88.0, 0.0, 0 });
+	m_notes.push_back({ 89.0, 0.0, 2 });
+
+	// --- 90〜150秒：静かな再現部、低音中心 ---
+	m_notes.push_back({ 91.0, 0.0, 0 });
+	m_notes.push_back({ 92.0, 0.0, 1 });
+	m_notes.push_back({ 93.0, 1.0, 2 });
+	m_notes.push_back({ 95.0, 0.0, 3 });
+	m_notes.push_back({ 96.5, 0.0, 1 });
+	m_notes.push_back({ 98.0, 1.0, 0 });
+	m_notes.push_back({ 100.0, 0.0, 2 });
+	m_notes.push_back({ 101.0, 0.0, 3 });
+	m_notes.push_back({ 102.0, 1.0, 1 });
+	m_notes.push_back({ 104.0, 0.0, 0 });
+	m_notes.push_back({ 105.0, 0.0, 2 });
+	m_notes.push_back({ 106.0, 1.0, 3 });
+	m_notes.push_back({ 108.0, 0.0, 1 });
+	m_notes.push_back({ 109.0, 0.0, 0 });
+	m_notes.push_back({ 110.0, 1.0, 2 });
+	m_notes.push_back({ 112.0, 0.0, 3 });
+	m_notes.push_back({ 113.0, 0.0, 1 });
+	m_notes.push_back({ 114.0, 0.5, 0 });
+	m_notes.push_back({ 116.0, 0.0, 2 });
+	m_notes.push_back({ 117.0, 1.0, 3 });
+	m_notes.push_back({ 119.0, 0.0, 1 });
+	m_notes.push_back({ 120.0, 0.0, 0 });
+	m_notes.push_back({ 121.0, 0.5, 2 });
+	m_notes.push_back({ 123.0, 1.0, 3 });
+	m_notes.push_back({ 125.0, 0.0, 0 });
+	m_notes.push_back({ 126.0, 0.0, 1 });
+	m_notes.push_back({ 127.0, 1.0, 2 });
+	m_notes.push_back({ 129.0, 0.0, 3 });
+	m_notes.push_back({ 130.0, 0.0, 1 });
+	m_notes.push_back({ 131.0, 1.0, 0 });
+	m_notes.push_back({ 133.0, 0.0, 2 });
+	m_notes.push_back({ 134.0, 0.0, 3 });
+	m_notes.push_back({ 135.0, 1.0, 1 });
+	m_notes.push_back({ 137.0, 0.0, 0 });
+	m_notes.push_back({ 138.0, 0.0, 2 });
+	m_notes.push_back({ 139.0, 1.0, 3 });
+	m_notes.push_back({ 141.0, 0.0, 1 });
+	m_notes.push_back({ 142.0, 0.0, 0 });
+	m_notes.push_back({ 143.0, 1.0, 2 });
+	m_notes.push_back({ 145.0, 0.0, 3 });
+	m_notes.push_back({ 146.0, 0.0, 1 });
+	m_notes.push_back({ 147.0, 0.5, 0 });
+	m_notes.push_back({ 149.0, 1.0, 2 });
+
+	// --- 150〜180秒：穏やかに終わるフェードアウト部 ---
+	m_notes.push_back({ 150.0, 0.0, 1 });
+	m_notes.push_back({ 151.0, 0.0, 2 });
+	m_notes.push_back({ 152.0, 1.0, 3 });
+	m_notes.push_back({ 154.0, 0.0, 0 });
+	m_notes.push_back({ 155.0, 0.0, 2 });
+	m_notes.push_back({ 156.0, 1.0, 1 });
+	m_notes.push_back({ 158.5, 0.0, 0 });
+	m_notes.push_back({ 160.0, 0.0, 3 });
+	m_notes.push_back({ 161.0, 0.0, 2 });
+	m_notes.push_back({ 162.0, 1.0, 1 });
+	m_notes.push_back({ 165.0, 0.0, 0 });
+	m_notes.push_back({ 166.5, 0.0, 2 });
+	m_notes.push_back({ 168.0, 2.0, 3 });
 
 	m_status = GameStatus::Ready;
 }
@@ -82,6 +188,7 @@ void MiniGameScene_1::updateCountdown()
 		{
 			// BGMの再生開始
 			getData().audio->PlayBGM(U"MiniGame1BGM", true);
+			m_clearSE = Audio(U"assets/sound/se/PuzzlePiace_Clear.mp3");
 		}
 
 		// ゲーム本編開始
@@ -96,7 +203,7 @@ void MiniGameScene_1::updatePlaying()
 	const double sceneWidth = Scene::Width();
 	const double gameAreaOffsetX = (sceneWidth - GameAreaWidth) / 2.0;
 
-	const double perfectWindow = 0.1; // Perfect判定の境界線
+	const double perfectWindow = 0.3; // Perfect判定の境界線
 	const double totalWindow = 0.5; // Miss判定の境界線
 
 	// ノーツの判定処理
@@ -242,17 +349,22 @@ void MiniGameScene_1::updatePlaying()
 	const double lastNoteEnd = m_notes.back().startTime + m_notes.back().duration;
 	if (currentTime > lastNoteEnd + 1.0) // 最後のノーツの1秒後に遷移
 	{
-		if (getData().audio)
-		{
-			getData().audio->SetBGMPitch(U"MiniGame1BGM", 0.0);
-			getData().audio->StopBGM(1s);
-		}
 		m_status = GameStatus::Result;
 	}
 }
 
 void MiniGameScene_1::updateResult()
 {
+	if (!m_clearEffectPlayed)
+	{
+		// エフェクトを生成
+		m_effectManager.Add<GameClearEffect>(Scene::Center(), 1.5);
+
+		// SEを再生
+		m_clearSE.playOneShot();
+
+		m_clearEffectPlayed = true;
+	}
 	// クリックでゲームへ戻る
 	if (MouseL.down())
 	{
@@ -718,12 +830,6 @@ void MiniGameScene_1::draw() const
 			// 鍵盤上のキー名
 			m_font64(keyName).drawAt(xCenter, KeyY + KeyHeight / 2.0, textColor);
 		}
-
-		// エフェクトの描画
-		if (m_status == GameStatus::Playing)
-		{
-			m_effectManager.Draw();
-		}
 	}
 
 
@@ -838,7 +944,7 @@ void MiniGameScene_1::draw() const
 		RectF(0, sceneHeight * 0.3, sceneWidth, sceneHeight * 0.4).draw(ColorF(0.0, 0.0, 0.0, 0.5));
 
 		// 結果
-		m_font30(U"結果発表!").drawAt({ centerX, sceneHeight * 0.4 }, Palette::Lightgray);
+		m_font30(U"ゲームクリア！").drawAt({ centerX, sceneHeight * 0.4 }, Palette::Lightgray);
 		m_font64(U"スコア : {}"_fmt(m_score)).drawAt({ centerX, sceneHeight * 0.5 }, Palette::Yellow);
 
 		// フルコンボ表示
@@ -850,4 +956,7 @@ void MiniGameScene_1::draw() const
 		// 終了メッセージ
 		m_font20(U"マウスを左クリックすると戻れるよ！").drawAt({ centerX, sceneHeight * 0.6 }, Palette::White);
 	}
+
+	// エフェクトの描画
+	m_effectManager.Draw();
 }
