@@ -44,6 +44,7 @@ private:
 	Array<Star> m_stars; // 星のリスト
 
 	double m_gameStartTime = 0.0;
+	Stopwatch m_stopwatch;
 
 	//各状態時の更新処理関数
 	void IdleUpdate();

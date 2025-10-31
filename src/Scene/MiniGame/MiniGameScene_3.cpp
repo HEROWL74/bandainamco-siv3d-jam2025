@@ -51,7 +51,7 @@ bool MiniGameScene_3::SystemInit()
 void MiniGameScene_3::GameInit()
 {
 	const Vec2 center = Scene::Center();
-	const double size = Scene::Height() / 5.0;
+	const double size = Scene::Height() / 2.5;
 	m_shapeManager->GameInit(center, size);
 
 	m_playerLine->GameInit();
@@ -145,6 +145,7 @@ void MiniGameScene_3::IdleUpdate()
 {
 	if (KeyS.down())
 	{
+		m_stopwatch.start();
 		StartGame();
 	}
 }
@@ -211,7 +212,9 @@ void MiniGameScene_3::PlayingUpdate()
 			// 成功
 			m_shapeIndex++;
 			getData().audio->SetBGMPitch(U"MiniGame3BGM", 0.0);				// ピッチを元に戻す
-			if (m_shapeIndex >= m_shapeManager->Count())
+			const bool isTimeOver = (m_stopwatch.s() >= 10);
+
+			if (m_shapeIndex >= m_shapeManager->Count() || isTimeOver)
 			{
 				m_state = PlayerState::Finish;
 				return;
@@ -258,7 +261,7 @@ void MiniGameScene_3::IdleDraw() const
 void MiniGameScene_3::PlayingDraw() const
 {
 	const Polygon& poly = m_shapeManager->GetPolygon(m_shapeIndex);
-	poly.outline().drawClosed(22, ColorF{ 0.7 });
+	poly.outline().drawClosed(42, ColorF{ 0.7 });
 
 	// プレイヤーが描く線
 	m_playerLine->Draw();
