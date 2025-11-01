@@ -36,7 +36,7 @@ bool MiniGameScene_3::SystemInit()
 	m_shapeManager = std::make_unique<ShapeManager>();
 	m_movingBG = std::make_unique<MovingBackground>();
 
-	m_font = Font{ FontMethod::MSDF, 48, Typeface::Heavy };
+	m_font = Font{ FontMethod::MSDF, 100, Typeface::Heavy };
 
 	// BGMのロード
 	if (getData().audio)
@@ -62,8 +62,8 @@ void MiniGameScene_3::GameInit()
 
 	m_movingBG->GameInit();
 	// 背景に出てくる画像達の設定
-	m_movingBG->SetSpawnCount(4);
-	m_movingBG->SetSpeedRange(30.0, 120.0);
+	m_movingBG->SetSpawnCount(12);
+	m_movingBG->SetSpeedRange(30.0, 160.0);
 	m_movingBG->SetAngularRange(-30_deg, 30_deg);
 	m_movingBG->SetScaleRange(0.4, 1.2);
 
@@ -80,9 +80,10 @@ void MiniGameScene_3::GameInit()
 	m_earthRotateSpeed = 5_deg;
 
 	m_isTimeOver = false;
+	m_unpainted = false;
 
 	// BGM再生
-	//getData().audio->PlayBGM(U"MiniGame3BGM", true);
+	getData().audio->PlayBGM(U"MiniGame3BGM", true);
 }
 
 void MiniGameScene_3::update()
@@ -262,6 +263,10 @@ void MiniGameScene_3::PlayingUpdate()
 
 			m_state = PlayerState::Clear;
 		}
+		else
+		{
+			m_unpainted = true;
+		}
 	}
 }
 
@@ -274,6 +279,7 @@ void MiniGameScene_3::ClearUpdate()
 		m_playerLine->LineClear();
 		m_currentHausdorff = Math::Inf;
 		m_needRecalc = false;
+		m_unpainted = false;
 		StartTimer();
 
 		if (m_shapeIndex >= m_shapeManager->Count() || m_isTimeOver)
@@ -308,7 +314,7 @@ void MiniGameScene_3::IdleDraw() const
 void MiniGameScene_3::PlayingDraw() const
 {
 	const Polygon& poly = m_shapeManager->GetPolygon(m_shapeIndex);
-	poly.outline().drawClosed(42, ColorF{ 0.7 });
+	poly.outline().drawClosed(70, ColorF{ 0.7 });
 
 	// プレイヤーが描く線
 	m_playerLine->Draw();
@@ -320,6 +326,12 @@ void MiniGameScene_3::PlayingDraw() const
 	{
 		m_font(U"Hausdorff: {:.1f}"_fmt(m_currentHausdorff)).draw(20, Vec2{ 20, 92 });
 	}
+
+	if (m_unpainted)
+	{
+		const Vec2 fontPos{ Scene::Width() / 2.0, 150.0 };
+		m_font(U"まだ塗り足りてないよ！").drawAt(fontPos, ColorF{Palette::Orange});
+	}
 }
 
 // 図完成時の描画処理
@@ -330,7 +342,7 @@ void MiniGameScene_3::ClearDraw() const
 	const double s = 0.7;																// 描画する図形の縮小率
 	poly.scaledAt(pos, s).draw(ColorF{Palette::Yellow});								// 図形を描画
 
-	const Vec2 fontPos{ Scene::Width() / 2.0, 100.0 };
+	const Vec2 fontPos{ Scene::Width() / 2.0, Scene::Height() * 2 / 3};
 	m_font(U"クリア！左クリックでつぎへ").drawAt(fontPos);
 }
 

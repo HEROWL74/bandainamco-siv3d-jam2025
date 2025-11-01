@@ -10,6 +10,7 @@ MovingBackground::~MovingBackground()
 
 bool MovingBackground::SystemInit()
 {
+	m_textures << Texture{ U"⭐"_emoji };
 	m_textures << Texture{ U"Assets/Image/Dinosaur/Tyrannosaurus.png" };
 	m_textures << Texture{ U"Assets/Image/Dinosaur/Triceratops.png" };
 	m_textures << Texture{ U"Assets/Image/Dinosaur/Stegosaurus.png" };
@@ -109,10 +110,22 @@ void MovingBackground::SpawnOne(Item& it)
 
 	it.pos = Vec2{ x, y };
 
-	// 速度：上向き（負の y）に少し斜め（x成分は左右方向へ小さめ）
-	const double speed = Random(m_minSpeed, m_maxSpeed);
-	// 斜め角度：上方向 ± 30度くらい
-	const double angleDeg = (fromLeft ? -70.0_deg : -110.0_deg) + Random(-20.0_deg, 20.0_deg);
+	// 速度：画像の大きさに応じて変更
+	double t = 0.0;
+	if (m_maxScale > m_minScale)
+	{
+		t = (it.scale - m_minScale) / (m_maxScale - m_minScale);		// その画像の大きさが指定範囲の何％かを計算
+		t = Clamp(t, 0.0, 1.0);
+	}
+	else
+	{
+		t = 0.0;
+	}
+
+	const double speed = Math::Lerp(m_minSpeed, m_maxSpeed, t);			// 速度
+
+	// 斜め角度
+	const double angleDeg = (fromLeft ? -50.0_deg : -130.0_deg) + Random(-30.0_deg, 30.0_deg);
 	const double rad = angleDeg;
 	it.vel = Vec2{ std::cos(rad), std::sin(rad) } *speed;
 

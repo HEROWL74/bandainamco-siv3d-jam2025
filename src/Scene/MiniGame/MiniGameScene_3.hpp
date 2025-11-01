@@ -29,13 +29,15 @@ private:
 
 	const double m_timeLimit{ 20.0 };							// 制限時間
 	const double m_minDist{ 6.0 };								// 線の描画を開始する最小の距離
-	const double m_hausdorffThreshold{ 30.0 };					// 始点と終点がほぼ繋がったとみなす距離
+	const double m_hausdorffThreshold{ 50.0 };					// 始点と終点がほぼ繋がったとみなす距離
 	const double m_coverageThreshold{ 0.6 };					// base点のうちどのくらい通ったらOKかをみなす割合
 	const double m_contiguousThreshold{ 0.7 };					// 連続でカバーしている割合
 
 	// 判定キャッシュ
 	double m_currentHausdorff;
 	bool m_needRecalc;
+
+	bool m_unpainted;												// 塗り足りてないか（true：足りてない）
 
 	struct Star {
 		Vec2 pos;
