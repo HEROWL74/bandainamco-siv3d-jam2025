@@ -57,12 +57,20 @@ jobs:
             Copy-Item -Force $exe.FullName "App/${exe.Name}"
           }
 
-      # ✅ Appフォルダの中身を丸ごとコピー（Assets, Data, Map, icon.ico, Resource.rc含む）
-      - name: Prepare clean package
+      # ✅ Appフォルダの中身を丸ごとコピー。ただし engine フォルダは除外
+      - name: Prepare clean package (exclude engine/)
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path Package | Out-Null
-          Copy-Item -Recurse -Force "App/*" "Package/"
+          $items = Get-ChildItem -Path "App" -Recurse | Where-Object { $_.FullName -notmatch "\\engine($|\\)" }
+          foreach ($item in $items) {
+            $dest = $item.FullName.Replace((Resolve-Path "App").Path, (Resolve-Path "Package").Path)
+            if ($item.PSIsContainer) {
+              New-Item -ItemType Directory -Force -Path $dest | Out-Null
+            } else {
+              Copy-Item -Force $item.FullName $dest
+            }
+          }
 
       # 圧縮は1段階のみ（zip二重防止）
       - name: Compress to ReleaseGame.zip
