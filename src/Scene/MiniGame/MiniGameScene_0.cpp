@@ -12,7 +12,7 @@ MiniGameScene_0::MiniGameScene_0(const InitData& init)
 	, m_font20(20)
 	, m_font24(24)
 	, m_font64(64)
-	, m_mouseImage(U"assets/image/mouse.png")
+	, m_mouseImage(U"assets/image/Device/mouse.png")
 {
 	loadBGMAndNotes();
 
