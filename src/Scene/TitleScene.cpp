@@ -7,7 +7,7 @@ TitleScene::TitleScene(const InitData& init)
 	, m_titleOption(nullptr)
 	, m_normalBeethoven(U"assets/Image/Portrait/Beethoven.jpg")
 	, m_smileBeethoven(U"assets/Image/Portrait/Beethoven_Smile.jpg")
-	, m_font128(128, Typeface::Bold)
+	, m_font128(128)
 {
 	SystemInit();
 	GameInit();
@@ -29,8 +29,8 @@ bool TitleScene::SystemInit()
 	// titleBGMのロード
 	if (data.audio)
 	{
-		data.audio->PreLoadBGM(U"TitleBGM", U"example/test.mp3");
-		m_clearSE = Audio(U"assets/sound/se/PuzzlePiace_Clear.mp3");
+		data.audio->PreLoadBGM(U"TitleBGM", U"assets/sound/bgm/No14_1st.mp3");
+		data.audio->PreLoadSE(U"ClearSE", U"assets/sound/se/PuzzlePiace_Clear.mp3");
 	}
 
 	auto& audio = getData().audio;
@@ -89,6 +89,12 @@ void TitleScene::GameInit()
 	m_musicButton = RectF{ Arg::center(Scene::Center().x, musicButtonY), musicW, musicH }.rounded(ronded);
 
 	m_titleState = TitleState::Title;
+
+	// 【修正】data.isGameClear = false; を削除し、ローカルの演出フラグのみリセット
+		// data.isGameClearをリセットすると、クリア演出が始まらないため
+		// if (data.isGameClear) は削除し、ローカル変数のみをリセットします。
+	m_clearTransitionStartTime = 0.0; // 演出開始時刻をリセット
+	m_clearEffectPlayed = false;      // エフェクト再生済みフラグをリセット
 }
 
 void TitleScene::update()
@@ -99,6 +105,7 @@ void TitleScene::update()
 		// スタートボタン
 		if (KeyEnter.down() || m_startButton.leftClicked())
 		{
+			getData().nextScene = 0;
 			changeScene(SceneState::GAME);
 			getData().audio->StopBGM(1s);
 		}
@@ -119,10 +126,10 @@ void TitleScene::update()
 		}
 
 		// Optionボタン
-		if (m_optionButton.leftClicked() || KeyO.down())
-		{
-			m_titleState = TitleState::Option;
-		}
+		//if (m_optionButton.leftClicked() || KeyO.down())
+		//{
+		//	m_titleState = TitleState::Option;
+		//}
 		break;
 
 	case TitleState::Option:
@@ -197,7 +204,7 @@ void TitleScene::update()
 			// エフェクトを生成
 			m_effectManager.Add<GameClearEffect>(Scene::Center(), 1.5);
 			// SEを再生
-			m_clearSE.playOneShot();
+			audio->PlaySE(U"ClearSE");
 			m_clearEffectPlayed = true;
 		}
 	}
@@ -227,6 +234,38 @@ void TitleScene::draw()const
 		m_normalBeethoven.scaled(1.0).drawAt(Scene::Center(), ColorF(1.0, 1.0 - fadeAlpha));
 		// スマイルベートーヴェンはフェードイン (0.0 -> 1.0)
 		m_smileBeethoven.scaled(1.0).drawAt(Scene::Center(), ColorF(1.0, fadeAlpha));
+		const double outlineThickness = 4.0; // 枠線の太さ
+		const ColorF outlineColor = Palette::Black; // 枠線の色
+
+		// 枠線（少し太く、色を変えて描画）
+		const double drawOffsetY = 50.0;
+
+		m_font128(U"クリア").drawAt(
+			Scene::Center().x - outlineThickness,
+			Scene::Center().y - outlineThickness + drawOffsetY, // Y座標にオフセットを追加
+			outlineColor
+		);
+		m_font128(U"クリア").drawAt(
+			Scene::Center().x + outlineThickness,
+			Scene::Center().y - outlineThickness + drawOffsetY, // Y座標にオフセットを追加
+			outlineColor
+		);
+		m_font128(U"クリア").drawAt(
+			Scene::Center().x - outlineThickness,
+			Scene::Center().y + outlineThickness + drawOffsetY, // Y座標にオフセットを追加
+			outlineColor
+		);
+		m_font128(U"クリア").drawAt(
+			Scene::Center().x + outlineThickness,
+			Scene::Center().y + outlineThickness + drawOffsetY, // Y座標にオフセットを追加
+			outlineColor
+		);
+		// 本体のテキスト
+		m_font128(U"クリア").drawAt(
+			Scene::Center().x,
+			Scene::Center().y + drawOffsetY, // Y座標にオフセットを追加
+			Palette::Gold
+		);
 	}
 	else
 	{
@@ -247,23 +286,23 @@ void TitleScene::draw()const
 	m_font128(U"おわる").drawAt(70, m_exitButton.center(), Palette::White);
 
 	// 設定ボタンの描画	
-	m_optionButton.draw(Palette::Silver);
+	//m_optionButton.draw(Palette::Silver);
 
 	// マウスが図形の上に来たら影ができる
 	if (m_optionButton.mouseOver())
 	{
-		m_optionButton.drawShadow(Vec2{ 2, 2 }, 12, 1).draw(ColorF{ 0.9, 0.8, 0.6 });
+		//m_optionButton.drawShadow(Vec2{ 2, 2 }, 12, 1).draw(ColorF{ 0.9, 0.8, 0.6 });
 	}
 
 	// 歯車マーク
 	const double iconX = 1600.0;
 	const double iconY = 950.0;
-	m_optionIcon.scaled(0.8).drawAt(iconX, iconY);
+	//m_optionIcon.scaled(0.8).drawAt(iconX, iconY);
 
 	// オプション画面の描画
 	if (m_titleState == TitleState::Option)
 	{
-		m_titleOption->Draw();
+		//m_titleOption->Draw();
 	}
 
 	const ColorF musicButtonColor = m_musicButton.mouseOver() ? ColorF{ 1.0, 0.5, 0.0 } : ColorF{ 0.8, 0.3, 0.0 };

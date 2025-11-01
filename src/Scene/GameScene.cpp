@@ -105,10 +105,10 @@ void GameScene::update()
 		break;
 	}
 
-	if (m_optionButton.leftClicked() || KeyO.down())
-	{
-		m_gameState = GameState::Option;
-	}
+	//if (m_optionButton.leftClicked() || KeyO.down())
+	//{
+	//	m_gameState = GameState::Option;
+	//}
 
 
 	// プレイヤー更新
@@ -219,22 +219,22 @@ void GameScene::draw() const
 	//Circle{ mCirclePos.x, mCirclePos.y, 50 }.draw(Palette::Orange);
 
 	// 設定ボタンの描画	
-	m_optionButton.draw(Palette::Silver);
+	//m_optionButton.draw(Palette::Silver);
 
 	// マウスが図形の上に来たら影ができる
 	if (m_optionButton.mouseOver())
 	{
-		m_optionButton.drawShadow(Vec2{ 2, 2 }, 12, 1).draw(ColorF{ 0.9, 0.8, 0.6 });
+		//m_optionButton.drawShadow(Vec2{ 2, 2 }, 12, 1).draw(ColorF{ 0.9, 0.8, 0.6 });
 	}
 	// 歯車マーク
 	const double iconX = 1600.0;
 	const double iconY = 950.0;
-	m_optionIcon.scaled(0.8).drawAt(iconX, iconY);
+	//m_optionIcon.scaled(0.8).drawAt(iconX, iconY);
 
 	// オプション画面の描画
 	if (m_gameState == GameState::Option)
 	{
-		m_gameOption->Draw();
+		//m_gameOption->Draw();
 	}
 }
 

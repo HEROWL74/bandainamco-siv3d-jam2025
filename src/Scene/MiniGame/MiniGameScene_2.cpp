@@ -222,21 +222,18 @@ void MiniGameScene_2::ClearUpdate()
 	if (m_timer > 0.5 && MouseL.down())
 	{
 		// 180秒以上経過しているか判定
-		const bool isTimeOver = (m_stopwatch.s() >= 180); // 180秒以上経過しているか
+		//const bool isTimeOver = (m_stopwatch.s() >= 180); // 180秒以上経過しているか
 
 		++m_puzzleIndex;
 
 		// まだ画像が残っている場合、かつ180秒経過していない場合
-		if (m_puzzleIndex < static_cast<int32>(m_puzzleImages.size()) && !isTimeOver)
+		if (m_puzzleIndex < static_cast<int32>(m_puzzleImages.size()))// && !isTimeOver)
 		{
 			m_puzzle->GameInit(m_puzzleImages[m_puzzleIndex]);
 			m_state = State::Playing;
 		}
-		// 画像が残ってない、または2分以上経過している場合
 		else
 		{
-			// 2分経過していたら、強制的にゲームクリア状態 (Finish) へ
-			// 2分経過していなくても、最後のパズルをクリアしたら Finish へ
 			m_state = State::Finish;
 		}
 	}

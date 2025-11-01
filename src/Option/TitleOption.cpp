@@ -36,5 +36,5 @@ void TitleOption::Draw() const
 
 	// ボタンの所に文字を描画
 	const Vec2 btnPos = OptionBase::m_btnPos;
-	m_exit(U"ゲームをやめる").drawAt(btnPos, ColorF{ Palette::White });
+	m_exit(U"ゲームをおわる").drawAt(btnPos, ColorF{ Palette::White });
 }

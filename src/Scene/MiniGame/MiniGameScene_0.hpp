@@ -51,6 +51,7 @@ private:
 		Vec2 pos;
 		double speedRatio; // 0.0:遠い(静止) - 1.0:近い(ノーツと同じ移動)
 		double size;
+		ColorF color;
 	};
 	Array<Star> m_stars; // 星のリスト
 

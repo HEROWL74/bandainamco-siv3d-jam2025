@@ -16,8 +16,8 @@ bool Settings::Load()
 		if (!json) return false;
 
 		masterVolume = json[U"masterVolume"].getOr<double>(1.0);
-		bgmVolume = json[U"bgmVolume"].getOr<double>(0.8);
-		seVolume = json[U"seVolume"].getOr<double>(0.8);
+		bgmVolume = json[U"bgmVolume"].getOr<double>(1.0);
+		seVolume = json[U"seVolume"].getOr<double>(1.0);
 
 		return true;
 	}
@@ -28,8 +28,8 @@ bool Settings::Load()
 
 	// ファイルがない場合
 	masterVolume = 1.0;
-	bgmVolume = 0.8;
-	seVolume = 0.8;
+	bgmVolume = 1.0;
+	seVolume = 1.0;
 
 	Save();
 

@@ -30,20 +30,20 @@ void Player::Update()
 	SetVelocity(Vec2{ 0, 0 });
 
 	// Eキーでイベントアニメーション開始
-	if (KeyE.down())
-	{
-		StartExclusiveAnimation(AnimationKeys::Event_0);
-		CharacterBase::Update();
-		return; // アニメーション時中は他の入力を無視
-	}
+	//if (KeyE.down())
+	//{
+	//	StartExclusiveAnimation(AnimationKeys::Event_0);
+	//	CharacterBase::Update();
+	//	return; // アニメーション時中は他の入力を無視
+	//}
 
-	// Qキーでイベントアニメーション開始
-	if (KeyQ.down())
-	{
-		StartExclusiveAnimation(AnimationKeys::Event_1);
-		CharacterBase::Update();
-		return;
-	}
+	//// Qキーでイベントアニメーション開始
+	//if (KeyQ.down())
+	//{
+	//	StartExclusiveAnimation(AnimationKeys::Event_1);
+	//	CharacterBase::Update();
+	//	return;
+	//}
 
 	// 移動入力
 	if (KeyW.pressed()) m_velocity.y -= 1;

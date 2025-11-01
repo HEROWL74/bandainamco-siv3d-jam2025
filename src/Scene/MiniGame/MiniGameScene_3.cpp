@@ -47,7 +47,7 @@ bool MiniGameScene_3::SystemInit()
 
 	// 画像のロード
 	m_earth = Texture{ U"Assets/Image/Earth.png" };
-	m_mouseImage = Texture(U"assets/Image/Mouse_LightClick.png");
+	m_mouseImage = Texture(U"assets/Image/Device/Mouse_LightClick.png");
 
 	m_movingBG->SystemInit();
 
@@ -84,7 +84,7 @@ void MiniGameScene_3::GameInit()
 	m_unpainted = false;
 
 	// BGM再生
-	getData().audio->PlayBGM(U"MiniGame3BGM", true,397s);
+	getData().audio->PlayBGM(U"MiniGame3BGM", true,820s);
 }
 
 void MiniGameScene_3::update()
@@ -313,9 +313,17 @@ void MiniGameScene_3::ClearUpdate()
 // 図形が完成してから次の図形までの処理関数
 void MiniGameScene_3::FinishUpdate()
 {
-	// クリックでゲームへ戻る
+	// クリックでタイトルへ戻る
 	if (MouseL.down())
 	{
+		auto& data = getData();
+		data.nextScene = (data.nextScene % 5) + 1; // 次のミニゲームへ進む設定
+
+		if (getData().audio)
+		{
+			getData().audio->StopBGM(1s); // フェードアウトしながら停止 (フェード時間は任意)
+		}
+		data.isGameClear = true;
 		changeScene(SceneState::GAME);
 	}
 }
