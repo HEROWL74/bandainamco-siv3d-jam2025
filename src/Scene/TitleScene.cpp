@@ -30,6 +30,7 @@ bool TitleScene::SystemInit()
 	if (data.audio)
 	{
 		data.audio->PreLoadBGM(U"TitleBGM", U"example/test.mp3");
+		m_clearSE = Audio(U"assets/sound/se/PuzzlePiace_Clear.mp3");
 	}
 
 	auto& audio = getData().audio;
@@ -184,15 +185,29 @@ void TitleScene::update()
 	}
 
 	// ゲームクリア時の演出処理
-	if (getData().isGameClear && m_clearTransitionStartTime == 0.0)
+	if (getData().isGameClear)
 	{
-		m_clearTransitionStartTime = Scene::Time();
+		if (m_clearTransitionStartTime == 0.0)
+		{
+			m_clearTransitionStartTime = Scene::Time();
+		}
+
+		if (!m_clearEffectPlayed)
+		{
+			// エフェクトを生成
+			m_effectManager.Add<GameClearEffect>(Scene::Center(), 1.5);
+			// SEを再生
+			m_clearSE.playOneShot();
+			m_clearEffectPlayed = true;
+		}
 	}
 	else if (!getData().isGameClear)
 	{
 		// クリア状態ではない場合、時間をリセット
 		m_clearTransitionStartTime = 0.0;
 	}
+
+	m_effectManager.Update();
 }
 
 
@@ -264,6 +279,8 @@ void TitleScene::draw()const
 			m_nextTrackIndex = clicked; // ← getData()ではなく自前変数に保存
 		}
 	}
+
+	m_effectManager.Draw();
 }
 
 int TitleScene::DrawMusicPanel() const
@@ -390,8 +407,6 @@ int TitleScene::DrawMusicPanel() const
 
 bool TitleScene::Release()
 {
-
-
 	return true;
 }
 

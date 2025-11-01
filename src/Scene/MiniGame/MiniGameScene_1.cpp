@@ -164,7 +164,6 @@ void MiniGameScene_1::loadBGMAndNotes()
 
 void MiniGameScene_1::updateReady()
 {
-
 	if (KeySpace.down())
 	{
 		m_gameStartTime = Scene::Time();

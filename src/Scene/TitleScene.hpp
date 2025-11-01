@@ -2,6 +2,8 @@
 #include <Siv3D.hpp>
 #include "SceneTransition.hpp"
 #include "../Option/TitleOption.hpp"
+#include "../Effect/EffectManager.hpp"
+#include "../Effect/GameClearEffect.hpp"
 #include <vector>
 
 enum class TitleState
@@ -46,6 +48,10 @@ private:
 	mutable int m_nextTrackIndex = -1; // -1は何も再生していない
 
 	double m_clearTransitionStartTime = 0.0;
+
+	Audio m_clearSE; // クリアSEを再生するためのAudioオブジェクト
+	bool m_clearEffectPlayed = false;
+	EffectManager m_effectManager;
 
 	int DrawMusicPanel() const;
 public:
