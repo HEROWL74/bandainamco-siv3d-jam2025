@@ -18,7 +18,7 @@ bool Application::init()
 	Window::Resize(WINDOW_WIDTH, WINDOW_HEIGHT);
 	Window::SetTitle(U"Siv3D MiniGame Collection");
 	Window::SetFullscreen(true);
-
+	Scene::SetResizeMode(ResizeMode::Actual);
 #ifdef NDEBUG
 	System::SetTerminationTriggers(UserAction::CloseButtonClicked);
 #endif
