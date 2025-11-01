@@ -38,27 +38,25 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="Siv3D.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="Siv3D.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)Intermediate\$(ProjectName)\Debug\</OutDir>
-    <IntDir>$(SolutionDir)Intermediate\$(ProjectName)\Debug\Intermediate\</IntDir>
+    <IntDir>$(SolutionDir)Intermediate\$(ProjectName)\Debug\</IntDir>
     <TargetName>$(ProjectName)(debug)</TargetName>
     <LocalDebuggerWorkingDirectory>$(ProjectDir)App</LocalDebuggerWorkingDirectory>
-    <IncludePath>$(SIV3D_0_6_16)\include;$(SIV3D_0_6_16)\include\ThirdParty;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SIV3D_0_6_16)\lib\Windows;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)Intermediate\$(ProjectName)\Release\</OutDir>
-    <IntDir>$(SolutionDir)Intermediate\$(ProjectName)\Release\Intermediate\</IntDir>
+    <IntDir>$(SolutionDir)Intermediate\$(ProjectName)\Release\</IntDir>
     <LocalDebuggerWorkingDirectory>$(ProjectDir)App</LocalDebuggerWorkingDirectory>
-    <IncludePath>$(SIV3D_0_6_16)\include;$(SIV3D_0_6_16)\include\ThirdParty;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SIV3D_0_6_16)\lib\Windows;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -67,7 +65,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_ENABLE_EXTENDED_ALIGNED_STORAGE;_SILENCE_CXX20_CISO646_REMOVED_WARNING;_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>26451;26812;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -94,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;_ENABLE_EXTENDED_ALIGNED_STORAGE;_SILENCE_CXX20_CISO646_REMOVED_WARNING;_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>26451;26812;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -114,14 +112,6 @@
       <Command>xcopy /I /D /Y "$(OutDir)$(TargetFileName)" "$(ProjectDir)App"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="Application.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-  </ItemGroup>
   <ItemGroup>
     <Image Include="App\engine\texture\box-shadow\128.png" />
     <Image Include="App\engine\texture\box-shadow\16.png" />
@@ -149,7 +139,7 @@
     <Image Include="App\icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="App\Resource.rc" />
+    <ResourceCompile Include="$(ProjectDir)App\Resource.rc" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="App\dll\soundtouch\COPYING.TXT" />
@@ -326,10 +316,6 @@
     <Xml Include="App\example\xml\test.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Application.hpp" />
-    <ClInclude Include="stdafx.h" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="App\example\obj\blacksmith.obj">
       <FileType>Document</FileType>
     </None>
@@ -413,6 +399,82 @@
     <None Include="App\example\shader\hlsl\terrain_normal.hlsl">
       <FileType>Document</FileType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Character\AnimationInfo.cpp" />
+    <ClCompile Include="src\Character\CharacterBase.cpp" />
+    <ClCompile Include="src\Character\MainCamera.cpp" />
+    <ClCompile Include="src\Character\Player.cpp" />
+    <ClCompile Include="src\Core\Application.cpp" />
+    <ClCompile Include="src\Core\Collision.cpp" />
+    <ClCompile Include="src\Effect\BubbleEffect.cpp" />
+    <ClCompile Include="src\Effect\EffectBase.cpp" />
+    <ClCompile Include="src\Effect\EffectManager.cpp" />
+    <ClCompile Include="src\Effect\GameClearEffect.cpp" />
+    <ClCompile Include="src\Effect\StarDustEffect.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Map\Door\Door.cpp" />
+    <ClCompile Include="src\Option\AudioManager.cpp" />
+    <ClCompile Include="src\Map\MapLoader.cpp" />
+    <ClCompile Include="src\Option\GameOption.cpp" />
+    <ClCompile Include="src\Option\OptionBase.cpp" />
+    <ClCompile Include="src\Option\Settings.cpp" />
+    <ClCompile Include="src\Option\TitleOption.cpp" />
+    <ClCompile Include="src\Scene\GameScene.cpp" />
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_1.cpp" />
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_2.cpp" />
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_2\Animal.cpp" />
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_2\Piece.cpp" />
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_2\Puzzle.cpp" />
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_3.cpp" />
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_0.cpp" />
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_3\MovingBackground.cpp" />
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_3\PlayerLine.cpp" />
+    <ClCompile Include="src\Scene\MiniGame\MiniGameScene_3\ShapeManager.cpp" />
+    <ClCompile Include="src\Scene\ResultScene.cpp" />
+    <ClCompile Include="src\Scene\SceneTransition.cpp" />
+    <ClCompile Include="src\Scene\TitleScene.cpp" />
+    <ClCompile Include="src\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ShapeManager.hpp" />
+    <ClInclude Include="src\Character\AnimationInfo.hpp" />
+    <ClInclude Include="src\Character\CharacterBase.hpp" />
+    <ClInclude Include="src\Character\MainCamera.hpp" />
+    <ClInclude Include="src\Character\Player.hpp" />
+    <ClInclude Include="src\Core\Application.hpp" />
+    <ClInclude Include="src\Effect\BubbleEffect.hpp" />
+    <ClInclude Include="src\Effect\EffectManager.hpp" />
+    <ClInclude Include="src\Effect\EffectBase.hpp" />
+    <ClInclude Include="src\Effect\GameClearEffect.hpp" />
+    <ClInclude Include="src\Effect\StarDustEffect.hpp" />
+    <ClInclude Include="src\Map\Door\Door.hpp" />
+    <ClInclude Include="src\Option\AudioManager.hpp" />
+    <ClInclude Include="src\Core\Collision.hpp" />
+    <ClInclude Include="src\Map\MapLoader.hpp" />
+    <ClInclude Include="src\Render\Spotlight.hpp" />
+    <ClInclude Include="src\Option\GameOption.hpp" />
+    <ClInclude Include="src\Option\OptionBase.hpp" />
+    <ClInclude Include="src\Option\Settings.hpp" />
+    <ClInclude Include="src\Option\TitleOption.hpp" />
+    <ClInclude Include="src\Scene\GameScene.hpp" />
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_1.hpp" />
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_2.hpp" />
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_2\Animal.hpp" />
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_2\Piece.hpp" />
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_2\Puzzle.hpp" />
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_3.hpp" />
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_0.hpp" />
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_3\MovingBackground.hpp" />
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_3\PlayerLine.hpp" />
+    <ClInclude Include="src\Scene\MiniGame\MiniGameScene_3\ShapeManager.hpp" />
+    <ClInclude Include="src\Scene\ResultScene.hpp" />
+    <ClInclude Include="src\Scene\SceneTransition.hpp" />
+    <ClInclude Include="src\Scene\TitleScene.hpp" />
+    <ClInclude Include="src\stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

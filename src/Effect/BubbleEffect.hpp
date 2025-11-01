@@ -1,0 +1,29 @@
+﻿#pragma once
+
+#include "EffectBase.hpp"
+#include <Siv3D.hpp>
+
+class MainCamera;
+
+/// @brief 泡エフェクト（例）
+/// - Update()/Draw() は EffectBase の契約に従う
+class BubbleEffect : public EffectBase
+{
+private:
+	struct Bubble
+	{
+		Vec2 offset;
+		double startTime;
+		double scale;
+		ColorF color;
+	};
+
+	Array<Bubble> m_bubbles;
+
+public:
+	BubbleEffect(const Vec2& pos, double lifeSpanSec, double baseHue);
+
+	void Update() override;
+	void Draw() const override;
+	void Draw(const MainCamera& camera) const override;
+};

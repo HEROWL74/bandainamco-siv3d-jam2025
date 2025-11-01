@@ -1,0 +1,63 @@
+name: CI Build
+
+on:
+  push:
+    branches:
+      - develop
+      - 'feature/**'
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+        platform: [x64]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download OpenSiv3D v0.6.16 (Windows SDK)
+        shell: pwsh
+        run: |
+          $url = "https://siv3d.jp/downloads/Siv3D/manual/0.6.16/OpenSiv3D_SDK_0.6.16.zip"
+          curl -L $url -o siv3d-sdk.zip
+
+          New-Item -ItemType Directory -Force -Path sdk | Out-Null
+          Expand-Archive -Path siv3d-sdk.zip -DestinationPath sdk -Force
+
+          $sdkRoot = (Resolve-Path 'sdk\OpenSiv3D_SDK_0.6.16').Path
+          "SIV3D_0_6_16=$sdkRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "SIV3D_0_6_16=$sdkRoot"
+
+          if (-not (Test-Path "$sdkRoot\include\Siv3D.hpp")) {
+            Write-Host "---- DIR LIST (sdkRoot) ----"
+            Get-ChildItem -Recurse -Depth 3 $sdkRoot
+            throw "Siv3D.hpp not found at $sdkRoot\include\Siv3D.hpp"
+          }
+          if (-not (Test-Path "$sdkRoot\lib\Windows\Siv3D.lib")) {
+            throw "Siv3D.lib not found at $sdkRoot\lib\Windows"
+          }
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Clean build directories
+        run: |
+          if (Test-Path "Intermediate") { Remove-Item -Recurse -Force "Intermediate" }
+          if (Test-Path "x64") { Remove-Item -Recurse -Force "x64" }
+
+      - name: Build (single-threaded to avoid obj lock)
+        shell: pwsh
+        run: |
+          msbuild "Siv3DGameJam2025Project.sln" `
+            /p:Configuration=${{ matrix.configuration }} `
+            /p:Platform=${{ matrix.platform }} `
+            /m:1 `
+            /t:Clean,Build
