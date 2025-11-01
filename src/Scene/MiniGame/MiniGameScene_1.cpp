@@ -11,7 +11,7 @@ MiniGameScene_1::MiniGameScene_1(const InitData& init)
 	, m_font24(24)
 	, m_font64(64, Typeface::Bold)
 	, m_timeIcon(U"🕒"_emoji)
-	, m_keyboardTexture(U"assets/Image/Keybord.png")
+	, m_keyboardTexture(U"assets/Image/Device/Keybord.png")
 	, m_BackgroundTexture(U"assets/Image/Background/DinosaurBackground.jpg")
 {
 	m_laneAudios[0] = Audio{ GMInstrument::TaikoDrum, PianoKey::C3, 0.5s };

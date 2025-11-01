@@ -42,7 +42,7 @@ bool MiniGameScene_2::SystemInit()
 		U"Assets/Image/Portrait/Beethoven.jpg",
 	};
 
-	m_mouseImage = Texture(U"assets/Image/Mouse_LightClick.png");
+	m_mouseImage = Texture(U"assets/Image/Device/Mouse_LightClick.png");
 
 	// BGMのプリロード
 	if (getData().audio)
