@@ -18,13 +18,13 @@ private:
 	Array<Item> m_items;							// 画面上に存在する動く画像
 
 	// 設定パラメータ
-	int32 m_spawnCount{ 3 };						// 画面に同時に存在する数
+	int32 m_spawnCount{ 4 };						// 画面に同時に存在する数
 	double m_minSpeed{ 30.0 };						// px / 秒（最小）
-	double m_maxSpeed{ 120.0 };						// px / 秒（最大）
+	double m_maxSpeed{ 160.0 };						// px / 秒（最大）
 	double m_minAngular{ -15_deg };					// 回転速度の最小
 	double m_maxAngular{ 15_deg };					// 回転速度の最大
 	double m_minScale{ 0.4 };						// 縮尺最小
-	double m_maxScale{ 1.2 };						// 縮尺最大
+	double m_maxScale{ 0.9 };						// 縮尺最大
 	double m_spawnMargin{ 40.0 };					// 画面外から出現させる余白
 
 	void SpawnOne(Item& it);						// 1個を初期化（新規or再スポーン）

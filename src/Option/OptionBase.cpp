@@ -39,7 +39,7 @@ void OptionBase::GameInit()
 	m_closeMark = Font{ FontMethod::MSDF, 30 };
 
 	// オプション画面下方のボタンの位置とサイズ設定
-	m_btnPos = { m_optionWindowPos.x + m_optionWindowSize.x / 2.0, Scene::Height() - m_optionWindowPos.y * 2.5 };				// 左上の位置
+	m_btnPos = { m_optionWindowPos.x + m_optionWindowSize.x / 2.0, Scene::Height() - m_optionWindowPos.y * 4.0 };				// 左上の位置
 	m_btnSize = { m_optionWindowSize.x / 4.0, m_optionWindowSize.y / 5.0 };														// 縦幅と横幅
 	RectF btn = RectF{ Arg::center(m_btnPos), m_btnSize };																		// ボタンの定義
 	m_btn = btn.rounded(round);																									// 角を丸くする

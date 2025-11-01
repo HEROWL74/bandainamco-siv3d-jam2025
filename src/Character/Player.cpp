@@ -30,20 +30,20 @@ void Player::Update()
 	SetVelocity(Vec2{ 0, 0 });
 
 	// Eキーでイベントアニメーション開始
-	if (KeyE.down())
-	{
-		StartExclusiveAnimation(AnimationKeys::Event_0);
-		CharacterBase::Update();
-		return; // アニメーション時中は他の入力を無視
-	}
+	//if (KeyE.down())
+	//{
+	//	StartExclusiveAnimation(AnimationKeys::Event_0);
+	//	CharacterBase::Update();
+	//	return; // アニメーション時中は他の入力を無視
+	//}
 
-	// Qキーでイベントアニメーション開始
-	if (KeyQ.down())
-	{
-		StartExclusiveAnimation(AnimationKeys::Event_1);
-		CharacterBase::Update();
-		return;
-	}
+	//// Qキーでイベントアニメーション開始
+	//if (KeyQ.down())
+	//{
+	//	StartExclusiveAnimation(AnimationKeys::Event_1);
+	//	CharacterBase::Update();
+	//	return;
+	//}
 
 	// 移動入力
 	if (KeyW.pressed()) m_velocity.y -= 1;
@@ -128,7 +128,7 @@ void Player::DrawLight(const MainCamera& camera) const
 {	
 	Vec2 playerScreenPos = camera.GetViewMatrix().transformPoint(m_position); // プレイヤーに追従
 	const Vec2 lightCenterPos = Scene::Center(); // 画面中央に固定
-	const double maxRadius = Scene::Size().length() / 4.0; // 画面全体を覆う半径
+	const double maxRadius = Scene::Size().length() / 3.0; // 画面全体を覆う半径
 
 	// 懐中電灯の方向計算
 	Vec2 dir = m_lightDirection; 
@@ -169,8 +169,8 @@ void Player::DrawLight(const MainCamera& camera) const
 	// 懐中電灯の光
 	{
 		// 光の強さと範囲
-		const double MAX_LENGTH = length * 1.0;
-		constexpr double MAX_ALPHA = 0.25;
+		const double MAX_LENGTH = length * 1.2;
+		constexpr double MAX_ALPHA = 0.18;
 
 		const ColorF centerColor = ColorF(m_lightColor_Bright, MAX_ALPHA);
 		const ColorF outerColor = ColorF{ 0.0 };

@@ -2,7 +2,7 @@
 #include "../../../Effect/BubbleEffect.hpp"
 
 Puzzle::Puzzle()
-	:m_helpFont(20)
+	:m_helpFont(23)
 	, m_hintFont(18)
 {
 
@@ -140,7 +140,7 @@ void Puzzle::Draw() const
 {
 	// ヘルプ
 	m_helpFont(U"マウスを左クリックしてパズルををつかむよ！").draw(20, 50, Palette::Red);
-	m_hintFont(U"ピースが光ったら正しい位置に近づいているよ！").draw(20, 70, Palette::Aqua);
+	m_helpFont(U"ピースが光ったら正しい位置に近づいているよ！").draw(20, 80, Palette::Red);
 
 	// ボード背景を完成図にする
 	const double boardW = m_gridN * (m_tileSizeScreen + m_margin) - m_margin;
@@ -185,7 +185,7 @@ void Puzzle::Draw() const
 			if (p.IsNear(m_snapRange)) {
 				RectF rect(p.m_pos.x - m_tileSizeScreen / 2.0, p.m_pos.y - m_tileSizeScreen / 2.0, m_tileSizeScreen, m_tileSizeScreen);
 				rect.draw(ColorF(0.9, 1.0, 0.9, 0.8));
-				rect.drawFrame(0, 4, Palette::Greenyellow);
+				rect.drawFrame(0, 8, Palette::Greenyellow);
 			}
 
 			// 描画

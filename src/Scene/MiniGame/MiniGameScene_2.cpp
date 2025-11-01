@@ -42,7 +42,7 @@ bool MiniGameScene_2::SystemInit()
 		U"Assets/Image/Portrait/Beethoven.jpg",
 	};
 
-	m_mouseImage = Texture(U"assets/Image/Mouse_LightClick.png");
+	m_mouseImage = Texture(U"assets/Image/Device/Mouse_LightClick.png");
 
 	// BGMのプリロード
 	if (getData().audio)
@@ -222,21 +222,18 @@ void MiniGameScene_2::ClearUpdate()
 	if (m_timer > 0.5 && MouseL.down())
 	{
 		// 180秒以上経過しているか判定
-		const bool isTimeOver = (m_stopwatch.s() >= 180); // 180秒以上経過しているか
+		//const bool isTimeOver = (m_stopwatch.s() >= 180); // 180秒以上経過しているか
 
 		++m_puzzleIndex;
 
 		// まだ画像が残っている場合、かつ180秒経過していない場合
-		if (m_puzzleIndex < static_cast<int32>(m_puzzleImages.size()) && !isTimeOver)
+		if (m_puzzleIndex < static_cast<int32>(m_puzzleImages.size()))// && !isTimeOver)
 		{
 			m_puzzle->GameInit(m_puzzleImages[m_puzzleIndex]);
 			m_state = State::Playing;
 		}
-		// 画像が残ってない、または2分以上経過している場合
 		else
 		{
-			// 2分経過していたら、強制的にゲームクリア状態 (Finish) へ
-			// 2分経過していなくても、最後のパズルをクリアしたら Finish へ
 			m_state = State::Finish;
 		}
 	}
@@ -294,8 +291,17 @@ void MiniGameScene_2::ClearDraw() const
 // ゲームクリアした状態の更描画処理
 void MiniGameScene_2::FinishDraw() const
 {
-	const Vec2 fontPos = { Scene::Width() / 8.0, Scene::Height() / 4.0 };
-	const Vec2 center = Scene::Center();
-	m_bigFont(U"ゲームクリア！").drawAt(center, Palette::Red);
-	m_bigFont(U"左クリックで戻ろう！").drawAt(center.movedBy(0, 250), Palette::Red);
+	const double sceneWidth = Scene::Width();
+	const double sceneHeight = Scene::Height();
+	// 画面中央のX座標
+	const double centerX = sceneWidth / 2.0;
+
+	// 黒い半透明な背景パネル
+	RectF(0, sceneHeight * 0.3, sceneWidth, sceneHeight * 0.4).draw(ColorF(0.0, 0.0, 0.0, 0.5));
+
+	// 結果
+	m_bigFont(U"ゲームクリア！").drawAt({ centerX, sceneHeight * 0.5 }, Palette::Yellow);
+
+	// 終了メッセージ
+	m_bigFont(U"マウスを左クリックすると戻れるよ！").drawAt(32,{ centerX, sceneHeight * 0.6 }, Palette::White);
 }
