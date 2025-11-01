@@ -34,16 +34,20 @@ bool MiniGameScene_3::SystemInit()
 {
 	m_playerLine = std::make_unique<PlayerLine>();
 	m_shapeManager = std::make_unique<ShapeManager>();
+	m_movingBG = std::make_unique<MovingBackground>();
 
-	m_state = PlayerState::Idle;
-
-	m_font = Font{ FontMethod::MSDF, 24, Typeface::Heavy };
+	m_font = Font{ FontMethod::MSDF, 48, Typeface::Heavy };
 
 	// BGMのロード
 	if (getData().audio)
 	{
 		getData().audio->PreLoadBGM(U"MiniGame3BGM", U"example/test.mp3");
 	}
+
+	// 画像のロード
+	m_earth = Texture{ U"Assets/Image/Earth.png" };
+
+	m_movingBG->SystemInit();
 
 	return true;
 }
@@ -56,6 +60,15 @@ void MiniGameScene_3::GameInit()
 
 	m_playerLine->GameInit();
 
+	m_movingBG->GameInit();
+	// 背景に出てくる画像達の設定
+	m_movingBG->SetSpawnCount(4);
+	m_movingBG->SetSpeedRange(30.0, 120.0);
+	m_movingBG->SetAngularRange(-30_deg, 30_deg);
+	m_movingBG->SetScaleRange(0.4, 1.2);
+
+	m_state = PlayerState::Idle;
+
 	m_shapeIndex = 0;
 	m_currentHausdorff = Math::Inf;
 	m_needRecalc = false;
@@ -63,12 +76,26 @@ void MiniGameScene_3::GameInit()
 
 	m_gameStartTime = Scene::Time();
 
+	m_earthRotateAngle = 0.0;
+	m_earthRotateSpeed = 5_deg;
+
+	m_isTimeOver = false;
+
 	// BGM再生
-	getData().audio->PlayBGM(U"MiniGame3BGM", true);
+	//getData().audio->PlayBGM(U"MiniGame3BGM", true);
 }
 
 void MiniGameScene_3::update()
 {
+	m_movingBG->Update();
+
+	// 地球の回転する速度
+	m_earthRotateAngle += m_earthRotateSpeed * Scene::DeltaTime();
+	m_earthRotateAngle = std::fmod(m_earthRotateAngle, Math::TwoPi);			// 2πで余剰をとって値が大きくなりすぎないようにする
+
+	// ストップウォッチ（3分で終了）
+	m_isTimeOver = (m_stopwatch.s() >= 180);
+
 	switch (m_state)
 	{
 	case PlayerState::Idle:
@@ -118,7 +145,14 @@ void MiniGameScene_3::draw() const
 		Circle{ starX, star.pos.y, star.size }
 		.draw(ColorF{ star.color.r, star.color.g, star.color.b, 0.1 + star.speedRatio * 0.7 });
 	}
-	Print << U"MiniGame Scene 3: Click to return to Game Scene";
+	//Print << U"MiniGame Scene 3: Click to return to Game Scene";
+
+	// 背景の動くもの
+	m_movingBG->Draw();
+
+	// 下方に地球を描画
+	m_earth.rotated(m_earthRotateAngle).drawAt(Scene::Width() / 2.0, Scene::Height() * 6.0 / 5.0);
+		
 
 	switch (m_state)
 	{
@@ -161,6 +195,13 @@ void MiniGameScene_3::PlayingUpdate()
 		m_needRecalc = false;
 	}
 
+	// Rキーでクリアに状態遷移
+	if (KeyR.down())
+	{
+		m_shapeIndex++;
+		m_state = PlayerState::Clear;		
+	}
+
 	// 残り時間を減らす
 	m_time -= Scene::DeltaTime();
 	// 制限時間が0になった時
@@ -173,6 +214,9 @@ void MiniGameScene_3::PlayingUpdate()
 		const double targetPitch = -2.5;														// 変更するピッチの目標値
 		const double newPitch = Math::Lerp(currentPitch, targetPitch, 0.02);					// ピッチを徐々に目標値に近づける
 		getData().audio->SetBGMPitch(U"MiniGame3BGM", newPitch);
+
+		// 地球の回転も遅くする
+		m_earthRotateSpeed = 2_deg;
 
 	}
 
@@ -212,17 +256,11 @@ void MiniGameScene_3::PlayingUpdate()
 			// 成功
 			m_shapeIndex++;
 			getData().audio->SetBGMPitch(U"MiniGame3BGM", 0.0);				// ピッチを元に戻す
-			const bool isTimeOver = (m_stopwatch.s() >= 10);
 
-			if (m_shapeIndex >= m_shapeManager->Count() || isTimeOver)
-			{
-				m_state = PlayerState::Finish;
-				return;
-			}
-			else
-			{
-				m_state = PlayerState::Clear;
-			}
+			// 地球の速度を元に戻す
+			m_earthRotateSpeed = 5_deg;
+
+			m_state = PlayerState::Clear;
 		}
 	}
 }
@@ -237,7 +275,16 @@ void MiniGameScene_3::ClearUpdate()
 		m_currentHausdorff = Math::Inf;
 		m_needRecalc = false;
 		StartTimer();
-		m_state = PlayerState::Playing;
+
+		if (m_shapeIndex >= m_shapeManager->Count() || m_isTimeOver)
+		{
+			m_state = PlayerState::Finish;
+			return;
+		}
+		else
+		{
+			m_state = PlayerState::Playing;
+		}
 	}
 }
 
@@ -277,8 +324,14 @@ void MiniGameScene_3::PlayingDraw() const
 
 // 図完成時の描画処理
 void MiniGameScene_3::ClearDraw() const
-{
-	m_font(U"クリア！左クリックでつぎへ").drawAt(Scene::Center());
+{	
+	const Polygon& poly = m_shapeManager->GetPolygon(m_shapeIndex - 1);					// なぞった図形を取得
+	const Vec2 pos{ Scene::Width() / 2.0, 0.0 };										// 描画する図形の位置
+	const double s = 0.7;																// 描画する図形の縮小率
+	poly.scaledAt(pos, s).draw(ColorF{Palette::Yellow});								// 図形を描画
+
+	const Vec2 fontPos{ Scene::Width() / 2.0, 100.0 };
+	m_font(U"クリア！左クリックでつぎへ").drawAt(fontPos);
 }
 
 // ゲームクリア時の描画処理

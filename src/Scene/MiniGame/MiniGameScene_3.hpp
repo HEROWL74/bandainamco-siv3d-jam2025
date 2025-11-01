@@ -4,6 +4,7 @@
 #include "../SceneTransition.hpp"
 #include "../MiniGame/MiniGameScene_3/PlayerLine.hpp"
 #include "../MiniGame/MiniGameScene_3/ShapeManager.hpp"
+#include "../MiniGame/MiniGameScene_3/MovingBackground.hpp"
 
 
 enum class PlayerState
@@ -20,6 +21,7 @@ private:
 	PlayerState m_state;
 	std::unique_ptr<class PlayerLine> m_playerLine;
 	std::unique_ptr<class ShapeManager> m_shapeManager;
+	std::unique_ptr<class MovingBackground> m_movingBG;
 
 	Font m_font;
 	int32 m_shapeIndex;											// 図形の番号
@@ -43,8 +45,13 @@ private:
 	};
 	Array<Star> m_stars; // 星のリスト
 
-	double m_gameStartTime = 0.0;
+	Texture m_earth;											// 地球の画像
+	double m_earthRotateAngle;									// 回る角度
+	double m_earthRotateSpeed;									// 角速度
+
+	double m_gameStartTime{ 0.0 };
 	Stopwatch m_stopwatch;
+	bool m_isTimeOver;											// 時間経過したかのフラグ
 
 	//各状態時の更新処理関数
 	void IdleUpdate();
