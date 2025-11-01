@@ -14,7 +14,7 @@ bool MovingBackground::SystemInit()
 	m_textures << Texture{ U"Assets/Image/Dinosaur/Tyrannosaurus.png" };
 	m_textures << Texture{ U"Assets/Image/Dinosaur/Triceratops.png" };
 	m_textures << Texture{ U"Assets/Image/Dinosaur/Stegosaurus.png" };
-	m_textures << Texture{ U"Assets/Image/Dinosaur/lguanodon.png" };
+	m_textures << Texture{ U"Assets/Image/Dinosaur/Iguanodon.png" };
 	m_textures << Texture{ U"Assets/Image/Animal/eto_uma_furikaeri.png" };
 	m_textures << Texture{ U"Assets/Image/Animal/eto_remake_ushi.png" };
 	m_textures << Texture{ U"Assets/Image/Animal/bird_aoitori_bluebird.png" };

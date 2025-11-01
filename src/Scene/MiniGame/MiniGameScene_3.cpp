@@ -8,6 +8,7 @@ MiniGameScene_3::MiniGameScene_3(const InitData& init)
 	, m_shapeIndex(0)
 	, m_currentHausdorff(Math::Inf)
 	, m_needRecalc(false)
+	, m_font(100)
 {
 	for (int i = 0; i < 300; ++i) // 300個の星を作成
 	{
@@ -36,16 +37,18 @@ bool MiniGameScene_3::SystemInit()
 	m_shapeManager = std::make_unique<ShapeManager>();
 	m_movingBG = std::make_unique<MovingBackground>();
 
-	m_font = Font{ FontMethod::MSDF, 100, Typeface::Heavy };
+	
 
 	// BGMのロード
 	if (getData().audio)
 	{
-		getData().audio->PreLoadBGM(U"MiniGame3BGM", U"example/test.mp3");
+		getData().audio->PreLoadBGM(U"MiniGame3BGM", U"assets/sound/bgm/No9_4th.mp3");
+		m_clearSE = Audio(U"assets/sound/se/PuzzlePiace_Clear.mp3");
 	}
 
 	// 画像のロード
 	m_earth = Texture{ U"Assets/Image/Earth.png" };
+	m_mouseImage = Texture(U"assets/Image/Mouse_LightClick.png");
 
 	m_movingBG->SystemInit();
 
@@ -83,7 +86,7 @@ void MiniGameScene_3::GameInit()
 	m_unpainted = false;
 
 	// BGM再生
-	getData().audio->PlayBGM(U"MiniGame3BGM", true);
+	getData().audio->PlayBGM(U"MiniGame3BGM", true,397s);
 }
 
 void MiniGameScene_3::update()
@@ -97,6 +100,7 @@ void MiniGameScene_3::update()
 	// ストップウォッチ（3分で終了）
 	m_isTimeOver = (m_stopwatch.s() >= 180);
 
+	m_effectManager.Update();
 	switch (m_state)
 	{
 	case PlayerState::Idle:
@@ -113,7 +117,7 @@ void MiniGameScene_3::update()
 
 	case PlayerState::Finish:
 		FinishUpdate();
-		break;	
+		break;
 	}
 }
 
@@ -153,7 +157,8 @@ void MiniGameScene_3::draw() const
 
 	// 下方に地球を描画
 	m_earth.rotated(m_earthRotateAngle).drawAt(Scene::Width() / 2.0, Scene::Height() * 6.0 / 5.0);
-		
+
+	m_effectManager.Draw();
 
 	switch (m_state)
 	{
@@ -178,7 +183,7 @@ void MiniGameScene_3::draw() const
 // アイドル状態の時の処理関数
 void MiniGameScene_3::IdleUpdate()
 {
-	if (KeyS.down())
+	if (MouseL.down())
 	{
 		m_stopwatch.start();
 		StartGame();
@@ -196,12 +201,20 @@ void MiniGameScene_3::PlayingUpdate()
 		m_needRecalc = false;
 	}
 
+	
+#ifdef _DEBUG
 	// Rキーでクリアに状態遷移
 	if (KeyR.down())
 	{
 		m_shapeIndex++;
-		m_state = PlayerState::Clear;		
+		m_state = PlayerState::Clear;
+
+		if (m_clearSE)
+		{
+			m_clearSE.playOneShot();
+		}
 	}
+#endif // DEBUG
 
 	// 残り時間を減らす
 	m_time -= Scene::DeltaTime();
@@ -262,6 +275,12 @@ void MiniGameScene_3::PlayingUpdate()
 			m_earthRotateSpeed = 5_deg;
 
 			m_state = PlayerState::Clear;
+
+			m_effectManager.Add<GameClearEffect>(Scene::Center(), 1.5);
+			if (m_clearSE)
+			{
+				m_clearSE.playOneShot();
+			}
 		}
 		else
 		{
@@ -299,7 +318,7 @@ void MiniGameScene_3::FinishUpdate()
 {
 	// クリックでゲームへ戻る
 	if (MouseL.down())
-	{		
+	{
 		changeScene(SceneState::GAME);
 	}
 }
@@ -307,7 +326,17 @@ void MiniGameScene_3::FinishUpdate()
 // 待機時の描画処理
 void MiniGameScene_3::IdleDraw() const
 {
-	m_font(U"Sキーでスタート").drawAt(Scene::Center());
+	const Vec2 center = Scene::Center();
+
+	m_font(U"マウスを左クリックして図形をなぞるよ！").drawAt(80, center.movedBy(0, -300), Palette::White);
+
+	// 2. マウス画像の描画
+	if (m_mouseImage)
+	{
+		m_mouseImage.scaled(0.8).drawAt(center);
+	}
+
+	m_font(U"左クリックでスタート").drawAt(center.movedBy(0, 300), Palette::White);
 }
 
 // プレイ時の描画処理
@@ -330,26 +359,38 @@ void MiniGameScene_3::PlayingDraw() const
 	if (m_unpainted)
 	{
 		const Vec2 fontPos{ Scene::Width() / 2.0, 150.0 };
-		m_font(U"まだ塗り足りてないよ！").drawAt(fontPos, ColorF{Palette::Orange});
+		m_font(U"まだ塗り足りてないよ！").drawAt(fontPos, ColorF{ Palette::Orange });
 	}
 }
 
 // 図完成時の描画処理
 void MiniGameScene_3::ClearDraw() const
-{	
+{
 	const Polygon& poly = m_shapeManager->GetPolygon(m_shapeIndex - 1);					// なぞった図形を取得
 	const Vec2 pos{ Scene::Width() / 2.0, 0.0 };										// 描画する図形の位置
 	const double s = 0.7;																// 描画する図形の縮小率
-	poly.scaledAt(pos, s).draw(ColorF{Palette::Yellow});								// 図形を描画
+	poly.scaledAt(pos, s).draw(ColorF{ Palette::Yellow });								// 図形を描画
 
-	const Vec2 fontPos{ Scene::Width() / 2.0, Scene::Height() * 2 / 3};
+	const Vec2 fontPos{ Scene::Width() / 2.0, Scene::Height() * 2 / 3 };
 	m_font(U"クリア！左クリックでつぎへ").drawAt(fontPos);
 }
 
 // ゲームクリア時の描画処理
 void MiniGameScene_3::FinishDraw() const
 {
-	m_font(U"ゲームクリア！おめでとう！").drawAt(Scene::Center());
+	const double sceneWidth = Scene::Width();
+	const double sceneHeight = Scene::Height();
+	// 画面中央のX座標
+	const double centerX = sceneWidth / 2.0;
+
+	// 黒い半透明な背景パネル
+	RectF(0, sceneHeight * 0.3, sceneWidth, sceneHeight * 0.4).draw(ColorF(0.0, 0.0, 0.0, 0.5));
+
+	// 結果
+	m_font(U"ゲームクリア！").drawAt({ centerX, sceneHeight * 0.5 }, Palette::Yellow);
+
+	// 終了メッセージ
+	m_font(U"マウスを左クリックすると戻れるよ！").drawAt(64, { centerX, sceneHeight * 0.6 }, Palette::White);
 }
 
 
@@ -429,7 +470,7 @@ bool MiniGameScene_3::IsStrokeVaildAsShape(const LineString& userLine, const Lin
 	}
 	if (visitedIndices.empty()) return false;
 
-	visitedIndices.sort();	
+	visitedIndices.sort();
 	visitedIndices.erase(std::unique(visitedIndices.begin(), visitedIndices.end()), visitedIndices.end());		// 念のため
 
 	// 連続して訪れたインデックス間の最大ギャップ（循環）

@@ -5,7 +5,8 @@
 #include "../MiniGame/MiniGameScene_3/PlayerLine.hpp"
 #include "../MiniGame/MiniGameScene_3/ShapeManager.hpp"
 #include "../MiniGame/MiniGameScene_3/MovingBackground.hpp"
-
+#include "../../Effect/EffectManager.hpp"
+#include "../../Effect/GameClearEffect.hpp"
 
 enum class PlayerState
 {
@@ -54,6 +55,11 @@ private:
 	double m_gameStartTime{ 0.0 };
 	Stopwatch m_stopwatch;
 	bool m_isTimeOver;											// 時間経過したかのフラグ
+
+	Texture m_mouseImage;
+
+	Audio m_clearSE;                //パズルクリア時のSE
+	EffectManager m_effectManager;
 
 	//各状態時の更新処理関数
 	void IdleUpdate();
