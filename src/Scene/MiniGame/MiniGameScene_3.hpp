@@ -16,6 +16,16 @@ enum class PlayerState
 	Finish,
 };
 
+// 判定結果の構造体
+struct CoverageResult
+{
+	double coverage = 0.0;					// 0..1 (通過率)
+	int visitedCount = 0;
+	int baseCount = 0;
+	int maxGap = 0;
+	Array<char32> visited;					// 各 base 点の訪問フラグ（描画用に公開）
+};
+
 class MiniGameScene_3 : public App::Scene
 {
 private:
@@ -31,12 +41,11 @@ private:
 	const double m_timeLimit{ 20.0 };							// 制限時間
 	const double m_minDist{ 6.0 };								// 線の描画を開始する最小の距離
 	const double m_hausdorffThreshold{ 50.0 };					// 始点と終点がほぼ繋がったとみなす距離
-	const double m_coverageThreshold{ 0.6 };					// base点のうちどのくらい通ったらOKかをみなす割合
-	const double m_contiguousThreshold{ 0.7 };					// 連続でカバーしている割合
+	const double m_coverageThreshold{ 0.85 };					// base点のうちどのくらい通ったらOKかをみなす割合
 
 	// 判定キャッシュ
-	double m_currentHausdorff;
 	bool m_needRecalc;
+	CoverageResult m_lastCoverage;								// ComputeCoverageの最新結果を保存
 
 	bool m_unpainted;												// 塗り足りてないか（true：足りてない）
 
@@ -78,6 +87,7 @@ private:
 	void StartTimer();
 	double GetRemainingTime() const;
 	bool IsStrokeVaildAsShape(const LineString& userLine, const LineString& base);
+	CoverageResult ComputeCoverage(const LineString& userLine, const LineString& base, double radius);
 
 public:
 	MiniGameScene_3(const InitData& init);

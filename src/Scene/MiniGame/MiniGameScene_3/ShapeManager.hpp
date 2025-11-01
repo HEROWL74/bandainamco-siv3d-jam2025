@@ -18,6 +18,7 @@ public:
 	int Count() const { return static_cast<int32>(m_shapes.size()); }
 	const Polygon& GetPolygon(int32 index) const { return m_shapes.at(index); }
 	const LineString& GetDensifiedBase(int index) const { return m_bases.at(index); }
+	const int32& GetDensifyStep() const { return m_densifyStep; }
 
 	void RecreateForCenter(const Vec2& center, double size);								// ウィンドウサイズ変更時に再設定する場合に使う
 };
