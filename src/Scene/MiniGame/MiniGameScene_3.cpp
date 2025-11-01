@@ -6,7 +6,6 @@ MiniGameScene_3::MiniGameScene_3(const InitData& init)
 	, m_playerLine(nullptr)
 	, m_shapeManager(nullptr)
 	, m_shapeIndex(0)
-	, m_currentHausdorff(Math::Inf)
 	, m_needRecalc(false)
 {
 	for (int i = 0; i < 300; ++i) // 300個の星を作成
@@ -70,7 +69,6 @@ void MiniGameScene_3::GameInit()
 	m_state = PlayerState::Idle;
 
 	m_shapeIndex = 0;
-	m_currentHausdorff = Math::Inf;
 	m_needRecalc = false;
 	m_time = m_timeLimit;
 
@@ -192,7 +190,6 @@ void MiniGameScene_3::PlayingUpdate()
 	if (MouseR.down())
 	{
 		m_playerLine->LineClear();
-		m_currentHausdorff = Math::Inf;
 		m_needRecalc = false;
 	}
 
@@ -221,6 +218,12 @@ void MiniGameScene_3::PlayingUpdate()
 
 	}
 
+	// 判定用に使う userLine = merged など
+	LineString userDense = m_playerLine->GetMergeLine().densified(m_shapeManager->GetDensifyStep());
+	const LineString& base = m_shapeManager->GetDensifiedBase(m_shapeIndex);
+
+	m_lastCoverage = ComputeCoverage(userDense, base, m_hausdorffThreshold);
+
 	// 点が追加されたら再計算
 	const Point pos = Cursor::Pos();
 	bool added = m_playerLine->Update(pos, m_minDist);
@@ -232,7 +235,6 @@ void MiniGameScene_3::PlayingUpdate()
 	if (m_needRecalc && !m_playerLine->GetLine().empty())
 	{
 		const LineString& base = m_shapeManager->GetDensifiedBase(m_shapeIndex);
-		m_currentHausdorff = Geometry2D::HausdorffDistance(base, m_playerLine->GetMergeLine());
 		m_needRecalc = false;
 	}
 
@@ -246,13 +248,9 @@ void MiniGameScene_3::PlayingUpdate()
 
 		const LineString& base = m_shapeManager->GetDensifiedBase(m_shapeIndex);
 
-		// 1) 従来の hausdorff も保持しておく
-		m_currentHausdorff = Geometry2D::HausdorffDistance(base, closedUser);
-
-		// 2) 新しい厳密判定（カバー＋連続性）
+		// なぞった率85％でクリア
 		bool ok = IsStrokeVaildAsShape(closedUser, base);
-
-		if (ok && IsFinite(m_currentHausdorff) && m_currentHausdorff <= m_hausdorffThreshold)
+		if (ok)
 		{
 			// 成功
 			m_shapeIndex++;
@@ -277,7 +275,6 @@ void MiniGameScene_3::ClearUpdate()
 	{
 		// 次の図形へ
 		m_playerLine->LineClear();
-		m_currentHausdorff = Math::Inf;
 		m_needRecalc = false;
 		m_unpainted = false;
 		StartTimer();
@@ -320,17 +317,38 @@ void MiniGameScene_3::PlayingDraw() const
 	m_playerLine->Draw();
 
 	// UI
-	m_font(U"Shape: {}/{}"_fmt(m_shapeIndex + 1, m_shapeManager->Count())).draw(20, Vec2{ 20, 20 });			// 現在の図形 / 最大図形数
-	m_font(U"Time: {:.1f}"_fmt(GetRemainingTime())).draw(20, Vec2{ 20, 56 });									// 時間制限
-	if (IsFinite(m_currentHausdorff))
+	m_font(U"じかん: {:.1f}"_fmt(GetRemainingTime())).draw(80, Vec2{ 20, 45});									// 時間制限
+
+	// 判定用に使う userLine = merged など
+	const LineString& base = m_shapeManager->GetDensifiedBase(m_shapeIndex);
+
+	// UI 表示
+	ColorF fontColor = (m_lastCoverage.coverage * 100 >= 85) ? ColorF{ Palette::Yellow } : ColorF{ Palette::White };
+	m_font(U"クリアまで: {:}%"_fmt(static_cast<int32>(m_lastCoverage.coverage * 100))).draw(80, Vec2{ 20, 128 }, fontColor);
+
+	// 通るべき点（通った点）の描画
+	if (m_lastCoverage.baseCount == static_cast<int32>(base.size()))
 	{
-		m_font(U"Hausdorff: {:.1f}"_fmt(m_currentHausdorff)).draw(20, Vec2{ 20, 92 });
+		for (int i = 0; i < m_lastCoverage.baseCount; ++i)
+		{
+			const Vec2 p = base[i];
+			if (m_lastCoverage.visited[i])
+			{
+				// 訪問済みは目立たせる（塗りつぶし）
+				Circle{ p, 6 }.draw(ColorF{ 0.2, 0.9, 1.0, 1.0 }); // シアン、不透明
+			}
+			else
+			{
+				// 未訪問は薄めに表示
+				Circle{ p, 5 }.draw(ColorF{ 0.5, 0.5, 0.5, 0.4 });
+			}
+		}
 	}
 
 	if (m_unpainted)
 	{
-		const Vec2 fontPos{ Scene::Width() / 2.0, 150.0 };
-		m_font(U"まだ塗り足りてないよ！").drawAt(fontPos, ColorF{Palette::Orange});
+		const Vec2 fontPos{ 20, 220.0 };
+		m_font(U"塗り足りない！").draw(60, fontPos, ColorF{Palette::Orange});
 	}
 }
 
@@ -360,7 +378,6 @@ void MiniGameScene_3::StartGame()
 {
 	m_shapeIndex = 0;
 	m_playerLine->LineClear();
-	m_currentHausdorff = Math::Inf;
 	m_needRecalc = false;
 	m_state = PlayerState::Playing;
 	StartTimer();
@@ -390,11 +407,29 @@ bool MiniGameScene_3::IsStrokeVaildAsShape(const LineString& userLine, const Lin
 	const double endDist = firstPoint.distanceFrom(lastPoint);
 	if (endDist > m_minDist) return false;
 
-	// 3) baseの各点がuserLineのどれに近いか判定
-	Array<char32> visited(baseCount, 0);
+	// 3) coverageを計算
+	CoverageResult cr = ComputeCoverage(userLine, base, m_hausdorffThreshold);
+	if (cr.coverage < m_coverageThreshold) return false;
+
+	// すべての条件をみたしたらOK
+	return true;
+}
+
+
+CoverageResult MiniGameScene_3::ComputeCoverage(const LineString& userLine, const LineString& base, double radius)
+{ 
+	CoverageResult res;
+	const int32 baseCount = static_cast<int32>(base.size());
+	res.baseCount = baseCount;
+	if (baseCount == 0) return res;
+
+	LineString user = userLine;
+
+	res.visited.assign(baseCount, 0);
 	int32 visitedCount = 0;
-	// userLineの点をループして近いbase点を探す
-	for (const auto& u : userLine)
+
+	// 各 user 点について最も近い base 点を探す
+	for (const auto& u : user)
 	{
 		double bestDist = DBL_MAX;
 		int bestIndex = -1;
@@ -407,45 +442,41 @@ bool MiniGameScene_3::IsStrokeVaildAsShape(const LineString& userLine, const Lin
 				bestIndex = i;
 			}
 		}
-		// 近ければそのbase点を訪問済みにする
-		if (bestIndex >= 0 && bestDist <= m_hausdorffThreshold)
+		if (bestIndex >= 0 && bestDist <= radius)
 		{
-			if (!visited[bestIndex])
+			if (!res.visited[bestIndex])
 			{
-				visited[bestIndex] = 1;
+				res.visited[bestIndex] = 1;
 				++visitedCount;
 			}
 		}
 	}
 
-	const double coverage = static_cast<double>(visitedCount) / static_cast<double>(baseCount);
-	if (coverage < m_coverageThreshold) return false;
+	res.visitedCount = visitedCount;
+	res.coverage = static_cast<double>(visitedCount) / static_cast<double>(baseCount);
 
-	// 4) 連続カバー判定
+	// 連続カバー判定（既存ロジックを踏襲）
 	Array<int32> visitedIndices;
-	for (int i = 0; i < baseCount; ++i)
+	for (int i = 0; i < baseCount; ++i) if (res.visited[i]) visitedIndices << i;
+	if (visitedIndices.empty())
 	{
-		if (visited[i]) visitedIndices << i;
+		res.maxGap = baseCount;
+		return res;
 	}
-	if (visitedIndices.empty()) return false;
 
-	visitedIndices.sort();	
-	visitedIndices.erase(std::unique(visitedIndices.begin(), visitedIndices.end()), visitedIndices.end());		// 念のため
+	visitedIndices.sort();
+	visitedIndices.erase(std::unique(visitedIndices.begin(), visitedIndices.end()), visitedIndices.end());
 
-	// 連続して訪れたインデックス間の最大ギャップ（循環）
 	int32 maxGap = 0;
-	for (size_t i = 0; i < visitedIndices.size(); ++i)
+	for (size_t k = 0; k < visitedIndices.size(); ++k)
 	{
-		int32 cur = visitedIndices[i];
-		int32 nxt = visitedIndices[(i + 1) % visitedIndices.size()];
-		// 円周上の方向で現在位置から次の位置までの距離を計算し、端点は含めない
+		int32 cur = visitedIndices[k];
+		int32 nxt = visitedIndices[(k + 1) % visitedIndices.size()];
 		int32 gap = ((nxt - cur - 1) + baseCount) % baseCount;
 		if (gap > maxGap) maxGap = gap;
 	}
+	res.maxGap = maxGap;
 	int32 contiguousVisited = baseCount - maxGap;
-	double contiguousRatio = static_cast<double>(contiguousVisited) / static_cast<double>(baseCount);
-	if (contiguousRatio < m_contiguousThreshold) return false;
 
-	// すべての条件をみたしたらOK
-	return true;
+	return res;
 }

@@ -1,7 +1,7 @@
 ﻿#include "ShapeManager.hpp"
 
 ShapeManager::ShapeManager()
-	:m_densifyStep(8)
+	:m_densifyStep(25)
 {
 
 }
