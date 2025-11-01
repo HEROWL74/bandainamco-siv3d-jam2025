@@ -57,7 +57,7 @@ void PlayerLine::Draw() const
 	{
 		if (!line.empty())
 		{
-			line.draw(10, HSV{ 10, 1.0, 0.95 });
+			line.draw(20, HSV{ 10, 1.0, 0.95 });
 		}
 	}
 }
